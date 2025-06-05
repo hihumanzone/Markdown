@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown & LaTeX Renderer (KaTeX)</title>
+    <title>Markdown & LaTeX Renderer (KaTeX Fixed)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
@@ -88,17 +88,24 @@
             <textarea id="markdownInput" placeholder="Type or paste Markdown here...
 Example:
 # Hello World
-This is **bold** and *italic*.
+This is **bold** and *italic*. Underscores for emphasis: _test_
 
 A list:
 - Item 1
 - Item 2
 
-Math: $E = mc^2$ or display math:
+Math (KaTeX will render these):
+Inline: $E = mc^2$ or \( \alpha + \beta \)
+Display:
 $$
 \sum_{i=0}^{n} i = \frac{n(n+1)}{2}
 $$
-Supported delimiters for KaTeX: $...$, $$...$$, \(...\), \[...\]"></textarea>
+\[
+\text{H}_2\text{O} \quad \text{or} \quad \text{H}_{2}\text{O} \quad \text{or H$_2$O}
+\]
+The mass of $\text{H}_2\text{SO}_4$ is important.
+The final answer is $\boxed{107.875\%}$.
+"></textarea>
             <button id="renderMarkdownBtn">Render Markdown</button>
         </div>
 
@@ -113,15 +120,17 @@ A more complex equation:
 \[
 \int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
 \]
-You MUST include delimiters like $...$, $$...$$, \(...\), or \[...\] for KaTeX to render."></textarea>
+You MUST include delimiters like $...$, $$...$$, \(...\), or \[...\] for KaTeX to render.
+$\boxed{\text{Standalone Test}}$
+"></textarea>
             <button id="renderLatexBtn">Render LaTeX</button>
         </div>
 
         <div class="info">
             <p><strong>How it works:</strong></p>
             <ul>
-                <li><strong>Markdown Rendering:</strong> Uses Marked.js (v12.0.2). Supports CommonMark and GFM features.</li>
-                <li><strong>LaTeX Math Rendering:</strong> Uses KaTeX (v0.16.10). It will process LaTeX math delimiters like <code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, and <code>\[...\]</code>.</li>
+                <li><strong>Markdown Rendering:</strong> Uses Marked.js (v12.0.2). LaTeX within Markdown is preserved using placeholders before Marked.js parsing, then reinserted.</li>
+                <li><strong>LaTeX Math Rendering:</strong> Uses KaTeX (v0.16.10) in the new tab. It processes LaTeX math delimiters like <code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, and <code>\[...\]</code>.</li>
                 <li>The rendered output will open in a new tab. Ensure your browser allows pop-ups for this site.</li>
             </ul>
         </div>
@@ -137,7 +146,7 @@ You MUST include delimiters like $...$, $$...$$, \(...\), or \[...\] for KaTeX t
         // --- Basic styling for the body of the rendered page to center content ---
         const RENDERED_PAGE_BODY_STYLE = `
             <style>
-                body.markdown-body { /* Apply to markdown-body for better specificity */
+                body.markdown-body {
                     box-sizing: border-box;
                     min-width: 200px;
                     max-width: 980px;
@@ -152,22 +161,24 @@ You MUST include delimiters like $...$, $$...$$, \(...\), or \[...\] for KaTeX t
             </style>
         `;
 
-        // --- Script to configure and run KaTeX auto-render in the new tab ---
-        // Note: double backslashes are needed for \ in strings that become part of another script.
-        const KATEX_AUTORENDER_CONFIG_SCRIPT = `
-            document.addEventListener("DOMContentLoaded", function() {
-                renderMathInElement(document.body, {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "$", right: "$", display: false, throwOnError: false},
-                        {left: "\\\\(", right: "\\\\)", display: false},
-                        {left: "\\\\[", right: "\\\\]", display: true}
-                        // You can add more custom delimiters if needed
-                    ],
-                    throwOnError: false // false: KaTeX will render an error message in place.
-                                       // true: KaTeX will throw a JavaScript error.
-                });
-            });
+        // --- Script to define KaTeX initialization function and options for the new tab ---
+        const KATEX_INIT_LOGIC = `
+            function initKatexAutoRender() {
+                if (typeof renderMathInElement === 'function') {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "\\\\[", right: "\\\\]", display: true},
+                            {left: "$", right: "$", display: false, throwOnError: false},
+                            {left: "\\\\(", right: "\\\\)", display: false}
+                        ],
+                        throwOnError: false // Global fallback for errors
+                    });
+                } else {
+                    console.error("KaTeX auto-render.min.js did not load or renderMathInElement is not defined. Retrying in 100ms.");
+                    setTimeout(initKatexAutoRender, 100); // Simple retry mechanism
+                }
+            }
         `;
 
         function openInNewTab(htmlContent, pageTitle = "Rendered Output") {
@@ -185,47 +196,90 @@ You MUST include delimiters like $...$, $$...$$, \(...\), or \[...\] for KaTeX t
                         <link rel="stylesheet" href="${KATEX_CSS_LINK}">
                         ${RENDERED_PAGE_BODY_STYLE}
 
-                        <!-- KaTeX core library -->
-                        <script defer src="${KATEX_JS_LINK}"><\/script>
-                        <!-- KaTeX auto-render extension -->
-                        <script defer src="${KATEX_AUTORENDER_JS_LINK}"><\/script>
-                        <!-- Script to run KaTeX auto-render after DOM is loaded and scripts are ready -->
+                        <!-- Define the KaTeX init function FIRST -->
                         <script>
-                            ${KATEX_AUTORENDER_CONFIG_SCRIPT}
+                            ${KATEX_INIT_LOGIC}
                         <\/script>
+
+                        <!-- Then load KaTeX core and auto-render extension -->
+                        <!-- The auto-render script's onload will call initKatexAutoRender -->
+                        <script defer src="${KATEX_JS_LINK}"><\/script>
+                        <script defer src="${KATEX_AUTORENDER_JS_LINK}" onload="initKatexAutoRender()"><\/script>
                     </head>
                     <body class="markdown-body">
                         ${htmlContent}
                     </body>
                     </html>
                 `);
-                newTab.document.close(); // Important for scripts to execute
+                newTab.document.close();
             } else {
                 alert("Failed to open new tab. Please check your pop-up blocker settings.");
             }
         }
 
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function preprocessMarkdownForKatex(markdownText) {
+            const mathExpressions = [];
+            let mathIndex = 0;
+            let tempText = markdownText;
+
+            // Helper to replace math blocks with placeholders
+            const addPlaceholder = (regex, type, originalOpen, originalClose) => {
+                tempText = tempText.replace(regex, (match, content) => {
+                    const placeholder = `%%${type}_MATH_PLACEHOLDER_${mathIndex}%%`;
+                    mathExpressions.push({ placeholder, content, originalOpen, originalClose });
+                    mathIndex++;
+                    return placeholder;
+                });
+            };
+
+            // Order of replacement matters: display math first, then inline.
+            // 1. $$...$$
+            addPlaceholder(/\$\$([\s\S]*?)\$\$/g, 'DISPLAY_SS', '$$', '$$');
+            // 2. \[...\]
+            addPlaceholder(/\\\[([\s\S]*?)\\\]/g, 'DISPLAY_BRACKET', '\\[', '\\]');
+            // 3. $...$ (ensure it's not part of an already processed display math)
+            // The non-greedy ([\s\S]+?) is key. Since display math is already placeholder-ized, this is safer.
+            addPlaceholder(/\$([\s\S]+?)\$/g, 'INLINE_S', '$', '$');
+            // 4. \(...\)
+            addPlaceholder(/\\\(([\s\S]*?)\\\)/g, 'INLINE_PAREN', '\\(', '\\)');
+
+            // Configure Marked.js
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                smartypants: false // Disable smartypants to prevent quote changes that might affect LaTeX
+            });
+            let html = marked.parse(tempText); // Parse the text with placeholders
+
+            // Restore the original LaTeX content from placeholders
+            // Iterate in reverse order of storage in case of any (unlikely) nested placeholder scenarios.
+            for (let i = mathExpressions.length - 1; i >= 0; i--) {
+                const item = mathExpressions[i];
+                const preservedKatexString = item.originalOpen + item.content + item.originalClose;
+                // Make sure to escape the placeholder for use in RegExp
+                const placeholderRegex = new RegExp(escapeRegExp(item.placeholder), "g");
+                html = html.replace(placeholderRegex, preservedKatexString);
+            }
+            return html;
+        }
+
         document.getElementById('renderMarkdownBtn').addEventListener('click', () => {
             const markdownText = document.getElementById('markdownInput').value;
-            // Configure marked
-            marked.setOptions({
-                gfm: true,        // GitHub Flavored Markdown
-                breaks: true,     // Add <br> on single newlines
-                smartypants: true // Use "smart" typographic punctuation
-            });
-            const htmlFromMarkdown = marked.parse(markdownText);
-            openInNewTab(htmlFromMarkdown, "Rendered Markdown");
+            const htmlWithPreservedKatex = preprocessMarkdownForKatex(markdownText);
+            openInNewTab(htmlWithPreservedKatex, "Rendered Markdown");
         });
 
         document.getElementById('renderLatexBtn').addEventListener('click', () => {
             const latexText = document.getElementById('latexInput').value;
             // For standalone LaTeX, KaTeX auto-render will process the text directly.
             // The user MUST include delimiters (e.g., $$, $, \(\), \[\]) in their input.
-            // We wrap it in a div to ensure it's part of the body content that auto-render scans.
-            const htmlWithLatex = `<div>${latexText}</div>`;
+            const htmlWithLatex = `<div>${latexText}</div>`; // Wrap to ensure it's processed
             openInNewTab(htmlWithLatex, "Rendered LaTeX");
         });
-
     </script>
 </body>
 </html>
