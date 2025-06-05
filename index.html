@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown & LaTeX Renderer (KaTeX Fixed)</title>
+    <title>Markdown & LaTeX Renderer (KaTeX)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
@@ -109,60 +109,42 @@ The final answer is $\boxed{107.875\%}$.
             <button id="renderMarkdownBtn">Render Markdown</button>
         </div>
 
-        <div class="input-section">
-            <h2>LaTeX Input (Standalone Math)</h2>
-            <label for="latexInput">Paste your LaTeX (primarily for math expressions with delimiters):</label>
-            <textarea id="latexInput" placeholder="Type or paste LaTeX math expressions here...
-Example:
-The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$.
-
-A more complex equation:
-\[
-\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-\]
-You MUST include delimiters like $...$, $$...$$, \(...\), or \[...\] for KaTeX to render.
-$\boxed{\text{Standalone Test}}$
-"></textarea>
-            <button id="renderLatexBtn">Render LaTeX</button>
-        </div>
-
         <div class="info">
             <p><strong>How it works:</strong></p>
             <ul>
-                <li><strong>Markdown Rendering:</strong> Uses Marked.js (v12.0.2). LaTeX within Markdown is preserved using placeholders before Marked.js parsing, then reinserted.</li>
-                <li><strong>LaTeX Math Rendering:</strong> Uses KaTeX (v0.16.10) in the new tab. It processes LaTeX math delimiters like <code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, and <code>\[...\]</code>.</li>
+                <li><strong>Markdown Rendering:</strong> Uses Marked.js. LaTeX within Markdown is preserved using placeholders before Marked.js parsing, then reinserted.</li>
+                <li><strong>LaTeX Math Rendering:</strong> Uses KaTeX in the new tab. It processes LaTeX math delimiters like <code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, and <code>\[...\]</code>.</li>
                 <li>The rendered output will open in a new tab. Ensure your browser allows pop-ups for this site.</li>
             </ul>
         </div>
     </div>
 
     <script>
-        // --- CDN Links for libraries to be used in the new tab ---
+        // --- Configuration Constants ---
         const GITHUB_MARKDOWN_CSS_LINK = 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css';
         const KATEX_CSS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css';
         const KATEX_JS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js';
         const KATEX_AUTORENDER_JS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js';
 
-        // --- Basic styling for the body of the rendered page to center content ---
         const RENDERED_PAGE_BODY_STYLE = `
-            <style>
+        <style>
+            body.markdown-body {
+                box-sizing: border-box;
+                min-width: 200px;
+                max-width: 980px;
+                margin: 0 auto;
+                padding: 45px;
+            }
+            @media (max-width: 767px) {
                 body.markdown-body {
-                    box-sizing: border-box;
-                    min-width: 200px;
-                    max-width: 980px;
-                    margin: 0 auto;
-                    padding: 45px;
+                    padding: 15px;
                 }
-                @media (max-width: 767px) {
-                    body.markdown-body {
-                        padding: 15px;
-                    }
-                }
-            </style>
+            }
+        </style>
         `;
 
-        // --- Script to define KaTeX initialization function and options for the new tab ---
-        const KATEX_INIT_LOGIC = `
+        const KATEX_INIT_SCRIPT = `
+        <script>
             function initKatexAutoRender() {
                 if (typeof renderMathInElement === 'function') {
                     renderMathInElement(document.body, {
@@ -172,15 +154,90 @@ $\boxed{\text{Standalone Test}}$
                             {left: "$", right: "$", display: false, throwOnError: false},
                             {left: "\\\\(", right: "\\\\)", display: false}
                         ],
-                        throwOnError: false // Global fallback for errors
+                        throwOnError: false // Don't halt rendering on a single bad expression
                     });
                 } else {
                     console.error("KaTeX auto-render.min.js did not load or renderMathInElement is not defined. Retrying in 100ms.");
-                    setTimeout(initKatexAutoRender, 100); // Simple retry mechanism
+                    setTimeout(initKatexAutoRender, 100); // Retry if KaTeX hasn't loaded yet
                 }
             }
+            // Ensure KaTeX auto-render script calls initKatexAutoRender on load
+        <\/script>
         `;
 
+        // --- DOM Elements ---
+        const markdownInputElement = document.getElementById('markdownInput');
+        const renderButtonElement = document.getElementById('renderMarkdownBtn');
+
+        // Configure Marked.js (globally for this script)
+        marked.setOptions({
+            gfm: true,      // Enable GitHub Flavored Markdown
+            breaks: true,   // Treat newlines as <br>
+            smartypants: false // Avoid smart quotes/dashes for better LaTeX compatibility
+        });
+
+        // --- Utility Functions ---
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+        }
+
+        // --- Core Logic Functions ---
+
+        /**
+         * Preprocesses Markdown text to protect KaTeX expressions before Markdown parsing.
+         * It replaces LaTeX blocks with placeholders, parses Markdown, then restores LaTeX.
+         * @param {string} markdownText - The raw Markdown text.
+         * @returns {string} HTML string with KaTeX expressions preserved.
+         */
+        function preprocessMarkdownForKatex(markdownText) {
+            const mathExpressions = [];
+            let mathIndex = 0;
+            let tempText = markdownText;
+
+            // Helper to find math expressions and replace them with placeholders
+            const addPlaceholder = (regex, type, originalOpen, originalClose) => {
+                tempText = tempText.replace(regex, (match, content) => {
+                    // Ensure content is not empty or just whitespace for some delimiters
+                    // to avoid issues with marked.js and empty placeholders.
+                    if (content.trim() === "") return match;
+
+                    const placeholder = `%%${type}_MATH_PLACEHOLDER_${mathIndex}%%`;
+                    mathExpressions.push({ placeholder, content, originalOpen, originalClose });
+                    mathIndex++;
+                    return placeholder;
+                });
+            };
+
+            // Order matters: Process display math first, then inline.
+            // Otherwise, inline regex might match parts of display math.
+            addPlaceholder(/\$\$([\s\S]*?)\$\$/g, 'DISPLAY_SS', '$$', '$$');
+            addPlaceholder(/\\\[([\s\S]*?)\\\]/g, 'DISPLAY_BRACKET', '\\[', '\\]');
+            // For inline, ensure it's not just a single $ surrounded by spaces (common in currency)
+            // This regex for inline $...$ is a bit more robust than just /$(.+?)$/g
+            // It tries to avoid matching single dollar signs in text like "price is $5."
+            // It looks for a non-space character after the first $ and before the last $.
+            addPlaceholder(/\$([^\s$](?:[\s\S]*?[^\s$])?)\$/g, 'INLINE_S', '$', '$');
+            addPlaceholder(/\\\(([\s\S]*?)\\\)/g, 'INLINE_PAREN', '\\(', '\\)');
+
+            let html = marked.parse(tempText);
+
+            // Restore KaTeX expressions, iterating backwards to handle nested placeholders correctly (if any)
+            // and to avoid issues with string length changes during replacement.
+            for (let i = mathExpressions.length - 1; i >= 0; i--) {
+                const item = mathExpressions[i];
+                const preservedKatexString = item.originalOpen + item.content + item.originalClose;
+                // Use a global regex for replacement in case a placeholder appears multiple times (unlikely here but good practice)
+                const placeholderRegex = new RegExp(escapeRegExp(item.placeholder), "g");
+                html = html.replace(placeholderRegex, preservedKatexString);
+            }
+            return html;
+        }
+
+        /**
+         * Opens a new browser tab and writes the provided HTML content into it.
+         * @param {string} htmlContent - The HTML content to display in the new tab.
+         * @param {string} [pageTitle="Rendered Output"] - The title for the new tab.
+         */
         function openInNewTab(htmlContent, pageTitle = "Rendered Output") {
             const newTab = window.open('', '_blank');
             if (newTab) {
@@ -195,14 +252,7 @@ $\boxed{\text{Standalone Test}}$
                         <link rel="stylesheet" href="${GITHUB_MARKDOWN_CSS_LINK}">
                         <link rel="stylesheet" href="${KATEX_CSS_LINK}">
                         ${RENDERED_PAGE_BODY_STYLE}
-
-                        <!-- Define the KaTeX init function FIRST -->
-                        <script>
-                            ${KATEX_INIT_LOGIC}
-                        <\/script>
-
-                        <!-- Then load KaTeX core and auto-render extension -->
-                        <!-- The auto-render script's onload will call initKatexAutoRender -->
+                        ${KATEX_INIT_SCRIPT}
                         <script defer src="${KATEX_JS_LINK}"><\/script>
                         <script defer src="${KATEX_AUTORENDER_JS_LINK}" onload="initKatexAutoRender()"><\/script>
                     </head>
@@ -217,69 +267,13 @@ $\boxed{\text{Standalone Test}}$
             }
         }
 
-        function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-
-        function preprocessMarkdownForKatex(markdownText) {
-            const mathExpressions = [];
-            let mathIndex = 0;
-            let tempText = markdownText;
-
-            // Helper to replace math blocks with placeholders
-            const addPlaceholder = (regex, type, originalOpen, originalClose) => {
-                tempText = tempText.replace(regex, (match, content) => {
-                    const placeholder = `%%${type}_MATH_PLACEHOLDER_${mathIndex}%%`;
-                    mathExpressions.push({ placeholder, content, originalOpen, originalClose });
-                    mathIndex++;
-                    return placeholder;
-                });
-            };
-
-            // Order of replacement matters: display math first, then inline.
-            // 1. $$...$$
-            addPlaceholder(/\$\$([\s\S]*?)\$\$/g, 'DISPLAY_SS', '$$', '$$');
-            // 2. \[...\]
-            addPlaceholder(/\\\[([\s\S]*?)\\\]/g, 'DISPLAY_BRACKET', '\\[', '\\]');
-            // 3. $...$ (ensure it's not part of an already processed display math)
-            // The non-greedy ([\s\S]+?) is key. Since display math is already placeholder-ized, this is safer.
-            addPlaceholder(/\$([\s\S]+?)\$/g, 'INLINE_S', '$', '$');
-            // 4. \(...\)
-            addPlaceholder(/\\\(([\s\S]*?)\\\)/g, 'INLINE_PAREN', '\\(', '\\)');
-
-            // Configure Marked.js
-            marked.setOptions({
-                gfm: true,
-                breaks: true,
-                smartypants: false // Disable smartypants to prevent quote changes that might affect LaTeX
-            });
-            let html = marked.parse(tempText); // Parse the text with placeholders
-
-            // Restore the original LaTeX content from placeholders
-            // Iterate in reverse order of storage in case of any (unlikely) nested placeholder scenarios.
-            for (let i = mathExpressions.length - 1; i >= 0; i--) {
-                const item = mathExpressions[i];
-                const preservedKatexString = item.originalOpen + item.content + item.originalClose;
-                // Make sure to escape the placeholder for use in RegExp
-                const placeholderRegex = new RegExp(escapeRegExp(item.placeholder), "g");
-                html = html.replace(placeholderRegex, preservedKatexString);
-            }
-            return html;
-        }
-
-        document.getElementById('renderMarkdownBtn').addEventListener('click', () => {
-            const markdownText = document.getElementById('markdownInput').value;
+        // --- Event Listeners ---
+        renderButtonElement.addEventListener('click', () => {
+            const markdownText = markdownInputElement.value;
             const htmlWithPreservedKatex = preprocessMarkdownForKatex(markdownText);
-            openInNewTab(htmlWithPreservedKatex, "Rendered Markdown");
+            openInNewTab(htmlWithPreservedKatex, "Rendered Markdown & LaTeX");
         });
 
-        document.getElementById('renderLatexBtn').addEventListener('click', () => {
-            const latexText = document.getElementById('latexInput').value;
-            // For standalone LaTeX, KaTeX auto-render will process the text directly.
-            // The user MUST include delimiters (e.g., $$, $, \(\), \[\]) in their input.
-            const htmlWithLatex = `<div>${latexText}</div>`; // Wrap to ensure it's processed
-            openInNewTab(htmlWithLatex, "Rendered LaTeX");
-        });
     </script>
 </body>
 </html>
