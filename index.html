@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown & LaTeX Renderer (KaTeX)</title>
+    <title>Markdown & LaTeX Renderer</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
@@ -75,12 +75,11 @@
             border-bottom: none;
         }
     </style>
-    <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Markdown & LaTeX Renderer (with KaTeX)</h1>
+        <h1>Markdown & LaTeX Renderer</h1>
 
         <div class="input-section">
             <h2>Markdown Input</h2>
@@ -88,11 +87,7 @@
             <textarea id="markdownInput" placeholder="Type or paste Markdown here...
 Example:
 # Hello World
-This is **bold** and *italic*. Underscores for emphasis: _test_
-
-A list:
-- Item 1
-- Item 2
+This is **bold** and *italic*.
 
 Math (KaTeX will render these):
 Inline: $E = mc^2$ or \( \alpha + \beta \)
@@ -101,10 +96,8 @@ $$
 \sum_{i=0}^{n} i = \frac{n(n+1)}{2}
 $$
 \[
-\text{H}_2\text{O} \quad \text{or} \quad \text{H}_{2}\text{O} \quad \text{or H$_2$O}
+\text{H}_2\text{O} \quad \text{or H$_2$O}
 \]
-The mass of $\text{H}_2\text{SO}_4$ is important.
-The final answer is $\boxed{107.875\%}$.
 "></textarea>
             <button id="renderMarkdownBtn">Render Markdown</button>
         </div>
@@ -112,15 +105,15 @@ The final answer is $\boxed{107.875\%}$.
         <div class="info">
             <p><strong>How it works:</strong></p>
             <ul>
-                <li><strong>Markdown Rendering:</strong> Uses Marked.js. LaTeX within Markdown is preserved using placeholders before Marked.js parsing, then reinserted.</li>
-                <li><strong>LaTeX Math Rendering:</strong> Uses KaTeX in the new tab. It processes LaTeX math delimiters like <code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, and <code>\[...\]</code>.</li>
-                <li>The rendered output will open in a new tab. Ensure your browser allows pop-ups for this site.</li>
+                <li>Markdown rendering via Marked.js. LaTeX is preserved.</li>
+                <li>LaTeX math rendering via KaTeX in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
+                <li>Font size controls are available in the rendered output tab.</li>
+                <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
         </div>
     </div>
 
     <script>
-        // --- Configuration Constants ---
         const GITHUB_MARKDOWN_CSS_LINK = 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css';
         const KATEX_CSS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css';
         const KATEX_JS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js';
@@ -134,17 +127,18 @@ The final answer is $\boxed{107.875\%}$.
                 max-width: 980px;
                 margin: 0 auto;
                 padding: 45px;
+                padding-top: 70px; /* Space for font controls */
             }
             @media (max-width: 767px) {
                 body.markdown-body {
                     padding: 15px;
+                    padding-top: 60px;
                 }
             }
         </style>
         `;
 
-        const KATEX_INIT_SCRIPT = `
-        <script>
+        const KATEX_INIT_LOGIC = `
             function initKatexAutoRender() {
                 if (typeof renderMathInElement === 'function') {
                     renderMathInElement(document.body, {
@@ -154,53 +148,82 @@ The final answer is $\boxed{107.875\%}$.
                             {left: "$", right: "$", display: false, throwOnError: false},
                             {left: "\\\\(", right: "\\\\)", display: false}
                         ],
-                        throwOnError: false // Don't halt rendering on a single bad expression
+                        throwOnError: false
                     });
                 } else {
                     console.error("KaTeX auto-render.min.js did not load or renderMathInElement is not defined. Retrying in 100ms.");
-                    setTimeout(initKatexAutoRender, 100); // Retry if KaTeX hasn't loaded yet
+                    setTimeout(initKatexAutoRender, 100);
                 }
             }
-            // Ensure KaTeX auto-render script calls initKatexAutoRender on load
-        <\/script>
         `;
 
-        // --- DOM Elements ---
+        const FONT_CONTROL_UI_HTML = `
+        <div id="font-controls" style="position: fixed; top: 10px; right: 10px; background: rgba(240,240,240,0.95); padding: 8px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; gap: 5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px;">
+            <button id="decreaseFontBtn" title="Decrease font size" style="padding: 4px 8px; cursor: pointer; border: 1px solid #ccc; background-color: #fff; border-radius: 3px;">-</button>
+            <span id="currentFontSizeDisplay" style="min-width: 40px; text-align: center; padding: 0 5px; color: #333;">100%</span>
+            <button id="increaseFontBtn" title="Increase font size" style="padding: 4px 8px; cursor: pointer; border: 1px solid #ccc; background-color: #fff; border-radius: 3px;">+</button>
+            <button id="resetFontBtn" title="Reset font size" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; border-radius: 3px;">Reset</button>
+        </div>
+        `;
+
+        const FONT_SIZE_CONTROL_SCRIPT_LOGIC = `
+        function setupFontSizeControls() {
+            const body = document.querySelector('body.markdown-body');
+            const increaseButton = document.getElementById('increaseFontBtn');
+            const decreaseButton = document.getElementById('decreaseFontBtn');
+            const resetButton = document.getElementById('resetFontBtn');
+            const display = document.getElementById('currentFontSizeDisplay');
+
+            if (!body || !increaseButton || !decreaseButton || !resetButton || !display) {
+                console.error("Font size control elements not found. Ensure IDs are correct and DOM is ready.");
+                return;
+            }
+
+            const LS_KEY = 'renderedOutputFontSizePercent';
+            const BASE_FONT_SIZE_PX = 16; // Assumed from github-markdown.css
+            const STEP_PERCENT = 10;
+            const MIN_PERCENT = 50;
+            const MAX_PERCENT = 300;
+            const DEFAULT_PERCENT = 100;
+
+            let currentPercent = parseInt(localStorage.getItem(LS_KEY) || DEFAULT_PERCENT, 10);
+
+            function applyFontSize(percent) {
+                currentPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, percent));
+                body.style.fontSize = \`\${(BASE_FONT_SIZE_PX * currentPercent) / 100}px\`;
+                display.textContent = \`\${currentPercent}%\`;
+                localStorage.setItem(LS_KEY, currentPercent);
+            }
+
+            increaseButton.addEventListener('click', () => applyFontSize(currentPercent + STEP_PERCENT));
+            decreaseButton.addEventListener('click', () => applyFontSize(currentPercent - STEP_PERCENT));
+            resetButton.addEventListener('click', () => applyFontSize(DEFAULT_PERCENT));
+            
+            applyFontSize(currentPercent); // Apply initial font size
+        }
+        `;
+
         const markdownInputElement = document.getElementById('markdownInput');
         const renderButtonElement = document.getElementById('renderMarkdownBtn');
 
-        // Configure Marked.js (globally for this script)
         marked.setOptions({
-            gfm: true,      // Enable GitHub Flavored Markdown
-            breaks: true,   // Treat newlines as <br>
-            smartypants: false // Avoid smart quotes/dashes for better LaTeX compatibility
+            gfm: true,
+            breaks: true,
+            smartypants: false
         });
 
-        // --- Utility Functions ---
         function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        // --- Core Logic Functions ---
-
-        /**
-         * Preprocesses Markdown text to protect KaTeX expressions before Markdown parsing.
-         * It replaces LaTeX blocks with placeholders, parses Markdown, then restores LaTeX.
-         * @param {string} markdownText - The raw Markdown text.
-         * @returns {string} HTML string with KaTeX expressions preserved.
-         */
         function preprocessMarkdownForKatex(markdownText) {
             const mathExpressions = [];
             let mathIndex = 0;
             let tempText = markdownText;
 
-            // Helper to find math expressions and replace them with placeholders
             const addPlaceholder = (regex, type, originalOpen, originalClose) => {
                 tempText = tempText.replace(regex, (match, content) => {
-                    // Ensure content is not empty or just whitespace for some delimiters
-                    // to avoid issues with marked.js and empty placeholders.
                     if (content.trim() === "") return match;
-
                     const placeholder = `%%${type}_MATH_PLACEHOLDER_${mathIndex}%%`;
                     mathExpressions.push({ placeholder, content, originalOpen, originalClose });
                     mathIndex++;
@@ -208,36 +231,22 @@ The final answer is $\boxed{107.875\%}$.
                 });
             };
 
-            // Order matters: Process display math first, then inline.
-            // Otherwise, inline regex might match parts of display math.
             addPlaceholder(/\$\$([\s\S]*?)\$\$/g, 'DISPLAY_SS', '$$', '$$');
             addPlaceholder(/\\\[([\s\S]*?)\\\]/g, 'DISPLAY_BRACKET', '\\[', '\\]');
-            // For inline, ensure it's not just a single $ surrounded by spaces (common in currency)
-            // This regex for inline $...$ is a bit more robust than just /$(.+?)$/g
-            // It tries to avoid matching single dollar signs in text like "price is $5."
-            // It looks for a non-space character after the first $ and before the last $.
             addPlaceholder(/\$([^\s$](?:[\s\S]*?[^\s$])?)\$/g, 'INLINE_S', '$', '$');
             addPlaceholder(/\\\(([\s\S]*?)\\\)/g, 'INLINE_PAREN', '\\(', '\\)');
 
             let html = marked.parse(tempText);
 
-            // Restore KaTeX expressions, iterating backwards to handle nested placeholders correctly (if any)
-            // and to avoid issues with string length changes during replacement.
             for (let i = mathExpressions.length - 1; i >= 0; i--) {
                 const item = mathExpressions[i];
                 const preservedKatexString = item.originalOpen + item.content + item.originalClose;
-                // Use a global regex for replacement in case a placeholder appears multiple times (unlikely here but good practice)
                 const placeholderRegex = new RegExp(escapeRegExp(item.placeholder), "g");
                 html = html.replace(placeholderRegex, preservedKatexString);
             }
             return html;
         }
 
-        /**
-         * Opens a new browser tab and writes the provided HTML content into it.
-         * @param {string} htmlContent - The HTML content to display in the new tab.
-         * @param {string} [pageTitle="Rendered Output"] - The title for the new tab.
-         */
         function openInNewTab(htmlContent, pageTitle = "Rendered Output") {
             const newTab = window.open('', '_blank');
             if (newTab) {
@@ -252,12 +261,22 @@ The final answer is $\boxed{107.875\%}$.
                         <link rel="stylesheet" href="${GITHUB_MARKDOWN_CSS_LINK}">
                         <link rel="stylesheet" href="${KATEX_CSS_LINK}">
                         ${RENDERED_PAGE_BODY_STYLE}
-                        ${KATEX_INIT_SCRIPT}
+                        <script>
+                            ${KATEX_INIT_LOGIC}
+                            ${FONT_SIZE_CONTROL_SCRIPT_LOGIC}
+                        <\/script>
                         <script defer src="${KATEX_JS_LINK}"><\/script>
                         <script defer src="${KATEX_AUTORENDER_JS_LINK}" onload="initKatexAutoRender()"><\/script>
                     </head>
                     <body class="markdown-body">
+                        ${FONT_CONTROL_UI_HTML}
                         ${htmlContent}
+                        <script>
+                            document.addEventListener('DOMContentLoaded', () => {
+                                setupFontSizeControls();
+                                // initKatexAutoRender is called by KaTeX auto-render script's onload.
+                            });
+                        <\/script>
                     </body>
                     </html>
                 `);
@@ -267,13 +286,15 @@ The final answer is $\boxed{107.875\%}$.
             }
         }
 
-        // --- Event Listeners ---
         renderButtonElement.addEventListener('click', () => {
             const markdownText = markdownInputElement.value;
+            if (!markdownText.trim()) {
+                // Optionally, you could show a small message or just render an empty page.
+                // For now, let's just render it as is (will be mostly blank).
+            }
             const htmlWithPreservedKatex = preprocessMarkdownForKatex(markdownText);
             openInNewTab(htmlWithPreservedKatex, "Rendered Markdown & LaTeX");
         });
-
     </script>
 </body>
 </html>
