@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown & LaTeX Renderer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 25px;
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background-color 0.2s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+        .input-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .input-section:last-child {
+            border-bottom: none;
+        }
+    </style>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Markdown & LaTeX Renderer</h1>
+
+        <div class="input-section">
+            <h2>Markdown Input</h2>
+            <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
+            <textarea id="markdownInput" placeholder="Type or paste Markdown here...
+Example:
+# Hello World
+This is **bold** and *italic*.
+
+A list:
+- Item 1
+- Item 2
+
+Math: \( E = mc^2 \) or display math:
+$$
+\sum_{i=0}^{n} i = \frac{n(n+1)}{2}
+$$"></textarea>
+            <button id="renderMarkdownBtn">Render Markdown</button>
+        </div>
+
+        <div class="input-section">
+            <h2>LaTeX Input (Standalone)</h2>
+            <label for="latexInput">Paste your LaTeX (primarily for math expressions):</label>
+            <textarea id="latexInput" placeholder="Type or paste LaTeX math expressions here...
+Example:
+\documentclass{article} % (This line will be ignored for MathJax web rendering)
+\begin{document} % (This line will be ignored)
+The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$.
+
+A more complex equation:
+\[
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+\]
+\end{document} % (This line will be ignored)
+"></textarea>
+            <button id="renderLatexBtn">Render LaTeX</button>
+        </div>
+
+        <div class="info">
+            <p><strong>How it works:</strong></p>
+            <ul>
+                <li><strong>Markdown Rendering:</strong> Uses Marked.js. Supports CommonMark and GFM features.</li>
+                <li><strong>LaTeX Math Rendering:</strong> Uses MathJax. It will process LaTeX math delimiters like <code>\(...\)</code> (inline), <code>\[...\]</code> (display), <code>$$...$$</code> (display), and environments like <code>\begin{equation}...\end{equation}</code>.</li>
+                <li>The rendered output will open in a new tab. Ensure your browser allows pop-ups for this site.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // --- MathJax Configuration for the new tab ---
+        // This configuration will be injected into the new tab.
+        const mathjaxConfigScript = `
+            window.MathJax = {
+                tex: {
+                    inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                    displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                    processEscapes: true,
+                    processEnvironments: true,
+                    tags: 'ams' // For automatic numbering
+                },
+                svg: {
+                    fontCache: 'global'
+                },
+                options: {
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process'
+                }
+            };
+        `;
+        const mathjaxScript = '<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"><\/script>';
+
+        // --- GitHub Markdown CSS link for the new tab ---
+        const githubMarkdownCSS = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.1.0/github-markdown.min.css">';
+        // Basic styling for the body of the rendered page to center content
+        const renderedPageBodyStyle = `
+            <style>
+                body {
+                    box-sizing: border-box;
+                    min-width: 200px;
+                    max-width: 980px;
+                    margin: 0 auto;
+                    padding: 45px;
+                }
+                @media (max-width: 767px) {
+                    body {
+                        padding: 15px;
+                    }
+                }
+            </style>
+        `;
+
+
+        function openInNewTab(htmlContent, pageTitle = "Rendered Output") {
+            const newTab = window.open('', '_blank');
+            if (newTab) {
+                newTab.document.open();
+                newTab.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${pageTitle}</title>
+                        ${githubMarkdownCSS}
+                        ${renderedPageBodyStyle}
+                        <script>${mathjaxConfigScript}<\/script>
+                        ${mathjaxScript}
+                    </head>
+                    <body class="markdown-body">
+                        ${htmlContent}
+                    </body>
+                    </html>
+                `);
+                newTab.document.close(); // Important for scripts to execute
+            } else {
+                alert("Failed to open new tab. Please check your pop-up blocker settings.");
+            }
+        }
+
+        document.getElementById('renderMarkdownBtn').addEventListener('click', () => {
+            const markdownText = document.getElementById('markdownInput').value;
+            // Configure marked to be GFM compatible and use smartypants for better typography
+            marked.setOptions({
+                gfm: true,
+                breaks: true, // Add <br> on single newlines
+                smartypants: true
+            });
+            const htmlContent = marked.parse(markdownText);
+            openInNewTab(htmlContent, "Rendered Markdown");
+        });
+
+        document.getElementById('renderLatexBtn').addEventListener('click', () => {
+            const latexText = document.getElementById('latexInput').value;
+            // For standalone LaTeX, we just wrap it so MathJax can find it.
+            // MathJax will process the content directly.
+            // We don't need to parse it as Markdown.
+            // The content will be put directly into the body, and MathJax will scan it.
+            // It's good to escape HTML characters in the LaTeX input if it's not already HTML.
+            const escapedLatexText = latexText
+                .replace(/&/g, "&")
+                .replace(/</g, "<")
+                .replace(/>/g, ">");
+
+            // MathJax typically expects LaTeX within certain delimiters or environments.
+            // If the user pastes raw LaTeX content without outer delimiters,
+            // we can wrap it in `$$...$$` or `\[...\]` to make it display math.
+            // Or, just let MathJax handle whatever delimiters are inside.
+            // For simplicity, we'll let MathJax find its own delimiters within the pasted text.
+            // We can add a <pre> tag for better display if it's just raw text.
+            // However, for rendering, we just want the text.
+            openInNewTab(`<div class="tex2jax_process">${latexText}</div>`, "Rendered LaTeX");
+            // Note: The class 'tex2jax_process' can be used to tell MathJax to explicitly process an element
+            // if `processHtmlClass` option is set.
+        });
+
+    </script>
+</body>
+</html>
