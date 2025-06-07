@@ -136,28 +136,66 @@ $$
                     padding-top: 60px;
                 }
             }
+
+            /* Light Theme Base Styles */
+            body.markdown-body {
+                background-color: #FFFFFF;
+                color: #000000;
+            }
+            body.markdown-body a {
+                color: #0000DD;
+            }
+            body.markdown-body a:visited {
+                color: #551A8B;
+            }
+            body.markdown-body hr {
+                border-top-color: #bbbbbb;
+            }
+            body.markdown-body blockquote {
+                /* color is #000000 by default from body */
+                border-left-color: #dddddd;
+            }
+            body.markdown-body th,
+            body.markdown-body td {
+               border-color: #dddddd;
+            }
+            body.markdown-body code:not([class*="language-"]),
+            body.markdown-body pre {
+               background-color: #f0f0f0;
+               color: #111111;
+            }
+            body.markdown-body h1,
+            body.markdown-body h2,
+            body.markdown-body h3,
+            body.markdown-body h4,
+            body.markdown-body h5,
+            body.markdown-body h6 {
+               /* color is #000000 by default from body */
+               border-bottom-color: #dddddd;
+            }
+
             /* Dark Theme Styles */
             body.markdown-body.dark-theme {
-                background-color: #1e1e1e;
-                color: #d4d4d4;
+                background-color: #000000;
+                color: #FFFFFF;
             }
             body.markdown-body.dark-theme a {
-                color: #58a6ff; /* Light blue for links in dark mode */
+                color: #80c0ff; /* Light blue for links in dark mode */
             }
             body.markdown-body.dark-theme hr {
-                border-top-color: #444;
+                border-top-color: #555555;
             }
             body.markdown-body.dark-theme blockquote {
-                color: #c8c8c8;
-                border-left-color: #555;
+                color: #dddddd;
+                border-left-color: #666666;
             }
             body.markdown-body.dark-theme th,
             body.markdown-body.dark-theme td {
-               border-color: #555;
+               border-color: #555555;
             }
             body.markdown-body.dark-theme code:not([class*="language-"]),
             body.markdown-body.dark-theme pre {
-               background-color: #2d2d2d;
+               background-color: #1a1a1a;
                color: #f0f0f0;
             }
             body.markdown-body.dark-theme h1,
@@ -166,8 +204,8 @@ $$
             body.markdown-body.dark-theme h4,
             body.markdown-body.dark-theme h5,
             body.markdown-body.dark-theme h6 {
-               color: #d4d4d4;
-               border-bottom-color: #444;
+               color: #FFFFFF;
+               border-bottom-color: #555555;
             }
         </style>
         `;
