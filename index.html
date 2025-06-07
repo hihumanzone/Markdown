@@ -100,6 +100,7 @@ $$
 \]
 "></textarea>
             <button id="renderMarkdownBtn">Render Markdown</button>
+            <button id="pasteAndRenderBtn">Paste & Render</button>
         </div>
 
         <div class="info">
@@ -135,6 +136,39 @@ $$
                     padding-top: 60px;
                 }
             }
+            /* Dark Theme Styles */
+            body.markdown-body.dark-theme {
+                background-color: #1e1e1e;
+                color: #d4d4d4;
+            }
+            body.markdown-body.dark-theme a {
+                color: #58a6ff; /* Light blue for links in dark mode */
+            }
+            body.markdown-body.dark-theme hr {
+                border-top-color: #444;
+            }
+            body.markdown-body.dark-theme blockquote {
+                color: #c8c8c8;
+                border-left-color: #555;
+            }
+            body.markdown-body.dark-theme th,
+            body.markdown-body.dark-theme td {
+               border-color: #555;
+            }
+            body.markdown-body.dark-theme code:not([class*="language-"]),
+            body.markdown-body.dark-theme pre {
+               background-color: #2d2d2d;
+               color: #f0f0f0;
+            }
+            body.markdown-body.dark-theme h1,
+            body.markdown-body.dark-theme h2,
+            body.markdown-body.dark-theme h3,
+            body.markdown-body.dark-theme h4,
+            body.markdown-body.dark-theme h5,
+            body.markdown-body.dark-theme h6 {
+               color: #d4d4d4;
+               border-bottom-color: #444;
+            }
         </style>
         `;
 
@@ -163,6 +197,7 @@ $$
             <span id="currentFontSizeDisplay" style="min-width: 40px; text-align: center; padding: 0 5px; color: black;">100%</span>
             <button id="increaseFontBtn" title="Increase font size" style="padding: 4px 8px; cursor: pointer; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">+</button>
             <button id="resetFontBtn" title="Reset font size" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Reset</button>
+            <button id="toggleThemeBtn" title="Toggle theme" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Theme</button>
         </div>
         `;
 
@@ -203,8 +238,65 @@ $$
         }
         `;
 
+        const THEME_CONTROL_SCRIPT_LOGIC = `
+        function setupThemeControls() {
+            const body = document.querySelector('body.markdown-body');
+            const toggleThemeButton = document.getElementById('toggleThemeBtn');
+
+            if (!body || !toggleThemeButton) {
+                console.error("Theme control elements not found. Ensure IDs are correct and DOM is ready.");
+                return;
+            }
+
+            const LS_THEME_KEY = 'renderedOutputTheme';
+            const DARK_THEME_CLASS = 'dark-theme';
+
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    body.classList.add(DARK_THEME_CLASS);
+                    toggleThemeButton.textContent = 'Light Theme';
+                } else {
+                    body.classList.remove(DARK_THEME_CLASS);
+                    toggleThemeButton.textContent = 'Dark Theme';
+                }
+                localStorage.setItem(LS_THEME_KEY, theme);
+            }
+
+            toggleThemeButton.addEventListener('click', () => {
+                const currentTheme = body.classList.contains(DARK_THEME_CLASS) ? 'dark' : 'light';
+                if (currentTheme === 'dark') {
+                    applyTheme('light');
+                } else {
+                    applyTheme('dark');
+                }
+            });
+
+            const savedTheme = localStorage.getItem(LS_THEME_KEY) || 'light'; // Default to light
+            applyTheme(savedTheme);
+        }
+        `;
+
         const markdownInputElement = document.getElementById('markdownInput');
         const renderButtonElement = document.getElementById('renderMarkdownBtn');
+
+        const pasteAndRenderButtonElement = document.getElementById('pasteAndRenderBtn');
+
+        if (pasteAndRenderButtonElement) {
+            pasteAndRenderButtonElement.addEventListener('click', async () => {
+                if (!navigator.clipboard || !navigator.clipboard.readText) {
+                    alert('Clipboard API not available. Please use a modern browser or check permissions.');
+                    return;
+                }
+                try {
+                    const text = await navigator.clipboard.readText();
+                    markdownInputElement.value = text;
+                    renderButtonElement.click(); // Trigger existing render logic
+                } catch (err) {
+                    console.error('Failed to read clipboard contents: ', err);
+                    alert('Failed to read from clipboard. Make sure you have granted permission and are using a compatible browser.');
+                }
+            });
+        }
 
         marked.setOptions({
             gfm: true,
@@ -264,6 +356,7 @@ $$
                         <script>
                             ${KATEX_INIT_LOGIC}
                             ${FONT_SIZE_CONTROL_SCRIPT_LOGIC}
+                            ${THEME_CONTROL_SCRIPT_LOGIC}
                         <\/script>
                         <script defer src="${KATEX_JS_LINK}"><\/script>
                         <script defer src="${KATEX_AUTORENDER_JS_LINK}" onload="initKatexAutoRender()"><\/script>
@@ -274,6 +367,7 @@ $$
                         <script>
                             document.addEventListener('DOMContentLoaded', () => {
                                 setupFontSizeControls();
+                                setupThemeControls();
                                 // initKatexAutoRender is called by KaTeX auto-render script's onload.
                             });
                         <\/script>
