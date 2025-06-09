@@ -76,7 +76,6 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -238,7 +237,6 @@ $$
             <button id="increaseFontBtn" title="Increase font size" style="padding: 4px 8px; cursor: pointer; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">+</button>
             <button id="resetFontBtn" title="Reset font size" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Reset</button>
             <button id="toggleThemeBtn" title="Toggle theme" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Theme</button>
-            <button id="saveOutputBtn" title="Save as Image" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Save Image</button>
         </div>
         `;
 
@@ -280,54 +278,6 @@ $$
         `;
 
         const COLLAPSIBLE_CONTROLS_SCRIPT_LOGIC = `
-        async function saveOutputAsImage() {
-            console.log("Save image button clicked in new tab");
-            const captureTarget = document.querySelector('body.markdown-body');
-            if (!captureTarget) {
-                console.error('Could not find body.markdown-body to capture.');
-                alert('Error: Could not find content to capture.');
-                return;
-            }
-
-            // Explicitly render KaTeX before capture
-            if (typeof renderMathInElement === 'function') {
-                console.log('Explicitly calling renderMathInElement before capture...');
-                renderMathInElement(captureTarget, {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "\\[", right: "\\]", display: true},
-                        {left: "$", right: "$", display: false, throwOnError: false},
-                        {left: "\\(", right: "\\)", display: false}
-                    ],
-                    throwOnError: false
-                });
-                console.log('Finished explicit renderMathInElement call.');
-            } else {
-                console.error('renderMathInElement is not available to be called explicitly.');
-            }
-
-            console.log('Waiting with setTimeout before html2canvas...');
-            setTimeout(() => {
-                console.log('Calling html2canvas...');
-                html2canvas(captureTarget, {
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff', // Explicit background for canvas
-                    logging: true // Enable html2canvas logging
-                })
-                .then(canvas => {
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = canvas.toDataURL('image/png');
-                    downloadLink.download = 'rendered_output.png';
-                    downloadLink.click();
-                })
-                .catch(error => {
-                    console.error('Error generating image with html2canvas:', error);
-                    alert('Sorry, an error occurred while generating the image.');
-                });
-            }, 500); // 500ms delay
-        }
-
         function setupCollapsibleControls() {
             const toggleButton = document.getElementById('toggleCollapseBtn');
             const controlsToToggle = [
@@ -335,11 +285,10 @@ $$
                 document.getElementById('currentFontSizeDisplay'),
                 document.getElementById('increaseFontBtn'),
                 document.getElementById('resetFontBtn'),
-                document.getElementById('toggleThemeBtn'),
-                document.getElementById('saveOutputBtn') // Added save button
+                document.getElementById('toggleThemeBtn')
             ].filter(el => el !== null); // Filter out nulls if some elements are not found
 
-            if (!toggleButton || controlsToToggle.length < 5) { // Check if main button and at least some controls exist (updated count)
+            if (!toggleButton || controlsToToggle.length < 4) { // Check if main button and at least some controls exist
                 console.error("Collapsible control elements not found. Ensure IDs are correct ('toggleCollapseBtn', etc.) and DOM is ready.");
                 if (toggleButton) toggleButton.style.display = 'none'; // Hide toggle if other controls are missing
                 return;
@@ -364,13 +313,6 @@ $$
 
             // Initial state application
             applyCollapsedState(); // Applies based on localStorage or default true
-
-            const saveImageButton = document.getElementById('saveOutputBtn');
-            if (saveImageButton) {
-                saveImageButton.addEventListener('click', saveOutputAsImage);
-            } else {
-                console.error("Save Output button ('saveOutputBtn') not found in new tab for event listener attachment.");
-            }
         }
         `;
 
@@ -489,7 +431,6 @@ $$
                         <link rel="stylesheet" href="${GITHUB_MARKDOWN_CSS_LINK}">
                         <link rel="stylesheet" href="${KATEX_CSS_LINK}">
                         ${RENDERED_PAGE_BODY_STYLE}
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
                         <script>
                             ${KATEX_INIT_LOGIC}
                             ${FONT_SIZE_CONTROL_SCRIPT_LOGIC}
@@ -528,9 +469,6 @@ $$
             const htmlWithPreservedKatex = preprocessMarkdownForKatex(markdownText);
             openInNewTab(htmlWithPreservedKatex, "Rendered Markdown & LaTeX");
         });
-
-        // Old saveAsImage function and its listener are removed.
-        // The new saveOutputAsImage function is now defined within the new tab's context.
     </script>
 </body>
 </html>
