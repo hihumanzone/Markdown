@@ -453,10 +453,12 @@ $$
                 if (theme === 'dark') {
                     body.classList.add(DARK_THEME_CLASS);
                     body.classList.remove(LIGHT_THEME_CLASS);
+                    body.setAttribute('data-theme', 'dark'); // Add this line
                     toggleThemeButton.textContent = 'Light Theme';
                 } else { // Light theme
                     body.classList.add(LIGHT_THEME_CLASS);
                     body.classList.remove(DARK_THEME_CLASS);
+                    body.setAttribute('data-theme', 'light'); // Add this line
                     toggleThemeButton.textContent = 'Dark Theme';
                 }
                 localStorage.setItem(LS_THEME_KEY, theme);
