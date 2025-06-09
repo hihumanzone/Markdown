@@ -157,7 +157,9 @@ $$
             }
             body.markdown-body th,
             body.markdown-body td {
-               border-color: #dddddd;
+               border-color: #dddddd; /* Existing rule */
+               background-color: #FFFFFF; /* New rule for light mode background */
+               color: #000000; /* New rule for light mode text color */
             }
             body.markdown-body code:not([class*="language-"]),
             body.markdown-body pre {
@@ -191,7 +193,9 @@ $$
             }
             body.markdown-body.dark-theme th,
             body.markdown-body.dark-theme td {
-               border-color: #555555;
+               border-color: #555555; /* Existing rule */
+               background-color: #1C1C1C; /* New rule for dark mode background */
+               color: #E0E0E0; /* New rule for dark mode text color */
             }
             body.markdown-body.dark-theme code:not([class*="language-"]),
             body.markdown-body.dark-theme pre {
