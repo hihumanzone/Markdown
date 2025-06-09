@@ -237,7 +237,7 @@ $$
             <button id="increaseFontBtn" title="Increase font size" style="padding: 4px 8px; cursor: pointer; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">+</button>
             <button id="resetFontBtn" title="Reset font size" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Reset</button>
             <button id="toggleThemeBtn" title="Toggle theme" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Theme</button>
-            <button id="saveAsPdfBtn" title="Save as PDF" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Save PDF</button>
+            <button id="saveAsImageBtn" title="Save as Image" style="padding: 4px 8px; cursor: pointer; margin-left: 5px; border: 1px solid #ccc; background-color: #fff; color: black; border-radius: 3px;">Save Image</button>
         </div>
         `;
 
@@ -286,10 +286,11 @@ $$
                 document.getElementById('currentFontSizeDisplay'),
                 document.getElementById('increaseFontBtn'),
                 document.getElementById('resetFontBtn'),
-                document.getElementById('toggleThemeBtn')
+                document.getElementById('toggleThemeBtn'),
+                document.getElementById('saveAsImageBtn') // Added this line
             ].filter(el => el !== null); // Filter out nulls if some elements are not found
 
-            if (!toggleButton || controlsToToggle.length < 4) { // Check if main button and at least some controls exist
+            if (!toggleButton || controlsToToggle.length < 5) { // Check if main button and at least some controls exist
                 console.error("Collapsible control elements not found. Ensure IDs are correct ('toggleCollapseBtn', etc.) and DOM is ready.");
                 if (toggleButton) toggleButton.style.display = 'none'; // Hide toggle if other controls are missing
                 return;
@@ -317,62 +318,60 @@ $$
         }
         `;
 
-        const PDF_GENERATION_SCRIPT_LOGIC = `
-        function setupPdfButton() {
-            const savePdfButton = document.getElementById('saveAsPdfBtn');
-            const renderedBody = document.body; // or document.querySelector('body.markdown-body') for more specificity
+    const SAVE_IMAGE_SCRIPT_LOGIC = `
+    function setupSaveImageButton() {
+        const saveImageButton = document.getElementById('saveAsImageBtn');
+        const renderedElement = document.querySelector('body.markdown-body');
+        const controlsElement = document.getElementById('font-controls');
 
-            if (!savePdfButton) {
-                console.error("Save PDF button ('saveAsPdfBtn') not found.");
-                return;
-            }
-            if (!renderedBody) {
-                console.error("Rendered body element not found for PDF generation.");
-                return;
-            }
-            if (typeof html2pdf === 'undefined') {
-                console.error("html2pdf.js is not loaded.");
-                savePdfButton.textContent = 'Error: PDF lib missing';
-                savePdfButton.disabled = true;
-                return;
-            }
-
-            savePdfButton.addEventListener('click', () => {
-                console.log("Save as PDF button clicked. Generating PDF...");
-                const options = {
-                    margin:       10, // mm
-                    filename:     'rendered_output.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, logging: true, letterRendering: true }, // Added letterRendering
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Added pagebreak options
-                };
-                // Select the main content area to be converted to PDF
-                const elementToPrint = document.querySelector('body.markdown-body');
-
-                // Temporarily remove the controls from the print view
-                const controls = document.getElementById('font-controls');
-                let controlsVisible = false;
-                if (controls) {
-                    controlsVisible = controls.style.display !== 'none';
-                    controls.style.display = 'none';
-                }
-
-                html2pdf().from(elementToPrint).set(options).save().then(() => {
-                    console.log("PDF generation complete.");
-                    // Restore controls if they were visible
-                    if (controls && controlsVisible) {
-                        controls.style.display = ''; // Revert to original display style
-                    }
-                }).catch(err => {
-                    console.error("Error during PDF generation:", err);
-                    if (controls && controlsVisible) {
-                        controls.style.display = ''; // Revert to original display style in case of error
-                    }
-                });
-            });
+        if (!saveImageButton) {
+            console.error("Save Image button ('saveAsImageBtn') not found.");
+            return;
         }
-        `;
+        if (!renderedElement) {
+            console.error("Rendered element ('body.markdown-body') not found for image generation.");
+            return;
+        }
+        if (typeof html2canvas === 'undefined') {
+            console.error("html2canvas.js is not loaded.");
+            saveImageButton.textContent = 'Error: Image lib missing';
+            saveImageButton.disabled = true;
+            return;
+        }
+
+        saveImageButton.addEventListener('click', () => {
+            console.log("Save as Image button clicked. Generating image...");
+
+            let originalDisplay = '';
+            if (controlsElement) {
+                originalDisplay = controlsElement.style.display;
+                controlsElement.style.display = 'none';
+            }
+
+            html2canvas(renderedElement, {
+                scale: 2, // Higher scale for better quality
+                useCORS: true, // For images from other domains, if any
+                logging: true,
+                letterRendering: true // May improve text rendering
+            }).then(canvas => {
+                const imageURL = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageURL;
+                downloadLink.download = 'rendered_image.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                console.log("Image generation complete.");
+            }).catch(err => {
+                console.error("Error during image generation:", err);
+            }).finally(() => {
+                if (controlsElement) {
+                    controlsElement.style.display = originalDisplay;
+                }
+            });
+        });
+    }
+    `;
 
         const THEME_CONTROL_SCRIPT_LOGIC = `
         function setupThemeControls() {
@@ -489,13 +488,13 @@ $$
                         <link rel="stylesheet" href="${GITHUB_MARKDOWN_CSS_LINK}">
                         <link rel="stylesheet" href="${KATEX_CSS_LINK}">
                         ${RENDERED_PAGE_BODY_STYLE}
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"><\/script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoVBL5gI9kLelseNao4DIJmAccgtnA==" crossorigin="anonymous" referrerpolicy="no-referrer"><\/script>
                         <script>
                             ${KATEX_INIT_LOGIC}
                             ${FONT_SIZE_CONTROL_SCRIPT_LOGIC}
                             ${THEME_CONTROL_SCRIPT_LOGIC}
                             ${COLLAPSIBLE_CONTROLS_SCRIPT_LOGIC}
-                            ${PDF_GENERATION_SCRIPT_LOGIC}
+                            ${SAVE_IMAGE_SCRIPT_LOGIC}
                         <\/script>
                         <script defer src="${KATEX_JS_LINK}"><\/script>
                         <script defer src="${KATEX_AUTORENDER_JS_LINK}" onload="initKatexAutoRender()"><\/script>
@@ -508,7 +507,7 @@ $$
                                 setupFontSizeControls();
                                 setupThemeControls();
                                 setupCollapsibleControls();
-                                setupPdfButton(); // Add this line
+                                setupSaveImageButton(); // Added this line
                                 // initKatexAutoRender is called by KaTeX auto-render script's onload.
                             });
                         <\/script>
