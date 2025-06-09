@@ -138,38 +138,38 @@ $$
             }
 
             /* Light Theme Base Styles */
-            body.markdown-body {
+            body.markdown-body.light-theme {
                 background-color: #FFFFFF;
                 color: #000000;
             }
-            body.markdown-body a {
+            body.markdown-body.light-theme a {
                 color: #0000DD;
             }
-            body.markdown-body a:visited {
+            body.markdown-body.light-theme a:visited {
                 color: #551A8B;
             }
-            body.markdown-body hr {
+            body.markdown-body.light-theme hr {
                 border-top-color: #bbbbbb;
             }
-            body.markdown-body blockquote {
+            body.markdown-body.light-theme blockquote {
                 /* color is #000000 by default from body */
                 border-left-color: #dddddd;
             }
-            body.markdown-body th,
-            body.markdown-body td {
+            body.markdown-body.light-theme th,
+            body.markdown-body.light-theme td {
                border-color: #dddddd;
             }
-            body.markdown-body code:not([class*="language-"]),
-            body.markdown-body pre {
+            body.markdown-body.light-theme code:not([class*="language-"]),
+            body.markdown-body.light-theme pre {
                background-color: #f0f0f0;
                color: #111111;
             }
-            body.markdown-body h1,
-            body.markdown-body h2,
-            body.markdown-body h3,
-            body.markdown-body h4,
-            body.markdown-body h5,
-            body.markdown-body h6 {
+            body.markdown-body.light-theme h1,
+            body.markdown-body.light-theme h2,
+            body.markdown-body.light-theme h3,
+            body.markdown-body.light-theme h4,
+            body.markdown-body.light-theme h5,
+            body.markdown-body.light-theme h6 {
                /* color is #000000 by default from body */
                border-bottom-color: #dddddd;
             }
@@ -446,13 +446,16 @@ $$
             }
 
             const LS_THEME_KEY = 'renderedOutputTheme';
+            const LIGHT_THEME_CLASS = 'light-theme';
             const DARK_THEME_CLASS = 'dark-theme';
 
             function applyTheme(theme) {
                 if (theme === 'dark') {
                     body.classList.add(DARK_THEME_CLASS);
+                    body.classList.remove(LIGHT_THEME_CLASS);
                     toggleThemeButton.textContent = 'Light Theme';
-                } else {
+                } else { // Light theme
+                    body.classList.add(LIGHT_THEME_CLASS);
                     body.classList.remove(DARK_THEME_CLASS);
                     toggleThemeButton.textContent = 'Dark Theme';
                 }
@@ -460,15 +463,16 @@ $$
             }
 
             toggleThemeButton.addEventListener('click', () => {
-                const currentTheme = body.classList.contains(DARK_THEME_CLASS) ? 'dark' : 'light';
-                if (currentTheme === 'dark') {
+                // Determine current theme by checking for dark-theme class, default to light if neither (though applyTheme should prevent this state)
+                const isCurrentlyDark = body.classList.contains(DARK_THEME_CLASS);
+                if (isCurrentlyDark) {
                     applyTheme('light');
                 } else {
                     applyTheme('dark');
                 }
             });
 
-            const savedTheme = localStorage.getItem(LS_THEME_KEY) || 'light'; // Default to light
+            const savedTheme = localStorage.getItem(LS_THEME_KEY) || 'light';
             applyTheme(savedTheme);
         }
         `;
