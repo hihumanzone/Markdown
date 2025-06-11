@@ -128,7 +128,7 @@ $$
                 max-width: 980px;
                 margin: 0 auto;
                 padding: 45px;
-                padding-top: 70px; /* Space for font controls */
+                padding-top: 70px; 
             }
             @media (max-width: 767px) {
                 body.markdown-body {
@@ -136,8 +136,6 @@ $$
                     padding-top: 60px;
                 }
             }
-
-            /* Light Theme Base Styles */
             body.markdown-body {
                 background-color: #FFFFFF;
                 color: #000000;
@@ -152,14 +150,13 @@ $$
                 border-top-color: #bbbbbb;
             }
             body.markdown-body blockquote {
-                /* color is #000000 by default from body */
                 border-left-color: #dddddd;
             }
             body.markdown-body th,
             body.markdown-body td {
-               border-color: #dddddd; /* Existing rule */
-               background-color: #FFFFFF; /* New rule for light mode background */
-               color: #000000; /* New rule for light mode text color */
+               border-color: #dddddd; 
+               background-color: #FFFFFF; 
+               color: #000000; 
             }
             body.markdown-body code:not([class*="language-"]),
             body.markdown-body pre {
@@ -172,17 +169,14 @@ $$
             body.markdown-body h4,
             body.markdown-body h5,
             body.markdown-body h6 {
-               /* color is #000000 by default from body */
                border-bottom-color: #dddddd;
             }
-
-            /* Dark Theme Styles */
             body.markdown-body.dark-theme {
                 background-color: #000000;
                 color: #FFFFFF;
             }
             body.markdown-body.dark-theme a {
-                color: #80c0ff; /* Light blue for links in dark mode */
+                color: #80c0ff; 
             }
             body.markdown-body.dark-theme hr {
                 border-top-color: #555555;
@@ -193,9 +187,9 @@ $$
             }
             body.markdown-body.dark-theme th,
             body.markdown-body.dark-theme td {
-               border-color: #555555; /* Existing rule */
-               background-color: #1C1C1C; /* New rule for dark mode background */
-               color: #E0E0E0; /* New rule for dark mode text color */
+               border-color: #555555; 
+               background-color: #1C1C1C; 
+               color: #E0E0E0; 
             }
             body.markdown-body.dark-theme code:not([class*="language-"]),
             body.markdown-body.dark-theme pre {
@@ -211,14 +205,11 @@ $$
                color: #FFFFFF;
                border-bottom-color: #555555;
             }
-
-            /* Font Controls Styling */
             .fc-panel {
-                background: rgba(240,240,240,0.95); /* Default light theme background */
-                /* border: 1px solid #ccc; /* Optional: if panel needs a border */
+                background: rgba(240,240,240,0.95); 
             }
             .fc-button {
-                padding: 4px 8px; /* Consolidate padding if consistent */
+                padding: 4px 8px; 
                 cursor: pointer;
                 background-color: #fff;
                 color: black;
@@ -226,19 +217,16 @@ $$
                 border-radius: 3px;
             }
             .fc-button:hover {
-                background-color: #eee; /* Light theme hover */
+                background-color: #eee; 
             }
             .fc-display {
-                color: black; /* Light theme text color */
-                padding: 0 5px; /* from original style */
-                min-width: 40px; /* from original style */
-                text-align: center; /* from original style */
+                color: black; 
+                padding: 0 5px; 
+                min-width: 40px; 
+                text-align: center; 
             }
-
-            /* Dark Theme Font Controls */
             body.markdown-body.dark-theme .fc-panel {
-                background: rgba(50,50,50,0.95); /* Dark theme background */
-                /* border: 1px solid #555; /* Optional: dark theme border */
+                background: rgba(50,50,50,0.95); 
             }
             body.markdown-body.dark-theme .fc-button {
                 background-color: #333;
@@ -246,10 +234,10 @@ $$
                 border: 1px solid #555;
             }
             body.markdown-body.dark-theme .fc-button:hover {
-                background-color: #444; /* Dark theme hover */
+                background-color: #444; 
             }
             body.markdown-body.dark-theme .fc-display {
-                color: #eee; /* Dark theme text color */
+                color: #eee; 
             }
         </style>
         `;
@@ -299,7 +287,7 @@ $$
             }
 
             const LS_KEY = 'renderedOutputFontSizePercent';
-            const BASE_FONT_SIZE_PX = 16; // Assumed from github-markdown.css
+            const BASE_FONT_SIZE_PX = 16; 
             const STEP_PERCENT = 10;
             const MIN_PERCENT = 50;
             const MAX_PERCENT = 300;
@@ -318,7 +306,7 @@ $$
             decreaseButton.addEventListener('click', () => applyFontSize(currentPercent - STEP_PERCENT));
             resetButton.addEventListener('click', () => applyFontSize(DEFAULT_PERCENT));
             
-            applyFontSize(currentPercent); // Apply initial font size
+            applyFontSize(currentPercent); 
         }
         `;
 
@@ -330,7 +318,7 @@ $$
 
             if (!saveButton || !fontControls || !bodyToCapture) {
                 console.error('Save as Image button, font controls, or body element not found.');
-                if (saveButton) saveButton.style.display = 'none'; // Hide button if it can't function
+                if (saveButton) saveButton.style.display = 'none'; 
                 return;
             }
 
@@ -341,25 +329,19 @@ $$
                     return;
                 }
 
-                // Temporarily hide font controls
                 fontControls.style.display = 'none';
 
                 html2canvas(bodyToCapture, {
-                    logging: false, // Optionally enable for debugging
-                    useCORS: true, // If you have external images/resources
+                    logging: false, 
+                    useCORS: true, 
                     onclone: (clonedDoc) => {
-                        // Ensure the body of the cloned document doesn't have excessive padding if it was meant for the controls
-                        // This is a good place to make minor adjustments to the cloned document before rendering, if needed.
-                        // For instance, if the padding-top was specifically for the fixed controls, remove or reduce it.
                         const clonedBody = clonedDoc.querySelector('body.markdown-body');
                         if (clonedBody) {
-                            // Reduce the top padding for the screenshot since controls are hidden
                             clonedBody.style.paddingTop = '20px';
                         }
                     }
                 }).then(canvas => {
-                    // Unhide font controls
-                    fontControls.style.display = 'flex'; // Assuming it was flex
+                    fontControls.style.display = 'flex'; 
 
                     const randomPart = Math.random().toString(36).substring(2, 10);
                     const timestamp = new Date().getTime();
@@ -374,7 +356,6 @@ $$
                     document.body.removeChild(link);
 
                 }).catch(err => {
-                    // Ensure font controls are visible even if there's an error
                     fontControls.style.display = 'flex';
                     console.error('Error capturing image with html2canvas:', err);
                     alert('Sorry, an error occurred while trying to save the image.');
@@ -386,7 +367,6 @@ $$
         const COLLAPSIBLE_CONTROLS_SCRIPT_LOGIC = `
         function setupCollapsibleControls() {
             const toggleButton = document.getElementById('toggleCollapseBtn');
-            // Explicitly get all buttons that are part of the collapsible set
             const decreaseFontBtn = document.getElementById('decreaseFontBtn');
             const currentFontSizeDisplay = document.getElementById('currentFontSizeDisplay');
             const increaseFontBtn = document.getElementById('increaseFontBtn');
@@ -401,40 +381,36 @@ $$
                 resetFontBtn,
                 toggleThemeBtn,
                 saveImageBtn
-            ].filter(el => el !== null); // Filter out any that might be missing
+            ].filter(el => el !== null); 
 
-            // Adjusted check: ensure toggle button and a reasonable number of controls are found
             if (!toggleButton || controlsToToggle.length < 5) {
                 console.warn("Collapsible control elements (expected at least 5 including Save Image) not fully found. Some controls may not toggle.");
-                if (toggleButton && controlsToToggle.length === 0) { // If only toggle button found, but nothing to toggle
-                     toggleButton.style.display = 'none'; // Hide toggle if other controls are missing
+                if (toggleButton && controlsToToggle.length === 0) { 
+                     toggleButton.style.display = 'none'; 
                 }
-                // Not returning here, allow it to proceed with what it found
             }
 
             const LS_COLLAPSED_KEY = 'fontControlsCollapsed';
 
-            function applyCollapsedState(collapsedArgument) { // Renamed 'collapsed' to avoid conflict
+            function applyCollapsedState(collapsedArgument) { 
                 const isCurrentlyCollapsed = typeof collapsedArgument === 'boolean' ? collapsedArgument : JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
 
                 controlsToToggle.forEach(control => {
-                    // No need for extra null check, filter(el => el !== null) already handled it.
                     control.style.display = isCurrentlyCollapsed ? 'none' : '';
                 });
-                if (toggleButton) { // Check if toggleButton itself exists
+                if (toggleButton) { 
                     toggleButton.textContent = isCurrentlyCollapsed ? 'Expand Controls' : 'Collapse Controls';
                 }
                 localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(isCurrentlyCollapsed));
             }
 
-            if (toggleButton) { // Only add listener if toggle button exists
+            if (toggleButton) { 
                 toggleButton.addEventListener('click', () => {
                     const currentState = JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
                     applyCollapsedState(!currentState);
                 });
             }
 
-            // Initial state application
             applyCollapsedState();
         }
         `;
@@ -472,7 +448,7 @@ $$
                 }
             });
 
-            const savedTheme = localStorage.getItem(LS_THEME_KEY) || 'light'; // Default to light
+            const savedTheme = localStorage.getItem(LS_THEME_KEY) || 'light'; 
             applyTheme(savedTheme);
         }
         `;
@@ -491,7 +467,7 @@ $$
                 try {
                     const text = await navigator.clipboard.readText();
                     markdownInputElement.value = text;
-                    renderButtonElement.click(); // Trigger existing render logic
+                    renderButtonElement.click();
                 } catch (err) {
                     console.error('Failed to read clipboard contents: ', err);
                     alert('Failed to read from clipboard. Make sure you have granted permission and are using a compatible browser.');
@@ -573,8 +549,7 @@ $$
                                 setupFontSizeControls();
                                 setupThemeControls();
                                 setupCollapsibleControls();
-                                setupSaveAsImage(); // Add this line
-                                // initKatexAutoRender is called by KaTeX auto-render script's onload.
+                                setupSaveAsImage(); 
                             });
                         <\/script>
                     </body>
@@ -588,10 +563,6 @@ $$
 
         renderButtonElement.addEventListener('click', () => {
             const markdownText = markdownInputElement.value;
-            if (!markdownText.trim()) {
-                // Optionally, you could show a small message or just render an empty page.
-                // For now, let's just render it as is (will be mostly blank).
-            }
             const htmlWithPreservedKatex = preprocessMarkdownForKatex(markdownText);
             openInNewTab(htmlWithPreservedKatex, "Rendered Markdown & LaTeX");
         });
