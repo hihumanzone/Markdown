@@ -502,7 +502,7 @@ $$
 
             addPlaceholder(/\$\$([\s\S]*?)\$\$/g, 'DISPLAY_SS', '$$', '$$');
             addPlaceholder(/\\\[([\s\S]*?)\\\]/g, 'DISPLAY_BRACKET', '\\[', '\\]');
-            addPlaceholder(/\$([^\s$](?:[\s\S]*?[^\s$])?)\$/g, 'INLINE_S', '$', '$');
+            addPlaceholder(/\$([^$]+?)\$/g, 'INLINE_S', '$', '$');
             addPlaceholder(/\\\(([\s\S]*?)\\\)/g, 'INLINE_PAREN', '\\(', '\\)');
 
             let html = marked.parse(tempText);
