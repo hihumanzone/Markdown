@@ -18,7 +18,7 @@
             margin: 20px auto;
             padding: 25px;
             background-color: #fff;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
         h1, h2 {
@@ -75,12 +75,10 @@
             border-bottom: none;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Markdown & LaTeX Renderer</h1>
-
         <div class="input-section">
             <h2>Markdown Input</h2>
             <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
@@ -98,474 +96,322 @@ $$
 \[
 \text{H}_2\text{O} \quad \text{or H$_2$O}
 \]
+
+Single dollar signs that should not render math:
+This product costs $10 only.
+Don't write something like $E=mc^2$ across multiple lines.
 "></textarea>
             <button id="renderMarkdownBtn">Render Markdown</button>
             <button id="pasteAndRenderBtn">Paste & Render</button>
         </div>
-
         <div class="info">
             <p><strong>How it works:</strong></p>
             <ul>
                 <li>Markdown rendering via Marked.js. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via KaTeX in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li>Font size controls are available in the rendered output tab.</li>
+                <li>Font size controls, theme toggle, and save-as-image functionality are available in the rendered output tab.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
         </div>
     </div>
 
-    <script>
-        const GITHUB_MARKDOWN_CSS_LINK = 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css';
-        const KATEX_CSS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css';
-        const KATEX_JS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js';
-        const KATEX_AUTORENDER_JS_LINK = 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js';
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script defer>
+        const MarkdownRenderer = {
+            config: {
+                githubMarkdownCSS: 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css',
+                katexCSS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css',
+                katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
+                katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
+                html2canvasJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+            },
 
-        const RENDERED_PAGE_BODY_STYLE = `
-        <style>
-            body.markdown-body {
-                box-sizing: border-box;
-                min-width: 200px;
-                max-width: 980px;
-                margin: 0 auto;
-                padding: 45px;
-                padding-top: 70px; 
-            }
-            @media (max-width: 767px) {
-                body.markdown-body {
-                    padding: 15px;
-                    padding-top: 60px;
-                }
-            }
-            body.markdown-body {
-                background-color: #FFFFFF;
-                color: #000000;
-            }
-            body.markdown-body a {
-                color: #0000DD;
-            }
-            body.markdown-body a:visited {
-                color: #551A8B;
-            }
-            body.markdown-body hr {
-                border-top-color: #bbbbbb;
-            }
-            body.markdown-body blockquote {
-                border-left-color: #dddddd;
-            }
-            body.markdown-body th,
-            body.markdown-body td {
-               border-color: #dddddd; 
-               background-color: #FFFFFF; 
-               color: #000000; 
-            }
-            body.markdown-body code:not([class*="language-"]),
-            body.markdown-body pre {
-               background-color: #f0f0f0;
-               color: #111111;
-            }
-            body.markdown-body h1,
-            body.markdown-body h2,
-            body.markdown-body h3,
-            body.markdown-body h4,
-            body.markdown-body h5,
-            body.markdown-body h6 {
-               border-bottom-color: #dddddd;
-            }
-            body.markdown-body.dark-theme {
-                background-color: #000000;
-                color: #FFFFFF;
-            }
-            body.markdown-body.dark-theme a {
-                color: #80c0ff; 
-            }
-            body.markdown-body.dark-theme hr {
-                border-top-color: #555555;
-            }
-            body.markdown-body.dark-theme blockquote {
-                color: #dddddd;
-                border-left-color: #666666;
-            }
-            body.markdown-body.dark-theme th,
-            body.markdown-body.dark-theme td {
-               border-color: #555555; 
-               background-color: #1C1C1C; 
-               color: #E0E0E0; 
-            }
-            body.markdown-body.dark-theme code:not([class*="language-"]),
-            body.markdown-body.dark-theme pre {
-               background-color: #1a1a1a;
-               color: #f0f0f0;
-            }
-            body.markdown-body.dark-theme h1,
-            body.markdown-body.dark-theme h2,
-            body.markdown-body.dark-theme h3,
-            body.markdown-body.dark-theme h4,
-            body.markdown-body.dark-theme h5,
-            body.markdown-body.dark-theme h6 {
-               color: #FFFFFF;
-               border-bottom-color: #555555;
-            }
-            .fc-panel {
-                background: rgba(240,240,240,0.95); 
-            }
-            .fc-button {
-                padding: 4px 8px; 
-                cursor: pointer;
-                background-color: #fff;
-                color: black;
-                border: 1px solid #ccc;
-                border-radius: 3px;
-            }
-            .fc-button:hover {
-                background-color: #eee; 
-            }
-            .fc-display {
-                color: black; 
-                padding: 0 5px; 
-                min-width: 40px; 
-                text-align: center; 
-            }
-            body.markdown-body.dark-theme .fc-panel {
-                background: rgba(50,50,50,0.95); 
-            }
-            body.markdown-body.dark-theme .fc-button {
-                background-color: #333;
-                color: #eee;
-                border: 1px solid #555;
-            }
-            body.markdown-body.dark-theme .fc-button:hover {
-                background-color: #444; 
-            }
-            body.markdown-body.dark-theme .fc-display {
-                color: #eee; 
-            }
-        </style>
-        `;
+            dom: {
+                markdownInput: null,
+                renderButton: null,
+                pasteAndRenderButton: null,
+            },
 
-        const KATEX_INIT_LOGIC = `
-            function initKatexAutoRender() {
-                if (typeof renderMathInElement === 'function') {
-                    renderMathInElement(document.body, {
-                        delimiters: [
-                            {left: "$$", right: "$$", display: true},
-                            {left: "\\\\[", right: "\\\\]", display: true},
-                            {left: "$", right: "$", display: false, throwOnError: false},
-                            {left: "\\\\(", right: "\\\\)", display: false}
-                        ],
-                        throwOnError: false
-                    });
-                } else {
-                    console.error("KaTeX auto-render.min.js did not load or renderMathInElement is not defined. Retrying in 100ms.");
-                    setTimeout(initKatexAutoRender, 100);
-                }
-            }
-        `;
+            init() {
+                document.addEventListener('DOMContentLoaded', () => {
+                    this.cacheDOMElements();
+                    this.setupMarked();
+                    this.bindEventListeners();
+                });
+            },
 
-        const FONT_CONTROL_UI_HTML = `
-        <div id="font-controls" class="fc-panel" style="position: fixed; top: 10px; right: 10px; padding: 8px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; gap: 5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px;">
-            <button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button" style="padding: 4px 8px; cursor: pointer; margin-right: 5px;">Toggle</button>
-            <button id="decreaseFontBtn" title="Decrease font size" class="fc-button" style="padding: 4px 8px; cursor: pointer;">-</button>
-            <span id="currentFontSizeDisplay" class="fc-display" style="min-width: 40px; text-align: center; padding: 0 5px;">100%</span>
-            <button id="increaseFontBtn" title="Increase font size" class="fc-button" style="padding: 4px 8px; cursor: pointer;">+</button>
-            <button id="resetFontBtn" title="Reset font size" class="fc-button" style="padding: 4px 8px; cursor: pointer; margin-left: 5px;">Reset</button>
-            <button id="toggleThemeBtn" title="Toggle theme" class="fc-button" style="padding: 4px 8px; cursor: pointer; margin-left: 5px;">Theme</button>
-            <button id="saveAsImageBtn" title="Save as image" class="fc-button" style="padding: 4px 8px; cursor: pointer; margin-left: 5px;">Save Image</button>
-        </div>
-        `;
+            cacheDOMElements() {
+                this.dom.markdownInput = document.getElementById('markdownInput');
+                this.dom.renderButton = document.getElementById('renderMarkdownBtn');
+                this.dom.pasteAndRenderButton = document.getElementById('pasteAndRenderBtn');
+            },
 
-        const FONT_SIZE_CONTROL_SCRIPT_LOGIC = `
-        function setupFontSizeControls() {
-            const body = document.querySelector('body.markdown-body');
-            const increaseButton = document.getElementById('increaseFontBtn');
-            const decreaseButton = document.getElementById('decreaseFontBtn');
-            const resetButton = document.getElementById('resetFontBtn');
-            const display = document.getElementById('currentFontSizeDisplay');
-
-            if (!body || !increaseButton || !decreaseButton || !resetButton || !display) {
-                console.error("Font size control elements not found. Ensure IDs are correct and DOM is ready.");
-                return;
-            }
-
-            const LS_KEY = 'renderedOutputFontSizePercent';
-            const BASE_FONT_SIZE_PX = 16; 
-            const STEP_PERCENT = 10;
-            const MIN_PERCENT = 50;
-            const MAX_PERCENT = 300;
-            const DEFAULT_PERCENT = 100;
-
-            let currentPercent = parseInt(localStorage.getItem(LS_KEY) || DEFAULT_PERCENT, 10);
-
-            function applyFontSize(percent) {
-                currentPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, percent));
-                body.style.fontSize = \`\${(BASE_FONT_SIZE_PX * currentPercent) / 100}px\`;
-                display.textContent = \`\${currentPercent}%\`;
-                localStorage.setItem(LS_KEY, currentPercent);
-            }
-
-            increaseButton.addEventListener('click', () => applyFontSize(currentPercent + STEP_PERCENT));
-            decreaseButton.addEventListener('click', () => applyFontSize(currentPercent - STEP_PERCENT));
-            resetButton.addEventListener('click', () => applyFontSize(DEFAULT_PERCENT));
-            
-            applyFontSize(currentPercent); 
-        }
-        `;
-
-        const SAVE_AS_IMAGE_LOGIC = `
-        function setupSaveAsImage() {
-            const saveButton = document.getElementById('saveAsImageBtn');
-            const fontControls = document.getElementById('font-controls');
-            const bodyToCapture = document.querySelector('body.markdown-body');
-
-            if (!saveButton || !fontControls || !bodyToCapture) {
-                console.error('Save as Image button, font controls, or body element not found.');
-                if (saveButton) saveButton.style.display = 'none'; 
-                return;
-            }
-
-            saveButton.addEventListener('click', () => {
-                if (typeof html2canvas === 'undefined') {
-                    console.error('html2canvas is not loaded.');
-                    alert('Error: html2canvas library is not available. Cannot save image.');
+            setupMarked() {
+                if (typeof marked === 'undefined') {
+                    console.error("Marked.js is not loaded! Make sure the CDN link is correct and accessible.");
                     return;
                 }
-
-                fontControls.style.display = 'none';
-
-                html2canvas(bodyToCapture, {
-                    logging: false, 
-                    useCORS: true, 
-                    onclone: (clonedDoc) => {
-                        const clonedBody = clonedDoc.querySelector('body.markdown-body');
-                        if (clonedBody) {
-                            clonedBody.style.paddingTop = '20px';
-                        }
-                    }
-                }).then(canvas => {
-                    fontControls.style.display = 'flex'; 
-
-                    const randomPart = Math.random().toString(36).substring(2, 10);
-                    const timestamp = new Date().getTime();
-                    const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
-
-                    const image = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.href = image;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                }).catch(err => {
-                    fontControls.style.display = 'flex';
-                    console.error('Error capturing image with html2canvas:', err);
-                    alert('Sorry, an error occurred while trying to save the image.');
+                marked.setOptions({
+                    gfm: true,
+                    breaks: true,
+                    smartypants: false,
                 });
-            });
-        }
-        `;
+            },
 
-        const COLLAPSIBLE_CONTROLS_SCRIPT_LOGIC = `
-        function setupCollapsibleControls() {
-            const toggleButton = document.getElementById('toggleCollapseBtn');
-            const decreaseFontBtn = document.getElementById('decreaseFontBtn');
-            const currentFontSizeDisplay = document.getElementById('currentFontSizeDisplay');
-            const increaseFontBtn = document.getElementById('increaseFontBtn');
-            const resetFontBtn = document.getElementById('resetFontBtn');
-            const toggleThemeBtn = document.getElementById('toggleThemeBtn');
-            const saveImageBtn = document.getElementById('saveAsImageBtn');
+            bindEventListeners() {
+                this.dom.renderButton.addEventListener('click', () => this.handleRender());
+                this.dom.pasteAndRenderButton.addEventListener('click', () => this.handlePasteAndRender());
+            },
 
-            const controlsToToggle = [
-                decreaseFontBtn,
-                currentFontSizeDisplay,
-                increaseFontBtn,
-                resetFontBtn,
-                toggleThemeBtn,
-                saveImageBtn
-            ].filter(el => el !== null); 
+            handleRender() {
+                const markdownText = this.dom.markdownInput.value;
+                const processedHtml = this.preprocessMarkdownForKatex(markdownText);
+                const fullPageHtml = this.buildRenderedPageHtml(processedHtml, "Rendered Markdown & LaTeX");
+                this.openInNewTab(fullPageHtml);
+            },
 
-            if (!toggleButton || controlsToToggle.length < 5) {
-                console.warn("Collapsible control elements (expected at least 5 including Save Image) not fully found. Some controls may not toggle.");
-                if (toggleButton && controlsToToggle.length === 0) { 
-                     toggleButton.style.display = 'none'; 
-                }
-            }
-
-            const LS_COLLAPSED_KEY = 'fontControlsCollapsed';
-
-            function applyCollapsedState(collapsedArgument) { 
-                const isCurrentlyCollapsed = typeof collapsedArgument === 'boolean' ? collapsedArgument : JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
-
-                controlsToToggle.forEach(control => {
-                    control.style.display = isCurrentlyCollapsed ? 'none' : '';
-                });
-                if (toggleButton) { 
-                    toggleButton.textContent = isCurrentlyCollapsed ? 'Expand Controls' : 'Collapse Controls';
-                }
-                localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(isCurrentlyCollapsed));
-            }
-
-            if (toggleButton) { 
-                toggleButton.addEventListener('click', () => {
-                    const currentState = JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
-                    applyCollapsedState(!currentState);
-                });
-            }
-
-            applyCollapsedState();
-        }
-        `;
-
-        const THEME_CONTROL_SCRIPT_LOGIC = `
-        function setupThemeControls() {
-            const body = document.querySelector('body.markdown-body');
-            const toggleThemeButton = document.getElementById('toggleThemeBtn');
-
-            if (!body || !toggleThemeButton) {
-                console.error("Theme control elements not found. Ensure IDs are correct and DOM is ready.");
-                return;
-            }
-
-            const LS_THEME_KEY = 'renderedOutputTheme';
-            const DARK_THEME_CLASS = 'dark-theme';
-
-            function applyTheme(theme) {
-                if (theme === 'dark') {
-                    body.classList.add(DARK_THEME_CLASS);
-                    toggleThemeButton.textContent = 'Light Theme';
-                } else {
-                    body.classList.remove(DARK_THEME_CLASS);
-                    toggleThemeButton.textContent = 'Dark Theme';
-                }
-                localStorage.setItem(LS_THEME_KEY, theme);
-            }
-
-            toggleThemeButton.addEventListener('click', () => {
-                const currentTheme = body.classList.contains(DARK_THEME_CLASS) ? 'dark' : 'light';
-                if (currentTheme === 'dark') {
-                    applyTheme('light');
-                } else {
-                    applyTheme('dark');
-                }
-            });
-
-            const savedTheme = localStorage.getItem(LS_THEME_KEY) || 'light'; 
-            applyTheme(savedTheme);
-        }
-        `;
-
-        const markdownInputElement = document.getElementById('markdownInput');
-        const renderButtonElement = document.getElementById('renderMarkdownBtn');
-
-        const pasteAndRenderButtonElement = document.getElementById('pasteAndRenderBtn');
-
-        if (pasteAndRenderButtonElement) {
-            pasteAndRenderButtonElement.addEventListener('click', async () => {
-                if (!navigator.clipboard || !navigator.clipboard.readText) {
+            async handlePasteAndRender() {
+                if (!navigator.clipboard?.readText) {
                     alert('Clipboard API not available. Please use a modern browser or check permissions.');
                     return;
                 }
                 try {
                     const text = await navigator.clipboard.readText();
-                    markdownInputElement.value = text;
-                    renderButtonElement.click();
+                    this.dom.markdownInput.value = text;
+                    this.handleRender();
                 } catch (err) {
-                    console.error('Failed to read clipboard contents: ', err);
+                    console.error('Failed to read clipboard contents:', err);
                     alert('Failed to read from clipboard. Make sure you have granted permission and are using a compatible browser.');
                 }
-            });
-        }
+            },
 
-        marked.setOptions({
-            gfm: true,
-            breaks: true,
-            smartypants: false
-        });
+            preprocessMarkdownForKatex(markdownText) {
+                const mathExpressions = [];
+                let tempText = markdownText;
 
-        function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
+                const patterns = [
+                    { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
+                    { regex: /\\\[([\s\S]*?)\\\]/g, open: '\\[', close: '\\]' },
+                    { regex: /\$([^$\n]+?)\$/g, open: '$', close: '$' },
+                    { regex: /\\\((.+?)\\\)/g, open: '\\(', close: '\\)' },
+                ];
 
-        function preprocessMarkdownForKatex(markdownText) {
-            const mathExpressions = [];
-            let mathIndex = 0;
-            let tempText = markdownText;
-
-            const addPlaceholder = (regex, type, originalOpen, originalClose) => {
-                tempText = tempText.replace(regex, (match, content) => {
-                    if (content.trim() === "") return match;
-                    const placeholder = `%%${type}_MATH_PLACEHOLDER_${mathIndex}%%`;
-                    mathExpressions.push({ placeholder, content, originalOpen, originalClose });
-                    mathIndex++;
-                    return placeholder;
+                patterns.forEach((pattern) => {
+                    tempText = tempText.replace(pattern.regex, (match, content) => {
+                        if (content.trim() === "") return match;
+                        const placeholder = `%%MATH_PLACEHOLDER_${mathExpressions.length}%%`;
+                        mathExpressions.push({ placeholder, content, originalOpen: pattern.open, originalClose: pattern.close });
+                        return placeholder;
+                    });
                 });
-            };
 
-            addPlaceholder(/\$\$([\s\S]*?)\$\$/g, 'DISPLAY_SS', '$$', '$$');
-            addPlaceholder(/\\\[([\s\S]*?)\\\]/g, 'DISPLAY_BRACKET', '\\[', '\\]');
-            addPlaceholder(/\$([^$]+?)\$/g, 'INLINE_S', '$', '$');
-            addPlaceholder(/\\\(([\s\S]*?)\\\)/g, 'INLINE_PAREN', '\\(', '\\)');
+                let html = marked.parse(tempText);
 
-            let html = marked.parse(tempText);
+                mathExpressions.forEach(item => {
+                    const preservedKatexString = item.originalOpen + item.content + item.originalClose;
+                    html = html.replace(item.placeholder, preservedKatexString);
+                });
 
-            for (let i = mathExpressions.length - 1; i >= 0; i--) {
-                const item = mathExpressions[i];
-                const preservedKatexString = item.originalOpen + item.content + item.originalClose;
-                const placeholderRegex = new RegExp(escapeRegExp(item.placeholder), "g");
-                html = html.replace(placeholderRegex, preservedKatexString);
-            }
-            return html;
-        }
+                return html;
+            },
 
-        function openInNewTab(htmlContent, pageTitle = "Rendered Output") {
-            const newTab = window.open('', '_blank');
-            if (newTab) {
-                newTab.document.open();
-                newTab.document.write(`
+            openInNewTab(htmlContent) {
+                const newTab = window.open('', '_blank');
+                if (newTab) {
+                    newTab.document.open();
+                    newTab.document.write(htmlContent);
+                    newTab.document.close();
+                } else {
+                    alert("Failed to open new tab. Please check your pop-up blocker settings.");
+                }
+            },
+
+            buildRenderedPageHtml(content, title) {
+                return `
                     <!DOCTYPE html>
                     <html lang="en">
                     <head>
                         <meta charset="UTF-8">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>${pageTitle}</title>
-                        <link rel="stylesheet" href="${GITHUB_MARKDOWN_CSS_LINK}">
-                        <link rel="stylesheet" href="${KATEX_CSS_LINK}">
-                        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
-                        ${RENDERED_PAGE_BODY_STYLE}
-                        <script>
-                            ${KATEX_INIT_LOGIC}
-                            ${FONT_SIZE_CONTROL_SCRIPT_LOGIC}
-                            ${THEME_CONTROL_SCRIPT_LOGIC}
-                            ${COLLAPSIBLE_CONTROLS_SCRIPT_LOGIC}
-                            ${SAVE_AS_IMAGE_LOGIC}
-                        <\/script>
-                        <script defer src="${KATEX_JS_LINK}"><\/script>
-                        <script defer src="${KATEX_AUTORENDER_JS_LINK}" onload="initKatexAutoRender()"><\/script>
+                        <title>${title}</title>
+                        <link rel="stylesheet" href="${this.config.githubMarkdownCSS}">
+                        <link rel="stylesheet" href="${this.config.katexCSS}">
+                        ${this.getRenderedPageStyles()}
                     </head>
                     <body class="markdown-body">
-                        ${FONT_CONTROL_UI_HTML}
-                        ${htmlContent}
+                        ${this.getRenderedPageControlsHtml()}
+                        <div id="content-container">${content}</div>
+                        <script defer src="${this.config.html2canvasJS}"><\/script>
+                        <script defer src="${this.config.katexJS}"><\/script>
+                        <script defer src="${this.config.katexAutoRenderJS}"><\/script>
                         <script>
-                            document.addEventListener('DOMContentLoaded', () => {
-                                setupFontSizeControls();
-                                setupThemeControls();
-                                setupCollapsibleControls();
-                                setupSaveAsImage(); 
-                            });
+                            (() => {
+                                ${this.getRenderedPageScriptLogic()}
+                            })();
                         <\/script>
                     </body>
                     </html>
-                `);
-                newTab.document.close();
-            } else {
-                alert("Failed to open new tab. Please check your pop-up blocker settings.");
-            }
-        }
+                `;
+            },
 
-        renderButtonElement.addEventListener('click', () => {
-            const markdownText = markdownInputElement.value;
-            const htmlWithPreservedKatex = preprocessMarkdownForKatex(markdownText);
-            openInNewTab(htmlWithPreservedKatex, "Rendered Markdown & LaTeX");
-        });
+            getRenderedPageStyles() {
+                return `<style>body.markdown-body{box-sizing:border-box;min-width:200px;max-width:980px;margin:0 auto;padding:45px;padding-top:70px} @media (max-width:767px){body.markdown-body{padding:15px;padding-top:60px}} body.markdown-body{background-color:#fff;color:#000}body.markdown-body a{color:#0000DD}body.markdown-body a:visited{color:#551A8B}body.markdown-body hr{border-top-color:#bbb}body.markdown-body blockquote{border-left-color:#ddd}body.markdown-body th,body.markdown-body td{border-color:#ddd;background-color:#fff;color:#000}body.markdown-body code:not([class*=language-]),body.markdown-body pre{background-color:#f0f0f0;color:#111}body.markdown-body h1,body.markdown-body h2,body.markdown-body h3,body.markdown-body h4,body.markdown-body h5,body.markdown-body h6{border-bottom-color:#ddd} body.markdown-body.dark-theme{background-color:#000000;color:#c9d1d9}body.markdown-body.dark-theme a{color:#58a6ff}body.markdown-body.dark-theme a:visited{color:#8b949e}body.markdown-body.dark-theme hr{border-top-color:#30363d}body.markdown-body.dark-theme blockquote{color:#8b949e;border-left-color:#30363d}body.markdown-body.dark-theme th,body.markdown-body.dark-theme td{border-color:#30363d;background-color:#161b22;color:#c9d1d9}body.markdown-body.dark-theme code:not([class*=language-]),body.markdown-body.dark-theme pre{background-color:#161b22;color:#c9d1d9}body.markdown-body.dark-theme h1,body.markdown-body.dark-theme h2,body.markdown-body.dark-theme h3,body.markdown-body.dark-theme h4,body.markdown-body.dark-theme h5,body.markdown-body.dark-theme h6{color:#c9d1d9;border-bottom-color:#30363d} .fc-panel{position:fixed;top:10px;right:10px;padding:8px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1000;display:flex;align-items:center;gap:5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;background:rgba(240,240,240,.95)} .fc-button{padding:4px 8px;cursor:pointer;background-color:#fff;color:#000;border:1px solid #ccc;border-radius:3px} .fc-button:hover{background-color:#eee} .fc-display{color:#000;padding:0 5px;min-width:40px;text-align:center} body.markdown-body.dark-theme .fc-panel{background:rgba(30,35,42,.95)} body.markdown-body.dark-theme .fc-button{background-color:#21262d;color:#c9d1d9;border:1px solid #30363d} body.markdown-body.dark-theme .fc-button:hover{background-color:#30363d} body.markdown-body.dark-theme .fc-display{color:#c9d1d9}</style>`;
+            },
+
+            getRenderedPageControlsHtml() {
+                return `<div id="font-controls" class="fc-panel"><button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button" style="margin-right: 5px;">Toggle</button><button id="decreaseFontBtn" title="Decrease font size" class="fc-button">-</button><span id="currentFontSizeDisplay" class="fc-display">100%</span><button id="increaseFontBtn" title="Increase font size" class="fc-button">+</button><button id="resetFontBtn" title="Reset font size" class="fc-button" style="margin-left: 5px;">Reset</button><button id="toggleThemeBtn" title="Toggle theme" class="fc-button" style="margin-left: 5px;">Theme</button><button id="saveAsImageBtn" title="Save as image" class="fc-button" style="margin-left: 5px;">Save Image</button></div>`;
+            },
+
+            getRenderedPageScriptLogic() {
+                return `
+                    function initKatexAutoRender() {
+                        if (typeof renderMathInElement === 'function') {
+                            renderMathInElement(document.getElementById('content-container'), {
+                                delimiters: [
+                                    {left: "$$", right: "$$", display: true},
+                                    {left: "\\\\[", right: "\\\\]", display: true},
+                                    {left: "$", right: "$", display: false, throwOnError: false},
+                                    {left: "\\\\(", right: "\\\\)", display: false}
+                                ],
+                                throwOnError: false
+                            });
+                        } else {
+                            setTimeout(initKatexAutoRender, 100);
+                        }
+                    }
+
+                    function setupRenderedPage() {
+                        const body = document.querySelector('body.markdown-body');
+                        if (!body) return;
+
+                        initKatexAutoRender();
+                        setupThemeControls(body);
+                        setupFontSizeControls(body);
+                        setupCollapsibleControls();
+                        setupSaveAsImage();
+                    }
+
+                    function setupThemeControls(body) {
+                        const toggleBtn = document.getElementById('toggleThemeBtn');
+                        if (!toggleBtn) return;
+                        const LS_KEY = 'renderedOutputTheme';
+                        const DARK_CLASS = 'dark-theme';
+                        const applyTheme = (theme) => {
+                            if (theme === 'dark') {
+                                body.classList.add(DARK_CLASS);
+                                toggleBtn.textContent = 'Light Theme';
+                            } else {
+                                body.classList.remove(DARK_CLASS);
+                                toggleBtn.textContent = 'Dark Theme';
+                            }
+                            localStorage.setItem(LS_KEY, theme);
+                        };
+                        toggleBtn.addEventListener('click', () => {
+                            const currentTheme = body.classList.contains(DARK_CLASS) ? 'dark' : 'light';
+                            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+                        });
+                        applyTheme(localStorage.getItem(LS_KEY) || 'light');
+                    }
+
+                    function setupFontSizeControls(body) {
+                        const increaseBtn = document.getElementById('increaseFontBtn');
+                        const decreaseBtn = document.getElementById('decreaseFontBtn');
+                        const resetBtn = document.getElementById('resetFontBtn');
+                        const display = document.getElementById('currentFontSizeDisplay');
+                        if (!increaseBtn || !decreaseBtn || !resetBtn || !display) return;
+                        const LS_KEY = 'renderedOutputFontSizePercent';
+                        const BASE_FONT_SIZE_PX = 16;
+                        const STEP_PERCENT = 10;
+                        const MIN_PERCENT = 50;
+                        const MAX_PERCENT = 300;
+                        const DEFAULT_PERCENT = 100;
+                        let currentPercent = parseInt(localStorage.getItem(LS_KEY) || DEFAULT_PERCENT, 10);
+                        const applyFontSize = (percent) => {
+                            currentPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, percent));
+                            body.style.fontSize = \`\${(BASE_FONT_SIZE_PX * currentPercent) / 100}px\`;
+                            display.textContent = \`\${currentPercent}%\`;
+                            localStorage.setItem(LS_KEY, currentPercent);
+                        };
+                        increaseBtn.addEventListener('click', () => applyFontSize(currentPercent + STEP_PERCENT));
+                        decreaseBtn.addEventListener('click', () => applyFontSize(currentPercent - STEP_PERCENT));
+                        resetBtn.addEventListener('click', () => applyFontSize(DEFAULT_PERCENT));
+                        applyFontSize(currentPercent);
+                    }
+                    
+                    function setupCollapsibleControls() {
+                        const toggleButton = document.getElementById('toggleCollapseBtn');
+                        const controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
+                        if (!toggleButton) return;
+                        const LS_COLLAPSED_KEY = 'fontControlsCollapsed';
+                        function applyCollapsedState(collapsedArgument) {
+                            const isCurrentlyCollapsed = typeof collapsedArgument === 'boolean' ? collapsedArgument : JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
+                            controlsToToggle.forEach(control => {
+                                control.style.display = isCurrentlyCollapsed ? 'none' : '';
+                            });
+                            toggleButton.textContent = isCurrentlyCollapsed ? 'Expand Controls' : 'Collapse Controls';
+                            localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(isCurrentlyCollapsed));
+                        }
+                        toggleButton.addEventListener('click', () => {
+                            const currentState = JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
+                            applyCollapsedState(!currentState);
+                        });
+                        applyCollapsedState();
+                    }
+
+                    function setupSaveAsImage() {
+                        const saveBtn = document.getElementById('saveAsImageBtn');
+                        const controlsPanel = document.getElementById('font-controls');
+                        const contentContainer = document.getElementById('content-container');
+                        if (!saveBtn || !controlsPanel || !contentContainer) {
+                            if (saveBtn) saveBtn.style.display = 'none';
+                            return;
+                        }
+
+                        saveBtn.addEventListener('click', () => {
+                            if (typeof html2canvas === 'undefined') {
+                                return alert('Error: html2canvas library is not available. Please ensure its CDN loads.');
+                            }
+                            
+                            const bodyBackgroundColor = window.getComputedStyle(document.body).backgroundColor;
+                            controlsPanel.style.display = 'none';
+                            
+                            html2canvas(contentContainer, {
+                                logging: false,
+                                useCORS: true,
+                                backgroundColor: bodyBackgroundColor,
+                                onclone: (clonedDoc) => {
+                                    const clonedContentDiv = clonedDoc.getElementById('content-container');
+                                    if (clonedContentDiv) {
+                                        clonedContentDiv.style.padding = '40px';
+                                        clonedContentDiv.style.boxSizing = 'border-box';
+                                    }
+                                }
+                            }).then(canvas => {
+                                controlsPanel.style.display = 'flex';
+                                const randomPart = Math.random().toString(36).substring(2, 10);
+                                const timestamp = new Date().getTime();
+                                const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
+                                const image = canvas.toDataURL('image/png');
+                                const link = document.createElement('a');
+                                link.href = image;
+                                link.download = filename;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }).catch(err => {
+                                controlsPanel.style.display = 'flex';
+                                console.error('Error capturing image with html2canvas:', err);
+                                alert('Sorry, an error occurred while trying to save the image.');
+                            });
+                        });
+                    }
+
+                    document.addEventListener('DOMContentLoaded', setupRenderedPage);
+                `;
+            }
+        };
+
+        MarkdownRenderer.init();
     </script>
 </body>
 </html>
