@@ -893,6 +893,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                             }
                             
                             handleStart(element, event) {
+                                preventDefault();
                                 this.longPressElement = element;
                                 element.classList.add('list-item-highlight');
                                 
