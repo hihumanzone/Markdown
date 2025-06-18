@@ -5,208 +5,258 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown & LaTeX Renderer</title>
     <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --bg-color: #f4f4f4;
+            --container-bg: #fff;
+            --text-color: #333;
+            --border-color: #ddd;
+            --info-bg: #e9ecef;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             line-height: 1.6;
         }
+
         .container {
             max-width: 900px;
             margin: 20px auto;
             padding: 25px;
-            background-color: #fff;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            background-color: var(--container-bg);
+            box-shadow: 0 0 15px var(--shadow-color);
             border-radius: 8px;
         }
+
         h1, h2 {
-            color: #333;
+            color: var(--text-color);
             border-bottom: 2px solid #eee;
             padding-bottom: 10px;
+            margin-bottom: 20px;
         }
+
         label {
             display: block;
             margin-top: 15px;
             margin-bottom: 5px;
             font-weight: bold;
         }
+
         textarea {
             width: 100%;
             min-height: 200px;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            box-sizing: border-box;
             font-family: monospace;
             font-size: 14px;
             margin-bottom: 15px;
+            resize: vertical;
         }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         button {
-            background-color: #007bff;
+            background-color: var(--primary-color);
             color: white;
             padding: 10px 15px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            margin-right: 10px;
             transition: background-color 0.2s ease;
         }
-        button:hover {
-            background-color: #0056b3;
+
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover);
         }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .info {
             font-size: 0.9em;
             color: #555;
             margin-top: 20px;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-left: 4px solid #007bff;
+            padding: 15px;
+            background-color: var(--info-bg);
+            border-left: 4px solid var(--primary-color);
             border-radius: 4px;
         }
+
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .info li {
+            margin: 5px 0;
+        }
+
         .input-section {
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 1px dashed #ccc;
         }
+
         .input-section:last-child {
             border-bottom: none;
+        }
+
+        .example-text {
+            font-size: 0.85em;
+            color: #666;
+            white-space: pre-line;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Markdown & LaTeX Renderer</h1>
+        
         <div class="input-section">
             <h2>Markdown Input</h2>
             <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
-            <textarea id="markdownInput" placeholder="Type or paste Markdown here...
-Example:
+            <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
 # Hello World
 This is **bold** and _italic_.
-Math (KaTeX will render these):
+
+## Math Examples (KaTeX will render these):
 Inline: $E = mc^2$ or \( \alpha + \beta \)
+
 Display:
 $$
 \sum_{i=0}^{n} i = \frac{n(n+1)}{2}
 $$
+
 \[
 \text{H}_2\text{O} \quad \text{or H$_2$O}
 \]
-Single dollar signs that should not render math:
-This product costs $10 only.
+
+## Note
+Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
-"></textarea>
-            <button id="renderMarkdownBtn">Render Markdown</button>
-            <button id="pasteAndRenderBtn">Paste & Render</button>
+            </textarea>
+            
+            <div class="button-group">
+                <button id="renderMarkdownBtn" title="Render the markdown content">Render Markdown</button>
+                <button id="pasteAndRenderBtn" title="Paste from clipboard and render">Paste & Render</button>
+                <button id="clearBtn" title="Clear the input">Clear</button>
+            </div>
         </div>
+
         <div class="info">
             <p><strong>How it works:</strong></p>
             <ul>
-                <li>Markdown rendering via Marked.js. LaTeX is preserved.</li>
-                <li>LaTeX math rendering via KaTeX in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li>Font size controls, theme toggle, save-as-image functionality, and raw/rendered view toggle are available in the rendered output tab.</li>
+                <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
+                <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
+                <li><strong>Font size controls</strong>, theme toggle, save-as-image functionality, and raw/rendered view toggle are available in the rendered output tab.</li>
                 <li><strong>Long press on list items</strong> to copy their content (without list markers) to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
-    <script defer>
-        const MarkdownRenderer = {
-            config: {
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Constants and Configuration
+        const CONFIG = {
+            CDN: {
                 githubMarkdownCSS: 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css',
                 katexCSS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css',
                 katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
                 html2canvasJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
             },
-            dom: {
-                markdownInput: null,
-                renderButton: null,
-                pasteAndRenderButton: null,
+            MATH_PATTERNS: [
+                { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
+                { regex: /\\\[([\s\S]*?)\\\]/g, open: '\\[', close: '\\]' },
+                { regex: /\$([^$\n]+?)\$/g, open: '$', close: '$' },
+                { regex: /\\\((.+?)\\\)/g, open: '\\(', close: '\\)' },
+            ],
+            FONT_SIZE: {
+                BASE: 16,
+                STEP: 10,
+                MIN: 50,
+                MAX: 300,
+                DEFAULT: 100
             },
-            init() {
-                document.addEventListener('DOMContentLoaded', () => {
-                    this.cacheDOMElements();
-                    this.setupMarked();
-                    this.bindEventListeners();
-                });
+            LONG_PRESS_DURATION: 500,
+            LOCAL_STORAGE_KEYS: {
+                THEME: 'renderedOutputTheme',
+                FONT_SIZE: 'renderedOutputFontSizePercent',
+                VIEW_MODE: 'renderedOutputViewMode',
+                CONTROLS_COLLAPSED: 'fontControlsCollapsed'
+            }
+        };
+
+        // Utility Functions
+        const Utils = {
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             },
-            cacheDOMElements() {
-                this.dom.markdownInput = document.getElementById('markdownInput');
-                this.dom.renderButton = document.getElementById('renderMarkdownBtn');
-                this.dom.pasteAndRenderButton = document.getElementById('pasteAndRenderBtn');
-            },
-            setupMarked() {
-                if (typeof marked === 'undefined') {
-                    console.error("Marked.js is not loaded! Make sure the CDN link is correct and accessible.");
-                    return;
+
+            async copyToClipboard(text) {
+                if (navigator.clipboard?.writeText) {
+                    return navigator.clipboard.writeText(text);
                 }
-                marked.setOptions({
-                    gfm: true,
-                    breaks: true,
-                    smartypants: false,
-                });
-            },
-            bindEventListeners() {
-                this.dom.renderButton.addEventListener('click', () => this.handleRender());
-                this.dom.pasteAndRenderButton.addEventListener('click', () => this.handlePasteAndRender());
-            },
-            handleRender() {
-                const markdownText = this.dom.markdownInput.value;
-                const processedHtml = this.preprocessMarkdownForKatex(markdownText);
-                const fullPageHtml = this.buildRenderedPageHtml(processedHtml, markdownText, "Rendered Markdown & LaTeX");
-                this.openInNewTab(fullPageHtml);
-            },
-            async handlePasteAndRender() {
-                if (!navigator.clipboard?.readText) {
-                    alert('Clipboard API not available. Please use a modern browser or check permissions.');
-                    return;
-                }
+                
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
                 try {
-                    const text = await navigator.clipboard.readText();
-                    this.dom.markdownInput.value = text;
-                    this.handleRender();
-                } catch (err) {
-                    console.error('Failed to read clipboard contents:', err);
-                    alert('Failed to read from clipboard. Make sure you have granted permission and are using a compatible browser.');
+                    document.execCommand('copy');
+                } finally {
+                    document.body.removeChild(textArea);
                 }
             },
-            preprocessMarkdownForKatex(markdownText) {
-                const mathExpressions = [];
-                let tempText = markdownText;
-                const patterns = [
-                    { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
-                    { regex: /\\\[([\s\S]*?)\\\]/g, open: '\\[', close: '\\]' },
-                    { regex: /\$([^$\n]+?)\$/g, open: '$', close: '$' },
-                    { regex: /\\\((.+?)\\\)/g, open: '\\(', close: '\\)' },
-                ];
-                patterns.forEach((pattern) => {
-                    tempText = tempText.replace(pattern.regex, (match, content) => {
-                        if (content.trim() === "") return match;
-                        const placeholder = `%%MATH_PLACEHOLDER_${mathExpressions.length}%%`;
-                        mathExpressions.push({ placeholder, content, originalOpen: pattern.open, originalClose: pattern.close });
-                        return placeholder;
-                    });
-                });
-                let html = marked.parse(tempText);
-                mathExpressions.forEach(item => {
-                    const preservedKatexString = item.originalOpen + item.content + item.originalClose;
-                    html = html.replace(item.placeholder, preservedKatexString);
-                });
-                return html;
-            },
-            extractListItems(markdownText) {
+
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+        };
+
+        // List Item Parser
+        class ListItemParser {
+            static parse(markdownText) {
                 const listItems = [];
                 const lines = markdownText.split('\n');
-                let currentIndent = 0;
                 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
-                    const trimmed = line.trim();
                     const unorderedMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
                     const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
                     
@@ -218,6 +268,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                         
                         let fullContent = content;
                         let j = i + 1;
+                        
+                        // Collect continuation lines
                         while (j < lines.length) {
                             const nextLine = lines[j];
                             const nextTrimmed = nextLine.trim();
@@ -237,9 +289,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         }
                         
                         listItems.push({
-                            originalMarkdown: isOrdered ? 
-                                `${match[1]}${orderedMatch[0].match(/\d+/)[0]}. ${fullContent}` : 
-                                `${match[1]}- ${fullContent}`,
                             content: fullContent,
                             indent: indent,
                             isOrdered: isOrdered
@@ -250,7 +299,787 @@ Don't write something like $E=mc^2$ across multiple lines.
                 }
                 
                 return listItems;
-            },
+            }
+        }
+
+        // Math Processor
+        class MathProcessor {
+            static preserveMathExpressions(markdownText) {
+                const mathExpressions = [];
+                let tempText = markdownText;
+                
+                CONFIG.MATH_PATTERNS.forEach((pattern) => {
+                    tempText = tempText.replace(pattern.regex, (match, content) => {
+                        if (content.trim() === "") return match;
+                        
+                        const placeholder = `%%MATH_PLACEHOLDER_${mathExpressions.length}%%`;
+                        mathExpressions.push({
+                            placeholder,
+                            content,
+                            originalOpen: pattern.open,
+                            originalClose: pattern.close
+                        });
+                        return placeholder;
+                    });
+                });
+                
+                return { tempText, mathExpressions };
+            }
+
+            static restoreMathExpressions(html, mathExpressions) {
+                let restoredHtml = html;
+                
+                mathExpressions.forEach(item => {
+                    const preservedKatexString = item.originalOpen + item.content + item.originalClose;
+                    restoredHtml = restoredHtml.replace(item.placeholder, preservedKatexString);
+                });
+                
+                return restoredHtml;
+            }
+        }
+
+        // Rendered Page Builder
+        class RenderedPageBuilder {
+            static build(content, rawMarkdown, title, listItems) {
+                return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="stylesheet" href="${CONFIG.CDN.githubMarkdownCSS}">
+    <link rel="stylesheet" href="${CONFIG.CDN.katexCSS}">
+    ${this.getStyles()}
+</head>
+<body class="markdown-body">
+    ${this.getControls()}
+    <div id="content-container">${content}</div>
+    <div id="raw-container" style="display: none;">
+        <pre id="raw-markdown">${Utils.escapeHtml(rawMarkdown)}</pre>
+    </div>
+    <div id="copy-notification">Copied to clipboard!</div>
+    
+    <script>
+        window.__APP_DATA__ = {
+            rawMarkdown: ${JSON.stringify(rawMarkdown)},
+            listItems: ${JSON.stringify(listItems)},
+            config: ${JSON.stringify(CONFIG)}
+        };
+    <\/script>
+    
+    <script defer src="${CONFIG.CDN.html2canvasJS}"><\/script>
+    <script defer src="${CONFIG.CDN.katexJS}"><\/script>
+    <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
+    <script>
+        ${this.getClientScript()}
+    <\/script>
+</body>
+</html>`;
+            }
+
+            static getStyles() {
+                return `<style>
+                    /* Base Styles */
+                    body.markdown-body {
+                        box-sizing: border-box;
+                        min-width: 200px;
+                        max-width: 980px;
+                        margin: 0 auto;
+                        padding: 45px;
+                        padding-top: 70px;
+                        transition: background-color 0.3s ease, color 0.3s ease;
+                    }
+                    
+                    @media (max-width: 767px) {
+                        body.markdown-body {
+                            padding: 15px;
+                            padding-top: 60px;
+                        }
+                    }
+                    
+                    /* Light Theme (Default) */
+                    body.markdown-body {
+                        background-color: #ffffff;
+                        color: #000000;
+                    }                    body.markdown-body a { color: #000000; }
+                    body.markdown-body a:visited { color: #000000; }
+                    body.markdown-body hr { border-top-color: #000000; }
+                    body.markdown-body blockquote { border-left-color: #000000; }
+                    body.markdown-body th,
+                    body.markdown-body td {
+                        border-color: #000000;
+                        background-color: #ffffff;
+                        color: #000000;
+                    }
+                    body.markdown-body code:not([class*=language-]),
+                    body.markdown-body pre {
+                        background-color: #ffffff;
+                        color: #000000;
+                    }
+                    body.markdown-body h1,
+                    body.markdown-body h2,
+                    body.markdown-body h3,
+                    body.markdown-body h4,
+                    body.markdown-body h5,
+                    body.markdown-body h6 {
+                        border-bottom-color: #000000;
+                    }
+                    
+                    /* Dark Theme */
+                    body.markdown-body.dark-theme {
+                        background-color: #000000;
+                        color: #ffffff;
+                    }
+                    body.markdown-body.dark-theme a { color: #ffffff; }
+                    body.markdown-body.dark-theme a:visited { color: #ffffff; }
+                    body.markdown-body.dark-theme hr { border-top-color: #ffffff; }
+                    body.markdown-body.dark-theme blockquote {
+                        color: #ffffff;
+                        border-left-color: #ffffff;
+                    }
+                    body.markdown-body.dark-theme th,
+                    body.markdown-body.dark-theme td {
+                        border-color: #ffffff;
+                        background-color: #000000;
+                        color: #ffffff;
+                    }
+                    body.markdown-body.dark-theme code:not([class*=language-]),
+                    body.markdown-body.dark-theme pre {
+                        background-color: #000000;
+                        color: #ffffff;
+                    }
+                    body.markdown-body.dark-theme h1,
+                    body.markdown-body.dark-theme h2,
+                    body.markdown-body.dark-theme h3,
+                    body.markdown-body.dark-theme h4,
+                    body.markdown-body.dark-theme h5,
+                    body.markdown-body.dark-theme h6 {
+                        color: #ffffff;
+                        border-bottom-color: #ffffff;
+                    }
+                    body.markdown-body.dark-theme #raw-markdown {
+                        background-color: #1a1a1a !important;
+                        color: #ffffff !important;
+                        border-color: #555 !important;
+                    }
+                    
+                    /* Control Panel */
+                    .fc-panel {
+                        position: fixed;
+                        top: 10px;
+                        right: 10px;
+                        padding: 8px;
+                        border-radius: 5px;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+                        z-index: 1000;
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                        font-size: 13px;
+                        background: rgba(255, 255, 255, 0.95);
+                        transition: background-color 0.3s ease;
+                    }
+                    
+                    .fc-button {
+                        padding: 4px 8px;
+                        cursor: pointer;
+                        background-color: #fff;
+                        color: #000;
+                        border: 1px solid #000;
+                        border-radius: 3px;
+                        transition: background-color 0.2s ease;
+                    }
+                    
+                    .fc-button:hover {
+                        background-color: #f0f0f0;
+                    }
+                    
+                    .fc-display {
+                        color: #000;
+                        padding: 0 5px;
+                        min-width: 40px;
+                        text-align: center;
+                    }
+                    
+                    /* Dark Theme Control Panel */
+                    body.markdown-body.dark-theme .fc-panel {
+                        background: rgba(0, 0, 0, 0.95);
+                        box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
+                    }
+                    body.markdown-body.dark-theme .fc-button {
+                        background-color: #000;
+                        color: #fff;
+                        border: 1px solid #fff;
+                    }
+                    body.markdown-body.dark-theme .fc-button:hover {
+                        background-color: #222;
+                    }
+                    body.markdown-body.dark-theme .fc-display {
+                        color: #fff;
+                    }
+                    
+                    /* List Item Highlight */
+                    .list-item-highlight {
+                        background-color: rgba(0, 123, 255, 0.1) !important;
+                        transition: background-color 0.2s ease !important;
+                    }
+                    body.markdown-body.dark-theme .list-item-highlight {
+                        background-color: rgba(255, 255, 255, 0.1) !important;
+                    }
+                    
+                    /* Raw Markdown Display */
+                    #raw-markdown {
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                        font-family: monospace;
+                        font-size: 14px;
+                        line-height: 1.5;
+                        padding: 20px;
+                        margin: 0;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        background-color: #f8f9fa;
+                    }
+                    
+                    /* Copy Notification */
+                    #copy-notification {
+                        display: none;
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0, 0, 0, 0.8);
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        z-index: 2000;
+                    }
+                    
+                    /* List Items */
+                    li[data-list-index] {
+                        cursor: pointer;
+                        user-select: none;
+                        -webkit-user-select: none;
+                        -moz-user-select: none;
+                        -ms-user-select: none;
+                    }
+                </style>`;
+            }
+
+            static getControls() {
+                return `
+                    <div id="font-controls" class="fc-panel">
+                        <button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button">Toggle</button>
+                        <button id="decreaseFontBtn" title="Decrease font size" class="fc-button">-</button>
+                        <span id="currentFontSizeDisplay" class="fc-display">100%</span>
+                        <button id="increaseFontBtn" title="Increase font size" class="fc-button">+</button>
+                        <button id="resetFontBtn" title="Reset font size" class="fc-button">Reset</button>
+                        <button id="toggleThemeBtn" title="Toggle theme" class="fc-button">Theme</button>
+                        <button id="toggleViewBtn" title="Toggle between rendered and raw markdown" class="fc-button">Raw</button>
+                        <button id="saveAsImageBtn" title="Save as image" class="fc-button">Save Image</button>
+                    </div>
+                `;
+            }
+
+            static getClientScript() {
+                return `
+                    (function() {
+                        'use strict';
+                        
+                        const APP_DATA = window.__APP_DATA__;
+                        const CONFIG = APP_DATA.config;
+                        
+                        // UI Controller
+                        class UIController {
+                            constructor() {
+                                this.body = document.querySelector('body.markdown-body');
+                                this.initializeControls();
+                            }
+                            
+                            initializeControls() {
+                                this.katexRenderer = new KatexRenderer();
+                                this.themeController = new ThemeController(this.body);
+                                this.fontSizeController = new FontSizeController(this.body);
+                                this.collapsibleController = new CollapsibleController();
+                                this.viewToggleController = new ViewToggleController();
+                                this.saveImageController = new SaveImageController();
+                                this.listItemController = new ListItemController();
+                            }
+                        }
+                        
+                        // KaTeX Renderer
+                        class KatexRenderer {
+                            constructor() {
+                                this.init();
+                            }
+                            
+                            init() {
+                                if (typeof renderMathInElement === 'function') {
+                                    this.render();
+                                } else {
+                                    setTimeout(() => this.init(), 100);
+                                }
+                            }
+                            
+                            render() {
+                                renderMathInElement(document.getElementById('content-container'), {
+                                    delimiters: [
+                                        {left: "$$", right: "$$", display: true},
+                                        {left: "\\\\[", right: "\\\\]", display: true},
+                                        {left: "$", right: "$", display: false, throwOnError: false},
+                                        {left: "\\\\(", right: "\\\\)", display: false}
+                                    ],
+                                    throwOnError: false
+                                });
+                            }
+                        }
+                        
+                        // Theme Controller
+                        class ThemeController {
+                            constructor(body) {
+                                this.body = body;
+                                this.toggleBtn = document.getElementById('toggleThemeBtn');
+                                this.darkClass = 'dark-theme';
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME;
+                                this.init();
+                            }
+                            
+                            init() {
+                                if (!this.toggleBtn) return;
+                                this.toggleBtn.addEventListener('click', () => this.toggle());
+                                this.applyTheme(localStorage.getItem(this.lsKey) || 'light');
+                            }
+                            
+                            applyTheme(theme) {
+                                if (theme === 'dark') {
+                                    this.body.classList.add(this.darkClass);
+                                    this.toggleBtn.textContent = 'Light Theme';
+                                } else {
+                                    this.body.classList.remove(this.darkClass);
+                                    this.toggleBtn.textContent = 'Dark Theme';
+                                }
+                                localStorage.setItem(this.lsKey, theme);
+                            }
+                            
+                            toggle() {
+                                const currentTheme = this.body.classList.contains(this.darkClass) ? 'dark' : 'light';
+                                this.applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+                            }
+                        }
+                        
+                        // Font Size Controller
+                        class FontSizeController {
+                            constructor(body) {
+                                this.body = body;
+                                this.increaseBtn = document.getElementById('increaseFontBtn');
+                                this.decreaseBtn = document.getElementById('decreaseFontBtn');
+                                this.resetBtn = document.getElementById('resetFontBtn');
+                                this.display = document.getElementById('currentFontSizeDisplay');
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.FONT_SIZE;
+                                this.currentPercent = parseInt(localStorage.getItem(this.lsKey) || CONFIG.FONT_SIZE.DEFAULT, 10);
+                                this.init();
+                            }
+                            
+                            init() {
+                                if (!this.increaseBtn || !this.decreaseBtn || !this.resetBtn || !this.display) return;
+                                
+                                this.increaseBtn.addEventListener('click', () => this.adjust(CONFIG.FONT_SIZE.STEP));
+                                this.decreaseBtn.addEventListener('click', () => this.adjust(-CONFIG.FONT_SIZE.STEP));
+                                this.resetBtn.addEventListener('click', () => this.reset());
+                                
+                                this.applyFontSize(this.currentPercent);
+                            }
+                            
+                            adjust(step) {
+                                this.applyFontSize(this.currentPercent + step);
+                            }
+                            
+                            reset() {
+                                this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT);
+                            }
+                            
+                            applyFontSize(percent) {
+                                this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, percent));
+                                this.body.style.fontSize = \`\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\`;
+                                this.display.textContent = \`\${this.currentPercent}%\`;
+                                localStorage.setItem(this.lsKey, this.currentPercent);
+                            }
+                        }
+                        
+                        // Collapsible Controller
+                        class CollapsibleController {
+                            constructor() {
+                                this.toggleButton = document.getElementById('toggleCollapseBtn');
+                                this.controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED;
+                                this.init();
+                            }
+                            
+                            init() {
+                                if (!this.toggleButton) return;
+                                this.toggleButton.addEventListener('click', () => this.toggle());
+                                this.applyState();
+                            }
+                            
+                            toggle() {
+                                const currentState = JSON.parse(localStorage.getItem(this.lsKey) || 'true');
+                                this.applyState(!currentState);
+                            }
+                            
+                            applyState(collapsed) {
+                                const isCollapsed = collapsed !== undefined ? collapsed : JSON.parse(localStorage.getItem(this.lsKey) || 'true');
+                                
+                                this.controlsToToggle.forEach(control => {
+                                    control.style.display = isCollapsed ? 'none' : '';
+                                });
+                                
+                                this.toggleButton.textContent = isCollapsed ? 'Expand Controls' : 'Collapse Controls';
+                                localStorage.setItem(this.lsKey, JSON.stringify(isCollapsed));
+                            }
+                        }
+                        
+                        // View Toggle Controller
+                        class ViewToggleController {
+                            constructor() {
+                                this.toggleBtn = document.getElementById('toggleViewBtn');
+                                this.contentContainer = document.getElementById('content-container');
+                                this.rawContainer = document.getElementById('raw-container');
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.VIEW_MODE;
+                                this.init();
+                            }
+                            
+                            init() {
+                                if (!this.toggleBtn || !this.contentContainer || !this.rawContainer) return;
+                                
+                                this.toggleBtn.addEventListener('click', () => this.toggle());
+                                this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered');
+                            }
+                            
+                            toggle() {
+                                const currentMode = localStorage.getItem(this.lsKey) || 'rendered';
+                                this.applyViewMode(                                currentMode === 'rendered' ? 'raw' : 'rendered');
+                            }
+                            
+                            applyViewMode(mode) {
+                                if (mode === 'raw') {
+                                    this.contentContainer.style.display = 'none';
+                                    this.rawContainer.style.display = 'block';
+                                    this.toggleBtn.textContent = 'Rendered';
+                                } else {
+                                    this.contentContainer.style.display = 'block';
+                                    this.rawContainer.style.display = 'none';
+                                    this.toggleBtn.textContent = 'Raw';
+                                }
+                                localStorage.setItem(this.lsKey, mode);
+                            }
+                        }
+                        
+                        // Save Image Controller
+                        class SaveImageController {
+                            constructor() {
+                                this.saveBtn = document.getElementById('saveAsImageBtn');
+                                this.controlsPanel = document.getElementById('font-controls');
+                                this.contentContainer = document.getElementById('content-container');
+                                this.init();
+                            }
+                            
+                            init() {
+                                if (!this.saveBtn || !this.controlsPanel || !this.contentContainer) {
+                                    if (this.saveBtn) this.saveBtn.style.display = 'none';
+                                    return;
+                                }
+                                
+                                this.saveBtn.addEventListener('click', () => this.saveAsImage());
+                            }
+                            
+                            async saveAsImage() {
+                                if (typeof html2canvas === 'undefined') {
+                                    alert('Error: html2canvas library is not available. Please ensure its CDN loads.');
+                                    return;
+                                }
+                                
+                                const rawContainer = document.getElementById('raw-container');
+                                if (rawContainer && rawContainer.style.display !== 'none') {
+                                    alert('Please switch to rendered view before saving as image.');
+                                    return;
+                                }
+                                
+                                const bodyBackgroundColor = window.getComputedStyle(document.body).backgroundColor;
+                                this.controlsPanel.style.display = 'none';
+                                
+                                try {
+                                    const canvas = await html2canvas(this.contentContainer, {
+                                        logging: false,
+                                        useCORS: true,
+                                        backgroundColor: bodyBackgroundColor,
+                                        onclone: (clonedDoc) => {
+                                            const clonedContentDiv = clonedDoc.getElementById('content-container');
+                                            if (clonedContentDiv) {
+                                                clonedContentDiv.style.padding = '40px';
+                                                clonedContentDiv.style.boxSizing = 'border-box';
+                                            }
+                                        }
+                                    });
+                                    
+                                    const timestamp = new Date().getTime();
+                                    const randomPart = Math.random().toString(36).substring(2, 10);
+                                    const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
+                                    
+                                    const link = document.createElement('a');
+                                    link.href = canvas.toDataURL('image/png');
+                                    link.download = filename;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                } catch (err) {
+                                    console.error('Error capturing image:', err);
+                                    alert('Sorry, an error occurred while trying to save the image.');
+                                } finally {
+                                    this.controlsPanel.style.display = 'flex';
+                                }
+                            }
+                        }
+                        
+                        // List Item Controller
+                        class ListItemController {
+                            constructor() {
+                                this.contentContainer = document.getElementById('content-container');
+                                this.notification = document.getElementById('copy-notification');
+                                this.longPressTimer = null;
+                                this.longPressElement = null;
+                                this.init();
+                            }
+                            
+                            init() {
+                                if (!this.contentContainer || !this.notification) return;
+                                
+                                // Initial setup after content loads
+                                setTimeout(() => this.attachListeners(), 500);
+                                
+                                // Watch for dynamic content changes
+                                const observer = new MutationObserver(() => this.attachListeners());
+                                observer.observe(this.contentContainer, {
+                                    childList: true,
+                                    subtree: true
+                                });
+                            }
+                            
+                            attachListeners() {
+                                const listItems = this.contentContainer.querySelectorAll('li');
+                                
+                                listItems.forEach((li, index) => {
+                                    // Skip if already initialized
+                                    if (li.dataset.initialized === 'true') return;
+                                    
+                                    li.dataset.listIndex = index;
+                                    li.dataset.initialized = 'true';
+                                    
+                                    // Mouse events
+                                    li.addEventListener('mousedown', (e) => this.handleStart(li, e));
+                                    li.addEventListener('mouseup', () => this.handleEnd());
+                                    li.addEventListener('mouseleave', () => this.handleEnd());
+                                    
+                                    // Touch events
+                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: false });
+                                    li.addEventListener('touchend', (e) => {
+                                        e.preventDefault();
+                                        this.handleEnd();
+                                    }, { passive: false });
+                                    li.addEventListener('touchcancel', () => this.handleEnd());
+                                    li.addEventListener('touchmove', () => this.handleEnd());
+                                });
+                            }
+                            
+                            handleStart(element, event) {
+                                event.preventDefault();
+                                this.longPressElement = element;
+                                element.classList.add('list-item-highlight');
+                                
+                                this.longPressTimer = setTimeout(async () => {
+                                    await this.copyListContent(element);
+                                    this.handleEnd();
+                                }, CONFIG.LONG_PRESS_DURATION);
+                            }
+                            
+                            handleEnd() {
+                                if (this.longPressTimer) {
+                                    clearTimeout(this.longPressTimer);
+                                    this.longPressTimer = null;
+                                }
+                                
+                                if (this.longPressElement) {
+                                    this.longPressElement.classList.remove('list-item-highlight');
+                                    this.longPressElement = null;
+                                }
+                            }
+                            
+                            async copyListContent(element) {
+                                try {
+                                    const listIndex = parseInt(element.dataset.listIndex, 10);
+                                    if (isNaN(listIndex) || !APP_DATA.listItems || !APP_DATA.listItems[listIndex]) {
+                                        throw new Error('List item data not found');
+                                    }
+                                    
+                                    const textContent = APP_DATA.listItems[listIndex].content;
+                                    
+                                    await this.copyToClipboard(textContent);
+                                    this.showNotification('List content copied to clipboard!');
+                                } catch (err) {
+                                    console.error('Failed to copy list item:', err);
+                                    this.showNotification('Failed to copy to clipboard');
+                                }
+                            }
+                            
+                            async copyToClipboard(text) {
+                                if (navigator.clipboard?.writeText) {
+                                    return navigator.clipboard.writeText(text);
+                                }
+                                
+                                // Fallback
+                                const textArea = document.createElement('textarea');
+                                textArea.value = text;
+                                textArea.style.position = 'fixed';
+                                textArea.style.left = '-999999px';
+                                textArea.style.top = '-999999px';
+                                document.body.appendChild(textArea);
+                                textArea.focus();
+                                textArea.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(textArea);
+                            }
+                            
+                            showNotification(message) {
+                                this.notification.textContent = message;
+                                this.notification.style.display = 'block';
+                                setTimeout(() => {
+                                    this.notification.style.display = 'none';
+                                }, 2000);
+                            }
+                        }
+                        
+                        // Initialize the app
+                        document.addEventListener('DOMContentLoaded', () => {
+                            new UIController();
+                        });
+                    })();
+                `;
+            }
+        }
+
+        // Main Markdown Renderer Application
+        class MarkdownRendererApp {
+            constructor() {
+                this.dom = {};
+                this.init();
+            }
+            
+            init() {
+                document.addEventListener('DOMContentLoaded', () => {
+                    this.cacheDOMElements();
+                    this.setupMarked();
+                    this.bindEventListeners();
+                });
+            }
+            
+            cacheDOMElements() {
+                this.dom = {
+                    markdownInput: document.getElementById('markdownInput'),
+                    renderButton: document.getElementById('renderMarkdownBtn'),
+                    pasteAndRenderButton: document.getElementById('pasteAndRenderBtn'),
+                    clearButton: document.getElementById('clearBtn')
+                };
+            }
+            
+            setupMarked() {
+                if (typeof marked === 'undefined') {
+                    console.error("Marked.js is not loaded!");
+                    return;
+                }
+                
+                marked.setOptions({
+                    gfm: true,
+                    breaks: true,
+                    smartypants: false,
+                });
+            }
+            
+            bindEventListeners() {
+                this.dom.renderButton?.addEventListener('click', () => this.handleRender());
+                this.dom.pasteAndRenderButton?.addEventListener('click', () => this.handlePasteAndRender());
+                this.dom.clearButton?.addEventListener('click', () => this.handleClear());
+                
+                // Add keyboard shortcuts
+                this.dom.markdownInput?.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            this.handleRender();
+                        }
+                    }
+                });
+            }
+            
+            handleRender() {
+                const markdownText = this.dom.markdownInput.value;
+                if (!markdownText.trim()) {
+                    alert('Please enter some markdown content to render.');
+                    return;
+                }
+                
+                this.renderMarkdown(markdownText);
+            }
+            
+            async handlePasteAndRender() {
+                if (!navigator.clipboard?.readText) {
+                    alert('Clipboard API not available. Please use a modern browser or check permissions.');
+                    return;
+                }
+                
+                try {
+                    const text = await navigator.clipboard.readText();
+                    this.dom.markdownInput.value = text;
+                    this.handleRender();
+                } catch (err) {
+                    console.error('Failed to read clipboard:', err);
+                    alert('Failed to read from clipboard. Please check permissions.');
+                }
+            }
+            
+            handleClear() {
+                if (this.dom.markdownInput.value && !confirm('Are you sure you want to clear the input?')) {
+                    return;
+                }
+                this.dom.markdownInput.value = '';
+                this.dom.markdownInput.focus();
+            }
+            
+            renderMarkdown(markdownText) {
+                // Process math expressions
+                const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
+                
+                // Convert markdown to HTML
+                let html = marked.parse(tempText);
+                
+                // Restore math expressions
+                html = MathProcessor.restoreMathExpressions(html, mathExpressions);
+                
+                // Parse list items for copy functionality
+                const listItems = ListItemParser.parse(markdownText);
+                
+                // Build the complete page
+                const fullPageHtml = RenderedPageBuilder.build(
+                    html, 
+                    markdownText, 
+                    "Rendered Markdown & LaTeX",
+                    listItems
+                );
+                
+                // Open in new tab
+                this.openInNewTab(fullPageHtml);
+            }
+            
             openInNewTab(htmlContent) {
                 const newTab = window.open('', '_blank');
                 if (newTab) {
@@ -260,344 +1089,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                 } else {
                     alert("Failed to open new tab. Please check your pop-up blocker settings.");
                 }
-            },
-            buildRenderedPageHtml(content, rawMarkdown, title) {
-                const escapedRawMarkdown = rawMarkdown.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                const listItems = this.extractListItems(rawMarkdown);
-                
-                return `
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>${title}</title>
-                        <link rel="stylesheet" href="${this.config.githubMarkdownCSS}">
-                        <link rel="stylesheet" href="${this.config.katexCSS}">
-                        ${this.getRenderedPageStyles()}
-                    </head>
-                    <body class="markdown-body">
-                        ${this.getRenderedPageControlsHtml()}
-                        <div id="content-container">${content}</div>
-                        <div id="raw-container" style="display: none;">
-                            <pre id="raw-markdown" style="white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 14px; line-height: 1.5; padding: 20px; margin: 0; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa;">${escapedRawMarkdown}</pre>
-                        </div>
-                        <div id="copy-notification" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 5px; z-index: 2000;">Copied to clipboard!</div>
-                        <script>
-                            window.rawMarkdownContent = ${JSON.stringify(rawMarkdown)};
-                            window.listItemsData = ${JSON.stringify(listItems)};
-                        <\/script>
-                        <script defer src="${this.config.html2canvasJS}"><\/script>
-                        <script defer src="${this.config.katexJS}"><\/script>
-                        <script defer src="${this.config.katexAutoRenderJS}"><\/script>
-                        <script>
-                            (() => {
-                                ${this.getRenderedPageScriptLogic()}
-                            })();
-                        <\/script>
-                    </body>
-                    </html>
-                `;
-            },
-            getRenderedPageStyles() {
-              return `<style>body.markdown-body{box-sizing:border-box;min-width:200px;max-width:980px;margin:0 auto;padding:45px;padding-top:70px} @media (max-width:767px){body.markdown-body{padding:15px;padding-top:60px}} body.markdown-body{background-color:#ffffff;color:#000000}body.markdown-body a{color:#000000}body.markdown-body a:visited{color:#000000}body.markdown-body hr{border-top-color:#000000}body.markdown-body blockquote{border-left-color:#000000}body.markdown-body th,body.markdown-body td{border-color:#000000;background-color:#ffffff;color:#000000}body.markdown-body code:not([class*=language-]),body.markdown-body pre{background-color:#ffffff;color:#000000}body.markdown-body h1,body.markdown-body h2,body.markdown-body h3,body.markdown-body h4,body.markdown-body h5,body.markdown-body h6{border-bottom-color:#000000} body.markdown-body.dark-theme{background-color:#000000;color:#ffffff}body.markdown-body.dark-theme a{color:#ffffff}body.markdown-body.dark-theme a:visited{color:#ffffff}body.markdown-body.dark-theme hr{border-top-color:#ffffff}body.markdown-body.dark-theme blockquote{color:#ffffff;border-left-color:#ffffff}body.markdown-body.dark-theme th,body.markdown-body.dark-theme td{border-color:#ffffff;background-color:#000000;color:#ffffff}body.markdown-body.dark-theme code:not([class*=language-]),body.markdown-body.dark-theme pre{background-color:#000000;color:#ffffff}body.markdown-body.dark-theme h1,body.markdown-body.dark-theme h2,body.markdown-body.dark-theme h3,body.markdown-body.dark-theme h4,body.markdown-body.dark-theme h5,body.markdown-body.dark-theme h6{color:#ffffff;border-bottom-color:#ffffff} body.markdown-body.dark-theme #raw-markdown{background-color:#1a1a1a !important;color:#ffffff !important;border-color:#555 !important} .fc-panel{position:fixed;top:10px;right:10px;padding:8px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1000;display:flex;align-items:center;gap:5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;background:rgba(255,255,255,.95)} .fc-button{padding:4px 8px;cursor:pointer;background-color:#fff;color:#000;border:1px solid #000;border-radius:3px} .fc-button:hover{background-color:#f0f0f0} .fc-display{color:#000;padding:0 5px;min-width:40px;text-align:center} body.markdown-body.dark-theme .fc-panel{background:rgba(0,0,0,.95);box-shadow:0 2px 5px rgba(255,255,255,.2)} body.markdown-body.dark-theme .fc-button{background-color:#000;color:#fff;border:1px solid #fff} body.markdown-body.dark-theme .fc-button:hover{background-color:#222} body.markdown-body.dark-theme .fc-display{color:#fff} .list-item-highlight{background-color:rgba(0,123,255,0.1) !important;transition:background-color 0.2s ease !important} body.markdown-body.dark-theme .list-item-highlight{background-color:rgba(255,255,255,0.1) !important}</style>`;
-            },
-            getRenderedPageControlsHtml() {
-                return `<div id="font-controls" class="fc-panel"><button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button" style="margin-right: 5px;">Toggle</button><button id="decreaseFontBtn" title="Decrease font size" class="fc-button">-</button><span id="currentFontSizeDisplay" class="fc-display">100%</span><button id="increaseFontBtn" title="Increase font size" class="fc-button">+</button><button id="resetFontBtn" title="Reset font size" class="fc-button" style="margin-left: 5px;">Reset</button><button id="toggleThemeBtn" title="Toggle theme" class="fc-button" style="margin-left: 5px;">Theme</button><button id="toggleViewBtn" title="Toggle between rendered and raw markdown" class="fc-button" style="margin-left: 5px;">Raw</button><button id="saveAsImageBtn" title="Save as image" class="fc-button" style="margin-left: 5px;">Save Image</button></div>`;
-            },
-            getRenderedPageScriptLogic() {
-                return `
-                    function initKatexAutoRender() {
-                        if (typeof renderMathInElement === 'function') {
-                            renderMathInElement(document.getElementById('content-container'), {
-                                delimiters: [
-                                    {left: "$$", right: "$$", display: true},
-                                    {left: "\\\\[", right: "\\\\]", display: true},
-                                    {left: "$", right: "$", display: false, throwOnError: false},
-                                    {left: "\\\\(", right: "\\\\)", display: false}
-                                ],
-                                throwOnError: false
-                            });
-                        } else {
-                            setTimeout(initKatexAutoRender, 100);
-                        }
-                    }
-                    function setupRenderedPage() {
-                        const body = document.querySelector('body.markdown-body');
-                        if (!body) return;
-                        initKatexAutoRender();
-                        setupThemeControls(body);
-                        setupFontSizeControls(body);
-                        setupCollapsibleControls();
-                        setupSaveAsImage();
-                        setupViewToggle();
-                        setupListItemLongPress();
-                    }
-                    function setupListItemLongPress() {
-                        const contentContainer = document.getElementById('content-container');
-                        const notification = document.getElementById('copy-notification');
-                        
-                        if (!contentContainer || !notification) return;
-                        
-                        let longPressTimer = null;
-                        let longPressElement = null;
-                        const LONG_PRESS_DURATION = 500;
-                        
-                        function showNotification(message = 'Copied to clipboard!') {
-                            notification.textContent = message;
-                            notification.style.display = 'block';
-                            setTimeout(() => {
-                                notification.style.display = 'none';
-                            }, 2000);
-                        }
-                        
-                        function startLongPress(element, event) {
-                            longPressElement = element;
-                            element.classList.add('list-item-highlight');
-                            
-                            longPressTimer = setTimeout(async () => {
-                                try {
-                                    const listIndex = parseInt(element.dataset.listIndex, 10);
-                                    if (isNaN(listIndex) || !window.listItemsData || !window.listItemsData[listIndex]) {
-                                        throw new Error('List item data not found');
-                                    }
-                                    
-                                    const textContent = window.listItemsData[listIndex].content;
-                                    
-                                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                                        await navigator.clipboard.writeText(textContent);
-                                        showNotification('List content copied to clipboard!');
-                                    } else {
-                                        const textArea = document.createElement('textarea');
-                                        textArea.value = textContent;
-                                        textArea.style.position = 'fixed';
-                                        textArea.style.left = '-999999px';
-                                        textArea.style.top = '-999999px';
-                                        document.body.appendChild(textArea);
-                                        textArea.focus();
-                                        textArea.select();
-                                        document.execCommand('copy');
-                                        document.body.removeChild(textArea);
-                                        showNotification('List content copied to clipboard!');
-                                    }
-                                } catch (err) {
-                                    console.error('Failed to copy list item:', err);
-                                    showNotification('Failed to copy to clipboard');
-                                }
-                                
-                                element.classList.remove('list-item-highlight');
-                                longPressElement = null;
-                            }, LONG_PRESS_DURATION);
-                        }
-                        
-                        function cancelLongPress() {
-                            if (longPressTimer) {
-                                clearTimeout(longPressTimer);
-                                longPressTimer = null;
-                            }
-                            if (longPressElement) {
-                                longPressElement.classList.remove('list-item-highlight');
-                                longPressElement = null;
-                            }
-                        }
-                        
-                        function attachListItemListeners() {
-                            const listItems = contentContainer.querySelectorAll('li');
-                            
-                            listItems.forEach((li, index) => {
-                                li.dataset.listIndex = index;
-                                li.style.cursor = 'pointer';
-                                li.style.userSelect = 'none';
-                                li.style.webkitUserSelect = 'none';
-                                li.style.mozUserSelect = 'none';
-                                li.style.msUserSelect = 'none';
-                                
-                                li.addEventListener('mousedown', (e) => {
-                                    e.preventDefault();
-                                    startLongPress(li, e);
-                                });
-                                
-                                li.addEventListener('mouseup', cancelLongPress);
-                                li.addEventListener('mouseleave', cancelLongPress);
-                                
-                                li.addEventListener('touchstart', (e) => {
-                                    e.preventDefault();
-                                    startLongPress(li, e);
-                                }, { passive: false });
-                                
-                                li.addEventListener('touchend', (e) => {
-                                    e.preventDefault();
-                                    cancelLongPress();
-                                }, { passive: false });
-                                
-                                li.addEventListener('touchcancel', cancelLongPress);
-                                li.addEventListener('touchmove', cancelLongPress);
-                            });
-                        }
-                        
-                        setTimeout(attachListItemListeners, 500);
-                        
-                        const observer = new MutationObserver(() => {
-                            attachListItemListeners();
-                        });
-                        
-                        observer.observe(contentContainer, {
-                            childList: true,
-                            subtree: true
-                        });
-                    }
-                    function setupViewToggle() {
-                        const toggleViewBtn = document.getElementById('toggleViewBtn');
-                        const contentContainer = document.getElementById('content-container');
-                        const rawContainer = document.getElementById('raw-container');
-                        
-                        if (!toggleViewBtn || !contentContainer || !rawContainer) return;
-                        
-                        const LS_VIEW_KEY = 'renderedOutputViewMode';
-                        
-                        function applyViewMode(mode) {
-                            if (mode === 'raw') {
-                                contentContainer.style.display = 'none';
-                                rawContainer.style.display = 'block';
-                                toggleViewBtn.textContent = 'Rendered';
-                            } else {
-                                contentContainer.style.display = 'block';
-                                rawContainer.style.display = 'none';
-                                toggleViewBtn.textContent = 'Raw';
-                            }
-                            localStorage.setItem(LS_VIEW_KEY, mode);
-                        }
-                        
-                        toggleViewBtn.addEventListener('click', () => {
-                            const currentMode = localStorage.getItem(LS_VIEW_KEY) || 'rendered';
-                            const newMode = currentMode === 'rendered' ? 'raw' : 'rendered';
-                            applyViewMode(newMode);
-                        });
-                        
-                        applyViewMode(localStorage.getItem(LS_VIEW_KEY) || 'rendered');
-                    }
-                    function setupThemeControls(body) {
-                        const toggleBtn = document.getElementById('toggleThemeBtn');
-                        if (!toggleBtn) return;
-                        const LS_KEY = 'renderedOutputTheme';
-                        const DARK_CLASS = 'dark-theme';
-                        const applyTheme = (theme) => {
-                            if (theme === 'dark') {
-                                body.classList.add(DARK_CLASS);
-                                toggleBtn.textContent = 'Light Theme';
-                            } else {
-                                body.classList.remove(DARK_CLASS);
-                                toggleBtn.textContent = 'Dark Theme';
-                            }
-                            localStorage.setItem(LS_KEY, theme);
-                        };
-                        toggleBtn.addEventListener('click', () => {
-                            const currentTheme = body.classList.contains(DARK_CLASS) ? 'dark' : 'light';
-                            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-                        });
-                        applyTheme(localStorage.getItem(LS_KEY) || 'light');
-                    }
-                    function setupFontSizeControls(body) {
-                        const increaseBtn = document.getElementById('increaseFontBtn');
-                        const decreaseBtn = document.getElementById('decreaseFontBtn');
-                        const resetBtn = document.getElementById('resetFontBtn');
-                        const display = document.getElementById('currentFontSizeDisplay');
-                        if (!increaseBtn || !decreaseBtn || !resetBtn || !display) return;
-                        const LS_KEY = 'renderedOutputFontSizePercent';
-                        const BASE_FONT_SIZE_PX = 16;
-                        const STEP_PERCENT = 10;
-                        const MIN_PERCENT = 50;
-                        const MAX_PERCENT = 300;
-                        const DEFAULT_PERCENT = 100;
-                        let currentPercent = parseInt(localStorage.getItem(LS_KEY) || DEFAULT_PERCENT, 10);
-                        const applyFontSize = (percent) => {
-                            currentPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, percent));
-                            body.style.fontSize = \`\${(BASE_FONT_SIZE_PX * currentPercent) / 100}px\`;
-                            display.textContent = \`\${currentPercent}%\`;
-                            localStorage.setItem(LS_KEY, currentPercent);
-                        };
-                        increaseBtn.addEventListener('click', () => applyFontSize(currentPercent + STEP_PERCENT));
-                        decreaseBtn.addEventListener('click', () => applyFontSize(currentPercent - STEP_PERCENT));
-                        resetBtn.addEventListener('click', () => applyFontSize(DEFAULT_PERCENT));
-                        applyFontSize(currentPercent);
-                    }
-                    function setupCollapsibleControls() {
-                        const toggleButton = document.getElementById('toggleCollapseBtn');
-                        const controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
-                        if (!toggleButton) return;
-                        const LS_COLLAPSED_KEY = 'fontControlsCollapsed';
-                        function applyCollapsedState(collapsedArgument) {
-                            const isCurrentlyCollapsed = typeof collapsedArgument === 'boolean' ? collapsedArgument : JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
-                            controlsToToggle.forEach(control => {
-                                control.style.display = isCurrentlyCollapsed ? 'none' : '';
-                            });
-                            toggleButton.textContent = isCurrentlyCollapsed ? 'Expand Controls' : 'Collapse Controls';
-                            localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(isCurrentlyCollapsed));
-                        }
-                        toggleButton.addEventListener('click', () => {
-                            const currentState = JSON.parse(localStorage.getItem(LS_COLLAPSED_KEY) || 'true');
-                            applyCollapsedState(!currentState);
-                        });
-                        applyCollapsedState();
-                    }
-                    function setupSaveAsImage() {
-                        const saveBtn = document.getElementById('saveAsImageBtn');
-                        const controlsPanel = document.getElementById('font-controls');
-                        const contentContainer = document.getElementById('content-container');
-                        if (!saveBtn || !controlsPanel || !contentContainer) {
-                            if (saveBtn) saveBtn.style.display = 'none';
-                            return;
-                        }
-                        saveBtn.addEventListener('click', () => {
-                            if (typeof html2canvas === 'undefined') {
-                                return alert('Error: html2canvas library is not available. Please ensure its CDN loads.');
-                            }
-                            
-                            const rawContainer = document.getElementById('raw-container');
-                            const isRawVisible = rawContainer && rawContainer.style.display !== 'none';
-                            
-                            if (isRawVisible) {
-                                alert('Please switch to rendered view before saving as image.');
-                                return;
-                            }
-                            
-                            const bodyBackgroundColor = window.getComputedStyle(document.body).backgroundColor;
-                            controlsPanel.style.display = 'none';
-                            html2canvas(contentContainer, {
-                                logging: false,
-                                useCORS: true,
-                                backgroundColor: bodyBackgroundColor,
-                                onclone: (clonedDoc) => {
-                                    const clonedContentDiv = clonedDoc.getElementById('content-container');
-                                    if (clonedContentDiv) {
-                                        clonedContentDiv.style.padding = '40px';
-                                        clonedContentDiv.style.boxSizing = 'border-box';
-                                    }
-                                }
-                            }).then(canvas => {
-                                controlsPanel.style.display = 'flex';
-                                const randomPart = Math.random().toString(36).substring(2, 10);
-                                const timestamp = new Date().getTime();
-                                const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
-                                const image = canvas.toDataURL('image/png');
-                                const link = document.createElement('a');
-                                link.href = image;
-                                link.download = filename;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                            }).catch(err => {
-                                controlsPanel.style.display = 'flex';
-                                console.error('Error capturing image with html2canvas:', err);
-                                alert('Sorry, an error occurred while trying to save the image.');
-                            });
-                        });
-                    }
-                    document.addEventListener('DOMContentLoaded', setupRenderedPage);
-                `;
             }
-        };
-        MarkdownRenderer.init();
+        }
+        
+        // Initialize the application
+        new MarkdownRendererApp();
     </script>
 </body>
 </html>
