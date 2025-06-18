@@ -85,8 +85,7 @@
             <textarea id="markdownInput" placeholder="Type or paste Markdown here...
 Example:
 # Hello World
-This is **bold** and *italic*.
-
+This is **bold** and _italic_.
 Math (KaTeX will render these):
 Inline: $E = mc^2$ or \( \alpha + \beta \)
 Display:
@@ -96,7 +95,6 @@ $$
 \[
 \text{H}_2\text{O} \quad \text{or H$_2$O}
 \]
-
 Single dollar signs that should not render math:
 This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
@@ -109,12 +107,12 @@ Don't write something like $E=mc^2$ across multiple lines.
             <ul>
                 <li>Markdown rendering via Marked.js. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via KaTeX in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li>Font size controls, theme toggle, and save-as-image functionality are available in the rendered output tab.</li>
+                <li>Font size controls, theme toggle, save-as-image functionality, and raw/rendered view toggle are available in the rendered output tab.</li>
+                <li><strong>Long press on list items</strong> to copy their content (without list markers) to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
     <script defer>
         const MarkdownRenderer = {
@@ -125,13 +123,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
                 html2canvasJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
             },
-
             dom: {
                 markdownInput: null,
                 renderButton: null,
                 pasteAndRenderButton: null,
             },
-
             init() {
                 document.addEventListener('DOMContentLoaded', () => {
                     this.cacheDOMElements();
@@ -139,13 +135,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.bindEventListeners();
                 });
             },
-
             cacheDOMElements() {
                 this.dom.markdownInput = document.getElementById('markdownInput');
                 this.dom.renderButton = document.getElementById('renderMarkdownBtn');
                 this.dom.pasteAndRenderButton = document.getElementById('pasteAndRenderBtn');
             },
-
             setupMarked() {
                 if (typeof marked === 'undefined') {
                     console.error("Marked.js is not loaded! Make sure the CDN link is correct and accessible.");
@@ -157,19 +151,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                     smartypants: false,
                 });
             },
-
             bindEventListeners() {
                 this.dom.renderButton.addEventListener('click', () => this.handleRender());
                 this.dom.pasteAndRenderButton.addEventListener('click', () => this.handlePasteAndRender());
             },
-
             handleRender() {
                 const markdownText = this.dom.markdownInput.value;
                 const processedHtml = this.preprocessMarkdownForKatex(markdownText);
-                const fullPageHtml = this.buildRenderedPageHtml(processedHtml, "Rendered Markdown & LaTeX");
+                const fullPageHtml = this.buildRenderedPageHtml(processedHtml, markdownText, "Rendered Markdown & LaTeX");
                 this.openInNewTab(fullPageHtml);
             },
-
             async handlePasteAndRender() {
                 if (!navigator.clipboard?.readText) {
                     alert('Clipboard API not available. Please use a modern browser or check permissions.');
@@ -184,18 +175,15 @@ Don't write something like $E=mc^2$ across multiple lines.
                     alert('Failed to read from clipboard. Make sure you have granted permission and are using a compatible browser.');
                 }
             },
-
             preprocessMarkdownForKatex(markdownText) {
                 const mathExpressions = [];
                 let tempText = markdownText;
-
                 const patterns = [
                     { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
                     { regex: /\\\[([\s\S]*?)\\\]/g, open: '\\[', close: '\\]' },
                     { regex: /\$([^$\n]+?)\$/g, open: '$', close: '$' },
                     { regex: /\\\((.+?)\\\)/g, open: '\\(', close: '\\)' },
                 ];
-
                 patterns.forEach((pattern) => {
                     tempText = tempText.replace(pattern.regex, (match, content) => {
                         if (content.trim() === "") return match;
@@ -204,17 +192,65 @@ Don't write something like $E=mc^2$ across multiple lines.
                         return placeholder;
                     });
                 });
-
                 let html = marked.parse(tempText);
-
                 mathExpressions.forEach(item => {
                     const preservedKatexString = item.originalOpen + item.content + item.originalClose;
                     html = html.replace(item.placeholder, preservedKatexString);
                 });
-
                 return html;
             },
-
+            extractListItems(markdownText) {
+                const listItems = [];
+                const lines = markdownText.split('\n');
+                let currentIndent = 0;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const trimmed = line.trim();
+                    const unorderedMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
+                    const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
+                    
+                    if (unorderedMatch || orderedMatch) {
+                        const match = unorderedMatch || orderedMatch;
+                        const indent = match[1].length;
+                        const content = match[2];
+                        const isOrdered = !!orderedMatch;
+                        
+                        let fullContent = content;
+                        let j = i + 1;
+                        while (j < lines.length) {
+                            const nextLine = lines[j];
+                            const nextTrimmed = nextLine.trim();
+                            
+                            if (nextTrimmed === '' || 
+                                nextLine.match(/^\s*[-*+]\s+/) || 
+                                nextLine.match(/^\s*\d+\.\s+/)) {
+                                break;
+                            }
+                            
+                            if (nextLine.length > indent && nextTrimmed !== '') {
+                                fullContent += '\n' + nextLine.slice(indent);
+                                j++;
+                            } else {
+                                break;
+                            }
+                        }
+                        
+                        listItems.push({
+                            originalMarkdown: isOrdered ? 
+                                `${match[1]}${orderedMatch[0].match(/\d+/)[0]}. ${fullContent}` : 
+                                `${match[1]}- ${fullContent}`,
+                            content: fullContent,
+                            indent: indent,
+                            isOrdered: isOrdered
+                        });
+                        
+                        i = j - 1;
+                    }
+                }
+                
+                return listItems;
+            },
             openInNewTab(htmlContent) {
                 const newTab = window.open('', '_blank');
                 if (newTab) {
@@ -225,8 +261,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                     alert("Failed to open new tab. Please check your pop-up blocker settings.");
                 }
             },
-
-            buildRenderedPageHtml(content, title) {
+            buildRenderedPageHtml(content, rawMarkdown, title) {
+                const escapedRawMarkdown = rawMarkdown.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                const listItems = this.extractListItems(rawMarkdown);
+                
                 return `
                     <!DOCTYPE html>
                     <html lang="en">
@@ -241,6 +279,14 @@ Don't write something like $E=mc^2$ across multiple lines.
                     <body class="markdown-body">
                         ${this.getRenderedPageControlsHtml()}
                         <div id="content-container">${content}</div>
+                        <div id="raw-container" style="display: none;">
+                            <pre id="raw-markdown" style="white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 14px; line-height: 1.5; padding: 20px; margin: 0; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa;">${escapedRawMarkdown}</pre>
+                        </div>
+                        <div id="copy-notification" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 5px; z-index: 2000;">Copied to clipboard!</div>
+                        <script>
+                            window.rawMarkdownContent = ${JSON.stringify(rawMarkdown)};
+                            window.listItemsData = ${JSON.stringify(listItems)};
+                        <\/script>
                         <script defer src="${this.config.html2canvasJS}"><\/script>
                         <script defer src="${this.config.katexJS}"><\/script>
                         <script defer src="${this.config.katexAutoRenderJS}"><\/script>
@@ -253,15 +299,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                     </html>
                 `;
             },
-
             getRenderedPageStyles() {
-              return `<style>body.markdown-body{box-sizing:border-box;min-width:200px;max-width:980px;margin:0 auto;padding:45px;padding-top:70px} @media (max-width:767px){body.markdown-body{padding:15px;padding-top:60px}} body.markdown-body{background-color:#ffffff;color:#000000}body.markdown-body a{color:#000000}body.markdown-body a:visited{color:#000000}body.markdown-body hr{border-top-color:#000000}body.markdown-body blockquote{border-left-color:#000000}body.markdown-body th,body.markdown-body td{border-color:#000000;background-color:#ffffff;color:#000000}body.markdown-body code:not([class*=language-]),body.markdown-body pre{background-color:#ffffff;color:#000000}body.markdown-body h1,body.markdown-body h2,body.markdown-body h3,body.markdown-body h4,body.markdown-body h5,body.markdown-body h6{border-bottom-color:#000000} body.markdown-body.dark-theme{background-color:#000000;color:#ffffff}body.markdown-body.dark-theme a{color:#ffffff}body.markdown-body.dark-theme a:visited{color:#ffffff}body.markdown-body.dark-theme hr{border-top-color:#ffffff}body.markdown-body.dark-theme blockquote{color:#ffffff;border-left-color:#ffffff}body.markdown-body.dark-theme th,body.markdown-body.dark-theme td{border-color:#ffffff;background-color:#000000;color:#ffffff}body.markdown-body.dark-theme code:not([class*=language-]),body.markdown-body.dark-theme pre{background-color:#000000;color:#ffffff}body.markdown-body.dark-theme h1,body.markdown-body.dark-theme h2,body.markdown-body.dark-theme h3,body.markdown-body.dark-theme h4,body.markdown-body.dark-theme h5,body.markdown-body.dark-theme h6{color:#ffffff;border-bottom-color:#ffffff} .fc-panel{position:fixed;top:10px;right:10px;padding:8px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1000;display:flex;align-items:center;gap:5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;background:rgba(255,255,255,.95)} .fc-button{padding:4px 8px;cursor:pointer;background-color:#fff;color:#000;border:1px solid #000;border-radius:3px} .fc-button:hover{background-color:#f0f0f0} .fc-display{color:#000;padding:0 5px;min-width:40px;text-align:center} body.markdown-body.dark-theme .fc-panel{background:rgba(0,0,0,.95);box-shadow:0 2px 5px rgba(255,255,255,.2)} body.markdown-body.dark-theme .fc-button{background-color:#000;color:#fff;border:1px solid #fff} body.markdown-body.dark-theme .fc-button:hover{background-color:#222} body.markdown-body.dark-theme .fc-display{color:#fff}</style>`;
+              return `<style>body.markdown-body{box-sizing:border-box;min-width:200px;max-width:980px;margin:0 auto;padding:45px;padding-top:70px} @media (max-width:767px){body.markdown-body{padding:15px;padding-top:60px}} body.markdown-body{background-color:#ffffff;color:#000000}body.markdown-body a{color:#000000}body.markdown-body a:visited{color:#000000}body.markdown-body hr{border-top-color:#000000}body.markdown-body blockquote{border-left-color:#000000}body.markdown-body th,body.markdown-body td{border-color:#000000;background-color:#ffffff;color:#000000}body.markdown-body code:not([class*=language-]),body.markdown-body pre{background-color:#ffffff;color:#000000}body.markdown-body h1,body.markdown-body h2,body.markdown-body h3,body.markdown-body h4,body.markdown-body h5,body.markdown-body h6{border-bottom-color:#000000} body.markdown-body.dark-theme{background-color:#000000;color:#ffffff}body.markdown-body.dark-theme a{color:#ffffff}body.markdown-body.dark-theme a:visited{color:#ffffff}body.markdown-body.dark-theme hr{border-top-color:#ffffff}body.markdown-body.dark-theme blockquote{color:#ffffff;border-left-color:#ffffff}body.markdown-body.dark-theme th,body.markdown-body.dark-theme td{border-color:#ffffff;background-color:#000000;color:#ffffff}body.markdown-body.dark-theme code:not([class*=language-]),body.markdown-body.dark-theme pre{background-color:#000000;color:#ffffff}body.markdown-body.dark-theme h1,body.markdown-body.dark-theme h2,body.markdown-body.dark-theme h3,body.markdown-body.dark-theme h4,body.markdown-body.dark-theme h5,body.markdown-body.dark-theme h6{color:#ffffff;border-bottom-color:#ffffff} body.markdown-body.dark-theme #raw-markdown{background-color:#1a1a1a !important;color:#ffffff !important;border-color:#555 !important} .fc-panel{position:fixed;top:10px;right:10px;padding:8px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1000;display:flex;align-items:center;gap:5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;background:rgba(255,255,255,.95)} .fc-button{padding:4px 8px;cursor:pointer;background-color:#fff;color:#000;border:1px solid #000;border-radius:3px} .fc-button:hover{background-color:#f0f0f0} .fc-display{color:#000;padding:0 5px;min-width:40px;text-align:center} body.markdown-body.dark-theme .fc-panel{background:rgba(0,0,0,.95);box-shadow:0 2px 5px rgba(255,255,255,.2)} body.markdown-body.dark-theme .fc-button{background-color:#000;color:#fff;border:1px solid #fff} body.markdown-body.dark-theme .fc-button:hover{background-color:#222} body.markdown-body.dark-theme .fc-display{color:#fff} .list-item-highlight{background-color:rgba(0,123,255,0.1) !important;transition:background-color 0.2s ease !important} body.markdown-body.dark-theme .list-item-highlight{background-color:rgba(255,255,255,0.1) !important}</style>`;
             },
-
             getRenderedPageControlsHtml() {
-                return `<div id="font-controls" class="fc-panel"><button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button" style="margin-right: 5px;">Toggle</button><button id="decreaseFontBtn" title="Decrease font size" class="fc-button">-</button><span id="currentFontSizeDisplay" class="fc-display">100%</span><button id="increaseFontBtn" title="Increase font size" class="fc-button">+</button><button id="resetFontBtn" title="Reset font size" class="fc-button" style="margin-left: 5px;">Reset</button><button id="toggleThemeBtn" title="Toggle theme" class="fc-button" style="margin-left: 5px;">Theme</button><button id="saveAsImageBtn" title="Save as image" class="fc-button" style="margin-left: 5px;">Save Image</button></div>`;
+                return `<div id="font-controls" class="fc-panel"><button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button" style="margin-right: 5px;">Toggle</button><button id="decreaseFontBtn" title="Decrease font size" class="fc-button">-</button><span id="currentFontSizeDisplay" class="fc-display">100%</span><button id="increaseFontBtn" title="Increase font size" class="fc-button">+</button><button id="resetFontBtn" title="Reset font size" class="fc-button" style="margin-left: 5px;">Reset</button><button id="toggleThemeBtn" title="Toggle theme" class="fc-button" style="margin-left: 5px;">Theme</button><button id="toggleViewBtn" title="Toggle between rendered and raw markdown" class="fc-button" style="margin-left: 5px;">Raw</button><button id="saveAsImageBtn" title="Save as image" class="fc-button" style="margin-left: 5px;">Save Image</button></div>`;
             },
-
             getRenderedPageScriptLogic() {
                 return `
                     function initKatexAutoRender() {
@@ -279,18 +322,160 @@ Don't write something like $E=mc^2$ across multiple lines.
                             setTimeout(initKatexAutoRender, 100);
                         }
                     }
-
                     function setupRenderedPage() {
                         const body = document.querySelector('body.markdown-body');
                         if (!body) return;
-
                         initKatexAutoRender();
                         setupThemeControls(body);
                         setupFontSizeControls(body);
                         setupCollapsibleControls();
                         setupSaveAsImage();
+                        setupViewToggle();
+                        setupListItemLongPress();
                     }
-
+                    function setupListItemLongPress() {
+                        const contentContainer = document.getElementById('content-container');
+                        const notification = document.getElementById('copy-notification');
+                        
+                        if (!contentContainer || !notification) return;
+                        
+                        let longPressTimer = null;
+                        let longPressElement = null;
+                        const LONG_PRESS_DURATION = 500;
+                        
+                        function showNotification(message = 'Copied to clipboard!') {
+                            notification.textContent = message;
+                            notification.style.display = 'block';
+                            setTimeout(() => {
+                                notification.style.display = 'none';
+                            }, 2000);
+                        }
+                        
+                        function startLongPress(element, event) {
+                            longPressElement = element;
+                            element.classList.add('list-item-highlight');
+                            
+                            longPressTimer = setTimeout(async () => {
+                                try {
+                                    const listIndex = parseInt(element.dataset.listIndex, 10);
+                                    if (isNaN(listIndex) || !window.listItemsData || !window.listItemsData[listIndex]) {
+                                        throw new Error('List item data not found');
+                                    }
+                                    
+                                    const textContent = window.listItemsData[listIndex].content;
+                                    
+                                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                                        await navigator.clipboard.writeText(textContent);
+                                        showNotification('List content copied to clipboard!');
+                                    } else {
+                                        const textArea = document.createElement('textarea');
+                                        textArea.value = textContent;
+                                        textArea.style.position = 'fixed';
+                                        textArea.style.left = '-999999px';
+                                        textArea.style.top = '-999999px';
+                                        document.body.appendChild(textArea);
+                                        textArea.focus();
+                                        textArea.select();
+                                        document.execCommand('copy');
+                                        document.body.removeChild(textArea);
+                                        showNotification('List content copied to clipboard!');
+                                    }
+                                } catch (err) {
+                                    console.error('Failed to copy list item:', err);
+                                    showNotification('Failed to copy to clipboard');
+                                }
+                                
+                                element.classList.remove('list-item-highlight');
+                                longPressElement = null;
+                            }, LONG_PRESS_DURATION);
+                        }
+                        
+                        function cancelLongPress() {
+                            if (longPressTimer) {
+                                clearTimeout(longPressTimer);
+                                longPressTimer = null;
+                            }
+                            if (longPressElement) {
+                                longPressElement.classList.remove('list-item-highlight');
+                                longPressElement = null;
+                            }
+                        }
+                        
+                        function attachListItemListeners() {
+                            const listItems = contentContainer.querySelectorAll('li');
+                            
+                            listItems.forEach((li, index) => {
+                                li.dataset.listIndex = index;
+                                li.style.cursor = 'pointer';
+                                li.style.userSelect = 'none';
+                                li.style.webkitUserSelect = 'none';
+                                li.style.mozUserSelect = 'none';
+                                li.style.msUserSelect = 'none';
+                                
+                                li.addEventListener('mousedown', (e) => {
+                                    e.preventDefault();
+                                    startLongPress(li, e);
+                                });
+                                
+                                li.addEventListener('mouseup', cancelLongPress);
+                                li.addEventListener('mouseleave', cancelLongPress);
+                                
+                                li.addEventListener('touchstart', (e) => {
+                                    e.preventDefault();
+                                    startLongPress(li, e);
+                                }, { passive: false });
+                                
+                                li.addEventListener('touchend', (e) => {
+                                    e.preventDefault();
+                                    cancelLongPress();
+                                }, { passive: false });
+                                
+                                li.addEventListener('touchcancel', cancelLongPress);
+                                li.addEventListener('touchmove', cancelLongPress);
+                            });
+                        }
+                        
+                        setTimeout(attachListItemListeners, 500);
+                        
+                        const observer = new MutationObserver(() => {
+                            attachListItemListeners();
+                        });
+                        
+                        observer.observe(contentContainer, {
+                            childList: true,
+                            subtree: true
+                        });
+                    }
+                    function setupViewToggle() {
+                        const toggleViewBtn = document.getElementById('toggleViewBtn');
+                        const contentContainer = document.getElementById('content-container');
+                        const rawContainer = document.getElementById('raw-container');
+                        
+                        if (!toggleViewBtn || !contentContainer || !rawContainer) return;
+                        
+                        const LS_VIEW_KEY = 'renderedOutputViewMode';
+                        
+                        function applyViewMode(mode) {
+                            if (mode === 'raw') {
+                                contentContainer.style.display = 'none';
+                                rawContainer.style.display = 'block';
+                                toggleViewBtn.textContent = 'Rendered';
+                            } else {
+                                contentContainer.style.display = 'block';
+                                rawContainer.style.display = 'none';
+                                toggleViewBtn.textContent = 'Raw';
+                            }
+                            localStorage.setItem(LS_VIEW_KEY, mode);
+                        }
+                        
+                        toggleViewBtn.addEventListener('click', () => {
+                            const currentMode = localStorage.getItem(LS_VIEW_KEY) || 'rendered';
+                            const newMode = currentMode === 'rendered' ? 'raw' : 'rendered';
+                            applyViewMode(newMode);
+                        });
+                        
+                        applyViewMode(localStorage.getItem(LS_VIEW_KEY) || 'rendered');
+                    }
                     function setupThemeControls(body) {
                         const toggleBtn = document.getElementById('toggleThemeBtn');
                         if (!toggleBtn) return;
@@ -312,7 +497,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         });
                         applyTheme(localStorage.getItem(LS_KEY) || 'light');
                     }
-
                     function setupFontSizeControls(body) {
                         const increaseBtn = document.getElementById('increaseFontBtn');
                         const decreaseBtn = document.getElementById('decreaseFontBtn');
@@ -337,7 +521,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         resetBtn.addEventListener('click', () => applyFontSize(DEFAULT_PERCENT));
                         applyFontSize(currentPercent);
                     }
-                    
                     function setupCollapsibleControls() {
                         const toggleButton = document.getElementById('toggleCollapseBtn');
                         const controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
@@ -357,7 +540,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         });
                         applyCollapsedState();
                     }
-
                     function setupSaveAsImage() {
                         const saveBtn = document.getElementById('saveAsImageBtn');
                         const controlsPanel = document.getElementById('font-controls');
@@ -366,15 +548,21 @@ Don't write something like $E=mc^2$ across multiple lines.
                             if (saveBtn) saveBtn.style.display = 'none';
                             return;
                         }
-
                         saveBtn.addEventListener('click', () => {
                             if (typeof html2canvas === 'undefined') {
                                 return alert('Error: html2canvas library is not available. Please ensure its CDN loads.');
                             }
                             
+                            const rawContainer = document.getElementById('raw-container');
+                            const isRawVisible = rawContainer && rawContainer.style.display !== 'none';
+                            
+                            if (isRawVisible) {
+                                alert('Please switch to rendered view before saving as image.');
+                                return;
+                            }
+                            
                             const bodyBackgroundColor = window.getComputedStyle(document.body).backgroundColor;
                             controlsPanel.style.display = 'none';
-                            
                             html2canvas(contentContainer, {
                                 logging: false,
                                 useCORS: true,
@@ -405,12 +593,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                             });
                         });
                     }
-
                     document.addEventListener('DOMContentLoaded', setupRenderedPage);
                 `;
             }
         };
-
         MarkdownRenderer.init();
     </script>
 </body>
