@@ -882,7 +882,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     li.addEventListener('mouseleave', () => this.handleEnd());
                                     
                                     // Touch events
-                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: false });
+                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
                                     li.addEventListener('touchend', (e) => {
                                         e.preventDefault();
                                         this.handleEnd();
@@ -893,7 +893,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                             }
                             
                             handleStart(element, event) {
-                                event.preventDefault();
                                 this.longPressElement = element;
                                 element.classList.add('list-item-highlight');
                                 
