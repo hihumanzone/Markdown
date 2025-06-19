@@ -15,11 +15,9 @@
             --info-bg: #e9ecef;
             --shadow-color: rgba(0, 0, 0, 0.1);
         }
-
         * {
             box-sizing: border-box;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -28,7 +26,6 @@
             color: var(--text-color);
             line-height: 1.6;
         }
-
         .container {
             max-width: 900px;
             margin: 20px auto;
@@ -37,21 +34,18 @@
             box-shadow: 0 0 15px var(--shadow-color);
             border-radius: 8px;
         }
-
         h1, h2 {
             color: var(--text-color);
             border-bottom: 2px solid #eee;
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
-
         label {
             display: block;
             margin-top: 15px;
             margin-bottom: 5px;
             font-weight: bold;
         }
-
         textarea {
             width: 100%;
             min-height: 200px;
@@ -63,13 +57,11 @@
             margin-bottom: 15px;
             resize: vertical;
         }
-
         .button-group {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
-
         button {
             background-color: var(--primary-color);
             color: white;
@@ -80,16 +72,13 @@
             font-size: 16px;
             transition: background-color 0.2s ease;
         }
-
         button:hover:not(:disabled) {
             background-color: var(--primary-hover);
         }
-
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-
         .info {
             font-size: 0.9em;
             color: #555;
@@ -99,26 +88,21 @@
             border-left: 4px solid var(--primary-color);
             border-radius: 4px;
         }
-
         .info ul {
             margin: 10px 0;
             padding-left: 20px;
         }
-
         .info li {
             margin: 5px 0;
         }
-
         .input-section {
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 1px dashed #ccc;
         }
-
         .input-section:last-child {
             border-bottom: none;
         }
-
         .example-text {
             font-size: 0.85em;
             color: #666;
@@ -129,7 +113,6 @@
 <body>
     <div class="container">
         <h1>Markdown & LaTeX Renderer</h1>
-        
         <div class="input-section">
             <h2>Markdown Input</h2>
             <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
@@ -137,30 +120,53 @@
 # Hello World
 This is **bold** and _italic_.
 
+`inline code`
+
+```javascript
+function greet(name) {
+  console.log("Hello, " + name + "!");
+}
+greet("Developer");
+```
+
 ## Math Examples (KaTeX will render these):
 Inline: $E = mc^2$ or \( \alpha + \beta \)
-
 Display:
 $$
 \sum_{i=0}^{n} i = \frac{n(n+1)}{2}
 $$
-
 \[
 \text{H}_2\text{O} \quad \text{or H$_2$O}
 \]
+
+> This is a blockquote.
+> It can span multiple lines.
+
+- Unordered list item 1
+- Unordered list item 2
+  - Nested item
+1. Ordered list item 1
+2. Ordered list item 2
+
+[This is a link to Google](https://www.google.com)
+
+---
+
+| Header 1 | Header 2 | Header 3 |
+| -------- | -------- | -------- |
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
 
 ## Note
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
             </textarea>
-            
             <div class="button-group">
                 <button id="renderMarkdownBtn" title="Render the markdown content">Render Markdown</button>
                 <button id="pasteAndRenderBtn" title="Paste from clipboard and render">Paste & Render</button>
                 <button id="clearBtn" title="Clear the input">Clear</button>
             </div>
         </div>
-
         <div class="info">
             <p><strong>How it works:</strong></p>
             <ul>
@@ -172,13 +178,12 @@ Don't write something like $E=mc^2$ across multiple lines.
             </ul>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         // Constants and Configuration
         const CONFIG = {
             CDN: {
-                githubMarkdownCSS: 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css',
+                githubMarkdownCSS: 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css', // We'll override parts of this
                 katexCSS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css',
                 katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
@@ -205,7 +210,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 CONTROLS_COLLAPSED: 'fontControlsCollapsed'
             }
         };
-
         // Utility Functions
         const Utils = {
             escapeHtml(text) {
@@ -213,12 +217,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                 div.textContent = text;
                 return div.innerHTML;
             },
-
             async copyToClipboard(text) {
                 if (navigator.clipboard?.writeText) {
                     return navigator.clipboard.writeText(text);
                 }
-                
                 // Fallback for older browsers
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
@@ -228,14 +230,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                 document.body.appendChild(textArea);
                 textArea.focus();
                 textArea.select();
-                
                 try {
                     document.execCommand('copy');
                 } finally {
                     document.body.removeChild(textArea);
                 }
             },
-
             debounce(func, wait) {
                 let timeout;
                 return function executedFunction(...args) {
@@ -248,38 +248,31 @@ Don't write something like $E=mc^2$ across multiple lines.
                 };
             }
         };
-
         // List Item Parser
         class ListItemParser {
             static parse(markdownText) {
                 const listItems = [];
                 const lines = markdownText.split('\n');
-                
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
                     const unorderedMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
                     const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
-                    
                     if (unorderedMatch || orderedMatch) {
                         const match = unorderedMatch || orderedMatch;
                         const indent = match[1].length;
                         const content = match[2];
                         const isOrdered = !!orderedMatch;
-                        
                         let fullContent = content;
                         let j = i + 1;
-                        
                         // Collect continuation lines
                         while (j < lines.length) {
                             const nextLine = lines[j];
                             const nextTrimmed = nextLine.trim();
-                            
-                            if (nextTrimmed === '' || 
-                                nextLine.match(/^\s*[-*+]\s+/) || 
+                            if (nextTrimmed === '' ||
+                                nextLine.match(/^\s*[-*+]\s+/) ||
                                 nextLine.match(/^\s*\d+\.\s+/)) {
                                 break;
                             }
-                            
                             if (nextLine.length > indent && nextTrimmed !== '') {
                                 fullContent += '\n' + nextLine.slice(indent);
                                 j++;
@@ -287,31 +280,25 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 break;
                             }
                         }
-                        
                         listItems.push({
                             content: fullContent,
                             indent: indent,
                             isOrdered: isOrdered
                         });
-                        
                         i = j - 1;
                     }
                 }
-                
                 return listItems;
             }
         }
-
         // Math Processor
         class MathProcessor {
             static preserveMathExpressions(markdownText) {
                 const mathExpressions = [];
                 let tempText = markdownText;
-                
                 CONFIG.MATH_PATTERNS.forEach((pattern) => {
                     tempText = tempText.replace(pattern.regex, (match, content) => {
                         if (content.trim() === "") return match;
-                        
                         const placeholder = `%%MATH_PLACEHOLDER_${mathExpressions.length}%%`;
                         mathExpressions.push({
                             placeholder,
@@ -322,22 +309,17 @@ Don't write something like $E=mc^2$ across multiple lines.
                         return placeholder;
                     });
                 });
-                
                 return { tempText, mathExpressions };
             }
-
             static restoreMathExpressions(html, mathExpressions) {
                 let restoredHtml = html;
-                
                 mathExpressions.forEach(item => {
                     const preservedKatexString = item.originalOpen + item.content + item.originalClose;
                     restoredHtml = restoredHtml.replace(item.placeholder, preservedKatexString);
                 });
-                
                 return restoredHtml;
             }
         }
-
         // Rendered Page Builder
         class RenderedPageBuilder {
             static build(content, rawMarkdown, title, listItems) {
@@ -348,7 +330,6 @@ Don't write something like $E=mc^2$ across multiple lines.
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
-    <link rel="stylesheet" href="${CONFIG.CDN.githubMarkdownCSS}">
     <link rel="stylesheet" href="${CONFIG.CDN.katexCSS}">
     ${this.getStyles()}
 </head>
@@ -359,7 +340,6 @@ Don't write something like $E=mc^2$ across multiple lines.
         <pre id="raw-markdown">${Utils.escapeHtml(rawMarkdown)}</pre>
     </div>
     <div id="copy-notification">Copied to clipboard!</div>
-    
     <script>
         window.__APP_DATA__ = {
             rawMarkdown: ${JSON.stringify(rawMarkdown)},
@@ -367,7 +347,6 @@ Don't write something like $E=mc^2$ across multiple lines.
             config: ${JSON.stringify(CONFIG)}
         };
     <\/script>
-    
     <script defer src="${CONFIG.CDN.html2canvasJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
@@ -377,45 +356,104 @@ Don't write something like $E=mc^2$ across multiple lines.
 </body>
 </html>`;
             }
-
             static getStyles() {
                 return `<style>
-                    /* Base Styles */
+                    /* Base Styles for the rendered page */
                     body.markdown-body {
                         box-sizing: border-box;
                         min-width: 200px;
                         max-width: 980px;
                         margin: 0 auto;
                         padding: 45px;
-                        padding-top: 70px;
+                        padding-top: 70px; /* Space for fixed controls */
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+                        line-height: 1.6;
                         transition: background-color 0.3s ease, color 0.3s ease;
                     }
-                    
                     @media (max-width: 767px) {
                         body.markdown-body {
-                            padding: 15px;
-                            padding-top: 60px;
+                            padding: 20px;
+                            padding-top: 60px; /* Space for fixed controls */
                         }
                     }
-                    
-                    /* Light Theme (Default) */
+
+                    /* Light Theme (Default) - Inspired by GitHub Markdown CSS */
                     body.markdown-body {
                         background-color: #ffffff;
-                        color: #000000;
-                    }                    body.markdown-body a { color: #000000; }
-                    body.markdown-body a:visited { color: #000000; }
-                    body.markdown-body hr { border-top-color: #000000; }
-                    body.markdown-body blockquote { border-left-color: #000000; }
+                        color: #24292e; /* GitHub's primary text color */
+                    }
+                    body.markdown-body a {
+                        color: #0366d6; /* GitHub's link color */
+                        text-decoration: none;
+                    }
+                    body.markdown-body a:hover {
+                        text-decoration: underline;
+                    }
+                    body.markdown-body a:visited {
+                        color: #0366d6;
+                    }
+                    body.markdown-body hr {
+                        background-color: #e1e4e8; /* GitHub's border color */
+                        border: 0;
+                        height: 0.25em;
+                        margin: 24px 0;
+                        padding: 0;
+                    }
+                    body.markdown-body blockquote {
+                        border-left: 0.25em solid #dfe2e5; /* GitHub's border color */
+                        color: #6a737d; /* GitHub's secondary text color */
+                        padding: 0 1em;
+                        margin-left: 0;
+                        margin-right: 0;
+                    }
+                    body.markdown-body table {
+                        border-collapse: collapse;
+                        margin: 16px 0;
+                        display: block;
+                        width: max-content;
+                        max-width: 100%;
+                        overflow: auto;
+                    }
                     body.markdown-body th,
                     body.markdown-body td {
-                        border-color: #000000;
-                        background-color: #ffffff;
-                        color: #000000;
+                        border: 1px solid #dfe2e5; /* GitHub's border color */
+                        padding: 6px 13px;
                     }
-                    body.markdown-body code:not([class*=language-]),
-                    body.markdown-body pre {
-                        background-color: #ffffff;
-                        color: #000000;
+                    body.markdown-body th {
+                        background-color: #f6f8fa; /* GitHub's table header background */
+                        font-weight: 600;
+                    }
+                    body.markdown-body tr:nth-child(2n) {
+                        background-color: #f6f8fa; /* GitHub's zebra striping */
+                    }
+                    body.markdown-body code:not([class*="language-"]) { /* Inline code */
+                        background-color: rgba(27,31,35,0.05); /* GitHub's inline code background */
+                        border-radius: 3px;
+                        font-size: 85%;
+                        margin: 0;
+                        padding: 0.2em 0.4em;
+                        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+                    }
+                    body.markdown-body pre { /* Code blocks */
+                        background-color: #f6f8fa; /* GitHub's code block background */
+                        border-radius: 6px;
+                        font-size: 85%;
+                        line-height: 1.45;
+                        overflow: auto;
+                        padding: 16px;
+                        margin: 16px 0;
+                    }
+                    body.markdown-body pre code { /* Code inside pre, ensure it inherits font and has no extra bg */
+                        background-color: transparent;
+                        border: 0;
+                        display: inline;
+                        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+                        line-height: inherit;
+                        margin: 0;
+                        overflow: visible;
+                        padding: 0;
+                        word-wrap: normal; /* Prevent wrapping inside code blocks */
+                        font-size: 100%; /* Reset to pre's font-size */
                     }
                     body.markdown-body h1,
                     body.markdown-body h2,
@@ -423,31 +461,85 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body h4,
                     body.markdown-body h5,
                     body.markdown-body h6 {
-                        border-bottom-color: #000000;
+                        color: #24292e;
+                        font-weight: 600;
+                        line-height: 1.25;
+                        margin-bottom: 16px;
+                        margin-top: 24px;
                     }
-                    
-                    /* Dark Theme */
+                    body.markdown-body h1 { font-size: 2em; }
+                    body.markdown-body h2 { font-size: 1.5em; }
+                    body.markdown-body h3 { font-size: 1.25em; }
+                    body.markdown-body h4 { font-size: 1em; }
+                    body.markdown-body h5 { font-size: 0.875em; }
+                    body.markdown-body h6 { font-size: 0.85em; color: #6a737d; }
+
+                    body.markdown-body h1,
+                    body.markdown-body h2 {
+                        border-bottom: 1px solid #eaecef; /* GitHub's header border */
+                        padding-bottom: 0.3em;
+                    }
+                    body.markdown-body strong {
+                        font-weight: 600;
+                    }
+                    body.markdown-body em {
+                        font-style: italic;
+                    }
+                    body.markdown-body ul,
+                    body.markdown-body ol {
+                        padding-left: 2em;
+                        margin-top: 0;
+                        margin-bottom: 16px;
+                    }
+                    body.markdown-body li {
+                        margin-bottom: 0.25em;
+                    }
+                    body.markdown-body li > p { /* Paragraphs inside list items */
+                        margin-top: 0;
+                        margin-bottom: 0; /* Adjust if too much space */
+                    }
+                    body.markdown-body li + li {
+                        margin-top: 0.25em;
+                    }
+                    body.markdown-body img {
+                        max-width: 100%;
+                        box-sizing: content-box;
+                        background-color: #ffffff; /* Ensure images with transparency look good */
+                    }
+
+                    /* Dark Theme - Inspired by GitHub Dark Mode */
                     body.markdown-body.dark-theme {
-                        background-color: #000000;
-                        color: #ffffff;
+                        background-color: #0d1117; /* GitHub Dark background */
+                        color: #c9d1d9; /* GitHub Dark primary text */
                     }
-                    body.markdown-body.dark-theme a { color: #ffffff; }
-                    body.markdown-body.dark-theme a:visited { color: #ffffff; }
-                    body.markdown-body.dark-theme hr { border-top-color: #ffffff; }
+                    body.markdown-body.dark-theme a {
+                        color: #58a6ff; /* GitHub Dark link color */
+                    }
+                    body.markdown-body.dark-theme a:visited {
+                        color: #58a6ff;
+                    }
+                    body.markdown-body.dark-theme hr {
+                        background-color: #30363d; /* GitHub Dark border */
+                    }
                     body.markdown-body.dark-theme blockquote {
-                        color: #ffffff;
-                        border-left-color: #ffffff;
+                        color: #8b949e; /* GitHub Dark secondary text */
+                        border-left-color: #30363d; /* GitHub Dark border */
                     }
                     body.markdown-body.dark-theme th,
                     body.markdown-body.dark-theme td {
-                        border-color: #ffffff;
-                        background-color: #000000;
-                        color: #ffffff;
+                        border-color: #30363d; /* GitHub Dark border */
                     }
-                    body.markdown-body.dark-theme code:not([class*=language-]),
-                    body.markdown-body.dark-theme pre {
-                        background-color: #000000;
-                        color: #ffffff;
+                    body.markdown-body.dark-theme th {
+                        background-color: #161b22; /* GitHub Dark table header */
+                    }
+                    body.markdown-body.dark-theme tr:nth-child(2n) {
+                        background-color: #161b22; /* GitHub Dark zebra striping */
+                    }
+                    body.markdown-body.dark-theme code:not([class*="language-"]) { /* Inline code */
+                        background-color: rgba(110,118,129,0.4); /* GitHub Dark inline code */
+                    }
+                    body.markdown-body.dark-theme pre { /* Code blocks */
+                        background-color: #161b22; /* GitHub Dark code block */
                     }
                     body.markdown-body.dark-theme h1,
                     body.markdown-body.dark-theme h2,
@@ -455,13 +547,23 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body.dark-theme h4,
                     body.markdown-body.dark-theme h5,
                     body.markdown-body.dark-theme h6 {
-                        color: #ffffff;
-                        border-bottom-color: #ffffff;
+                        color: #c9d1d9;
+                    }
+                    body.markdown-body.dark-theme h6 { color: #8b949e; }
+                    body.markdown-body.dark-theme h1,
+                    body.markdown-body.dark-theme h2 {
+                        border-bottom-color: #21262d; /* GitHub Dark header border */
+                    }
+                    body.markdown-body.dark-theme img {
+                        background-color: #0d1117; /* Match dark background for transparent images */
                     }
                     body.markdown-body.dark-theme #raw-markdown {
-                        background-color: #1a1a1a !important;
-                        color: #ffffff !important;
-                        border-color: #555 !important;
+                        background-color: #161b22 !important;
+                        color: #c9d1d9 !important;
+                        border-color: #30363d !important;
+                    }
+                    body.markdown-body.dark-theme .katex { /* Ensure KaTeX text color matches */
+                        color: #c9d1d9;
                     }
                     
                     /* Control Panel */
@@ -470,79 +572,85 @@ Don't write something like $E=mc^2$ across multiple lines.
                         top: 10px;
                         right: 10px;
                         padding: 8px;
-                        border-radius: 5px;
-                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+                        border-radius: 6px;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                         z-index: 1000;
                         display: flex;
                         align-items: center;
-                        gap: 5px;
+                        gap: 6px;
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                         font-size: 13px;
                         background: rgba(255, 255, 255, 0.95);
-                        transition: background-color 0.3s ease;
+                        backdrop-filter: blur(5px);
+                        -webkit-backdrop-filter: blur(5px);
+                        transition: background-color 0.3s ease, box-shadow 0.3s ease;
                     }
-                    
                     .fc-button {
-                        padding: 4px 8px;
+                        padding: 5px 10px;
                         cursor: pointer;
-                        background-color: #fff;
-                        color: #000;
-                        border: 1px solid #000;
-                        border-radius: 3px;
-                        transition: background-color 0.2s ease;
+                        background-color: #f6f8fa;
+                        color: #24292e;
+                        border: 1px solid #d1d5da;
+                        border-radius: 4px;
+                        transition: background-color 0.2s ease, border-color 0.2s ease;
+                        font-size: 12px;
+                        line-height: 1.5;
                     }
-                    
                     .fc-button:hover {
-                        background-color: #f0f0f0;
+                        background-color: #eef1f4;
+                        border-color: #c0c5cb;
                     }
-                    
                     .fc-display {
-                        color: #000;
-                        padding: 0 5px;
-                        min-width: 40px;
+                        color: #24292e;
+                        padding: 0 8px;
+                        min-width: 45px;
                         text-align: center;
+                        font-weight: 500;
+                        font-size: 12px;
                     }
-                    
                     /* Dark Theme Control Panel */
                     body.markdown-body.dark-theme .fc-panel {
-                        background: rgba(0, 0, 0, 0.95);
-                        box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
+                        background: rgba(22, 27, 34, 0.9); /* #161b22 with opacity */
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
                     }
                     body.markdown-body.dark-theme .fc-button {
-                        background-color: #000;
-                        color: #fff;
-                        border: 1px solid #fff;
+                        background-color: #21262d;
+                        color: #c9d1d9;
+                        border: 1px solid #30363d;
                     }
                     body.markdown-body.dark-theme .fc-button:hover {
-                        background-color: #222;
+                        background-color: #30363d;
+                        border-color: #484f58;
                     }
                     body.markdown-body.dark-theme .fc-display {
-                        color: #fff;
+                        color: #c9d1d9;
                     }
-                    
+
                     /* List Item Highlight */
                     .list-item-highlight {
-                        background-color: rgba(0, 123, 255, 0.1) !important;
+                        background-color: rgba(3, 102, 214, 0.1) !important; /* Light theme highlight */
                         transition: background-color 0.2s ease !important;
+                        border-radius: 3px;
                     }
                     body.markdown-body.dark-theme .list-item-highlight {
-                        background-color: rgba(255, 255, 255, 0.1) !important;
+                        background-color: rgba(88, 166, 255, 0.15) !important; /* Dark theme highlight */
                     }
-                    
+
                     /* Raw Markdown Display */
                     #raw-markdown {
                         white-space: pre-wrap;
                         word-wrap: break-word;
-                        font-family: monospace;
+                        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
                         font-size: 14px;
                         line-height: 1.5;
                         padding: 20px;
-                        margin: 0;
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                        background-color: #f8f9fa;
+                        margin: 0; /* Remove default pre margin if any */
+                        border: 1px solid #e1e4e8;
+                        border-radius: 6px;
+                        background-color: #f6f8fa;
+                        color: #24292e;
                     }
-                    
+
                     /* Copy Notification */
                     #copy-notification {
                         display: none;
@@ -550,54 +658,67 @@ Don't write something like $E=mc^2$ across multiple lines.
                         top: 50%;
                         left: 50%;
                         transform: translate(-50%, -50%);
-                        background: rgba(0, 0, 0, 0.8);
+                        background: rgba(30, 30, 30, 0.9);
                         color: white;
-                        padding: 10px 20px;
-                        border-radius: 5px;
+                        padding: 12px 24px;
+                        border-radius: 6px;
                         z-index: 2000;
+                        font-size: 14px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
                     }
-                    
-                    /* List Items */
+                    body.markdown-body.dark-theme #copy-notification {
+                         background: rgba(200, 200, 200, 0.9);
+                         color: #0d1117;
+                    }
+
+                    /* List Items for long press */
                     li[data-list-index] {
                         cursor: pointer;
                         user-select: none;
                         -webkit-user-select: none;
                         -moz-user-select: none;
                         -ms-user-select: none;
+                        position: relative; /* For potential future pseudo-elements */
+                    }
+                    
+                    /* KaTeX Overrides for consistent styling */
+                    .katex-display { /* For display math $$...$$ or \[...\] */
+                        margin: 1em 0;
+                        overflow-x: auto; /* Allow horizontal scroll for long equations */
+                        overflow-y: hidden;
+                    }
+                    .katex { /* General KaTeX elements */
+                        font-size: 1.1em; /* Slightly larger for better readability */
                     }
                 </style>`;
             }
-
             static getControls() {
                 return `
                     <div id="font-controls" class="fc-panel">
                         <button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button">Toggle</button>
-                        <button id="decreaseFontBtn" title="Decrease font size" class="fc-button">-</button>
+                        <button id="decreaseFontBtn" title="Decrease font size (Ctrl/Cmd + -)" class="fc-button">-</button>
                         <span id="currentFontSizeDisplay" class="fc-display">100%</span>
-                        <button id="increaseFontBtn" title="Increase font size" class="fc-button">+</button>
-                        <button id="resetFontBtn" title="Reset font size" class="fc-button">Reset</button>
-                        <button id="toggleThemeBtn" title="Toggle theme" class="fc-button">Theme</button>
-                        <button id="toggleViewBtn" title="Toggle between rendered and raw markdown" class="fc-button">Raw</button>
-                        <button id="saveAsImageBtn" title="Save as image" class="fc-button">Save Image</button>
+                        <button id="increaseFontBtn" title="Increase font size (Ctrl/Cmd + +)" class="fc-button">+</button>
+                        <button id="resetFontBtn" title="Reset font size (Ctrl/Cmd + 0)" class="fc-button">Reset</button>
+                        <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
+                        <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
+                        <button id="saveAsImageBtn" title="Save as image (Ctrl/Cmd + S)" class="fc-button">Save Image</button>
                     </div>
                 `;
             }
-
             static getClientScript() {
                 return `
                     (function() {
                         'use strict';
-                        
                         const APP_DATA = window.__APP_DATA__;
                         const CONFIG = APP_DATA.config;
-                        
                         // UI Controller
                         class UIController {
                             constructor() {
                                 this.body = document.querySelector('body.markdown-body');
                                 this.initializeControls();
+                                this.addGlobalKeydownListener();
                             }
-                            
                             initializeControls() {
                                 this.katexRenderer = new KatexRenderer();
                                 this.themeController = new ThemeController(this.body);
@@ -607,35 +728,58 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.saveImageController = new SaveImageController();
                                 this.listItemController = new ListItemController();
                             }
+                            addGlobalKeydownListener() {
+                                document.addEventListener('keydown', (e) => {
+                                    if (e.ctrlKey || e.metaKey) {
+                                        switch (e.key) {
+                                            case '-': e.preventDefault(); this.fontSizeController.adjust(-CONFIG.FONT_SIZE.STEP); break;
+                                            case '=': // '+' key without Shift
+                                            case '+': e.preventDefault(); this.fontSizeController.adjust(CONFIG.FONT_SIZE.STEP); break;
+                                            case '0': e.preventDefault(); this.fontSizeController.reset(); break;
+                                            case 't': case 'T': e.preventDefault(); this.themeController.toggle(); break;
+                                            case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
+                                            case 's': case 'S': e.preventDefault(); this.saveImageController.saveAsImage(); break;
+                                        }
+                                    }
+                                });
+                            }
                         }
-                        
                         // KaTeX Renderer
                         class KatexRenderer {
                             constructor() {
                                 this.init();
                             }
-                            
                             init() {
                                 if (typeof renderMathInElement === 'function') {
                                     this.render();
                                 } else {
-                                    setTimeout(() => this.init(), 100);
+                                    // Poll for KaTeX auto-render script
+                                    const intervalId = setInterval(() => {
+                                        if (typeof renderMathInElement === 'function') {
+                                            clearInterval(intervalId);
+                                            this.render();
+                                        }
+                                    }, 100);
                                 }
                             }
-                            
                             render() {
-                                renderMathInElement(document.getElementById('content-container'), {
-                                    delimiters: [
-                                        {left: "$$", right: "$$", display: true},
-                                        {left: "\\\\[", right: "\\\\]", display: true},
-                                        {left: "$", right: "$", display: false, throwOnError: false},
-                                        {left: "\\\\(", right: "\\\\)", display: false}
-                                    ],
-                                    throwOnError: false
-                                });
+                                try {
+                                    renderMathInElement(document.getElementById('content-container'), {
+                                        delimiters: [
+                                            {left: "$$", right: "$$", display: true},
+                                            {left: "\\\\[", right: "\\\\]", display: true},
+                                            {left: "$", right: "$", display: false, throwOnError: false},
+                                            {left: "\\\\(", right: "\\\\)", display: false}
+                                        ],
+                                        throwOnError: false,
+                                        // Consider adding macros or other options if needed
+                                        // trust: (context) => ['\\htmlId'].includes(context.command), // Example for trusting specific commands
+                                    });
+                                } catch (error) {
+                                    console.error("KaTeX rendering error:", error);
+                                }
                             }
                         }
-                        
                         // Theme Controller
                         class ThemeController {
                             constructor(body) {
@@ -645,13 +789,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME;
                                 this.init();
                             }
-                            
                             init() {
                                 if (!this.toggleBtn) return;
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
-                                this.applyTheme(localStorage.getItem(this.lsKey) || 'light');
+                                const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                                this.applyTheme(localStorage.getItem(this.lsKey) || preferredTheme);
+                                // Listen for system theme changes
+                                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                                    if (!localStorage.getItem(this.lsKey)) { // Only if user hasn't set a preference
+                                        this.applyTheme(e.matches ? 'dark' : 'light');
+                                    }
+                                });
                             }
-                            
                             applyTheme(theme) {
                                 if (theme === 'dark') {
                                     this.body.classList.add(this.darkClass);
@@ -660,15 +809,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.body.classList.remove(this.darkClass);
                                     this.toggleBtn.textContent = 'Dark Theme';
                                 }
-                                localStorage.setItem(this.lsKey, theme);
+                                // Only save to localStorage if user explicitly clicked, not from system preference change without prior setting
+                                if (document.activeElement === this.toggleBtn || localStorage.getItem(this.lsKey)) {
+                                   localStorage.setItem(this.lsKey, theme);
+                                }
                             }
-                            
                             toggle() {
                                 const currentTheme = this.body.classList.contains(this.darkClass) ? 'dark' : 'light';
-                                this.applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+                                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                                this.applyTheme(newTheme);
+                                localStorage.setItem(this.lsKey, newTheme); // Ensure explicit toggle saves preference
                             }
                         }
-                        
                         // Font Size Controller
                         class FontSizeController {
                             constructor(body) {
@@ -681,25 +833,19 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.currentPercent = parseInt(localStorage.getItem(this.lsKey) || CONFIG.FONT_SIZE.DEFAULT, 10);
                                 this.init();
                             }
-                            
                             init() {
                                 if (!this.increaseBtn || !this.decreaseBtn || !this.resetBtn || !this.display) return;
-                                
                                 this.increaseBtn.addEventListener('click', () => this.adjust(CONFIG.FONT_SIZE.STEP));
                                 this.decreaseBtn.addEventListener('click', () => this.adjust(-CONFIG.FONT_SIZE.STEP));
                                 this.resetBtn.addEventListener('click', () => this.reset());
-                                
                                 this.applyFontSize(this.currentPercent);
                             }
-                            
                             adjust(step) {
                                 this.applyFontSize(this.currentPercent + step);
                             }
-                            
                             reset() {
                                 this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT);
                             }
-                            
                             applyFontSize(percent) {
                                 this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, percent));
                                 this.body.style.fontSize = \`\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\`;
@@ -707,7 +853,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 localStorage.setItem(this.lsKey, this.currentPercent);
                             }
                         }
-                        
                         // Collapsible Controller
                         class CollapsibleController {
                             constructor() {
@@ -716,30 +861,24 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED;
                                 this.init();
                             }
-                            
                             init() {
                                 if (!this.toggleButton) return;
                                 this.toggleButton.addEventListener('click', () => this.toggle());
-                                this.applyState();
+                                this.applyState(JSON.parse(localStorage.getItem(this.lsKey) || 'false')); // Default to expanded
                             }
-                            
                             toggle() {
-                                const currentState = JSON.parse(localStorage.getItem(this.lsKey) || 'true');
-                                this.applyState(!currentState);
+                                const currentState = this.controlsToToggle[0].style.display === 'none'; // is currently collapsed
+                                this.applyState(!currentState); // toggle state
                             }
-                            
                             applyState(collapsed) {
-                                const isCollapsed = collapsed !== undefined ? collapsed : JSON.parse(localStorage.getItem(this.lsKey) || 'true');
-                                
                                 this.controlsToToggle.forEach(control => {
-                                    control.style.display = isCollapsed ? 'none' : '';
+                                    control.style.display = collapsed ? 'none' : '';
                                 });
-                                
-                                this.toggleButton.textContent = isCollapsed ? 'Expand Controls' : 'Collapse Controls';
-                                localStorage.setItem(this.lsKey, JSON.stringify(isCollapsed));
+                                this.toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
+                                this.toggleButton.title = collapsed ? 'Expand Controls' : 'Collapse Controls';
+                                localStorage.setItem(this.lsKey, JSON.stringify(collapsed));
                             }
                         }
-                        
                         // View Toggle Controller
                         class ViewToggleController {
                             constructor() {
@@ -749,33 +888,30 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.VIEW_MODE;
                                 this.init();
                             }
-                            
                             init() {
                                 if (!this.toggleBtn || !this.contentContainer || !this.rawContainer) return;
-                                
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
                                 this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered');
                             }
-                            
                             toggle() {
-                                const currentMode = localStorage.getItem(this.lsKey) || 'rendered';
-                                this.applyViewMode(                                currentMode === 'rendered' ? 'raw' : 'rendered');
+                                const currentMode = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
+                                this.applyViewMode(currentMode === 'rendered' ? 'raw' : 'rendered');
                             }
-                            
                             applyViewMode(mode) {
                                 if (mode === 'raw') {
                                     this.contentContainer.style.display = 'none';
                                     this.rawContainer.style.display = 'block';
                                     this.toggleBtn.textContent = 'Rendered';
+                                    this.toggleBtn.title = 'Show Rendered View';
                                 } else {
                                     this.contentContainer.style.display = 'block';
                                     this.rawContainer.style.display = 'none';
                                     this.toggleBtn.textContent = 'Raw';
+                                    this.toggleBtn.title = 'Show Raw Markdown';
                                 }
                                 localStorage.setItem(this.lsKey, mode);
                             }
                         }
-                        
                         // Save Image Controller
                         class SaveImageController {
                             constructor() {
@@ -784,196 +920,247 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.contentContainer = document.getElementById('content-container');
                                 this.init();
                             }
-                            
                             init() {
                                 if (!this.saveBtn || !this.controlsPanel || !this.contentContainer) {
                                     if (this.saveBtn) this.saveBtn.style.display = 'none';
                                     return;
                                 }
-                                
                                 this.saveBtn.addEventListener('click', () => this.saveAsImage());
                             }
-                            
                             async saveAsImage() {
                                 if (typeof html2canvas === 'undefined') {
-                                    alert('Error: html2canvas library is not available. Please ensure its CDN loads.');
+                                    this.showNotification('Error: Image library (html2canvas) not loaded.', true);
                                     return;
                                 }
-                                
                                 const rawContainer = document.getElementById('raw-container');
                                 if (rawContainer && rawContainer.style.display !== 'none') {
-                                    alert('Please switch to rendered view before saving as image.');
+                                    this.showNotification('Switch to rendered view to save as image.', true);
                                     return;
                                 }
-                                
                                 const bodyBackgroundColor = window.getComputedStyle(document.body).backgroundColor;
-                                this.controlsPanel.style.display = 'none';
-                                
+                                this.controlsPanel.style.visibility = 'hidden'; // Hide instead of display:none to maintain layout
+                                this.showNotification('Generating image...', false, true);
+
                                 try {
-                                    const canvas = await html2canvas(this.contentContainer, {
+                                    await new Promise(resolve => setTimeout(resolve, 100)); // Short delay for UI update
+
+                                    const canvas = await html2canvas(document.body, { // Capture entire body for context
                                         logging: false,
                                         useCORS: true,
                                         backgroundColor: bodyBackgroundColor,
+                                        scrollX: -window.scrollX, // Ensure correct capture area
+                                        scrollY: -window.scrollY,
+                                        windowWidth: document.documentElement.scrollWidth,
+                                        windowHeight: document.documentElement.scrollHeight,
                                         onclone: (clonedDoc) => {
+                                            // Ensure controls are not in the cloned document for capture
+                                            const clonedControls = clonedDoc.getElementById('font-controls');
+                                            if (clonedControls) clonedControls.style.display = 'none';
+
+                                            // Optionally, adjust padding on the content container for the image
                                             const clonedContentDiv = clonedDoc.getElementById('content-container');
                                             if (clonedContentDiv) {
-                                                clonedContentDiv.style.padding = '40px';
-                                                clonedContentDiv.style.boxSizing = 'border-box';
+                                                 clonedContentDiv.style.padding = '40px'; // Add padding for the image
+                                                 clonedContentDiv.style.margin = '0 auto'; // Center it if body is wider
                                             }
                                         }
                                     });
-                                    
+                                    // Create a new canvas to crop to the content-container
+                                    const contentRect = this.contentContainer.getBoundingClientRect();
+                                    const croppedCanvas = document.createElement('canvas');
+                                    const ctx = croppedCanvas.getContext('2d');
+                                    const dpr = window.devicePixelRatio || 1;
+
+                                    // Add padding to the captured area
+                                    const padding = 40 * dpr;
+                                    croppedCanvas.width = contentRect.width * dpr + 2 * padding;
+                                    croppedCanvas.height = contentRect.height * dpr + 2 * padding;
+
+                                    // Set background for the cropped canvas
+                                    ctx.fillStyle = bodyBackgroundColor;
+                                    ctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
+
+                                    // Draw the relevant part of the original canvas onto the new one
+                                    ctx.drawImage(
+                                        canvas,
+                                        contentRect.left * dpr - padding, // source X
+                                        contentRect.top * dpr - padding,  // source Y
+                                        croppedCanvas.width, // source Width
+                                        croppedCanvas.height, // source Height
+                                        0, // destination X
+                                        0, // destination Y
+                                        croppedCanvas.width, // destination Width
+                                        croppedCanvas.height // destination Height
+                                    );
+
+
                                     const timestamp = new Date().getTime();
                                     const randomPart = Math.random().toString(36).substring(2, 10);
                                     const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
-                                    
                                     const link = document.createElement('a');
-                                    link.href = canvas.toDataURL('image/png');
+                                    link.href = croppedCanvas.toDataURL('image/png');
                                     link.download = filename;
                                     document.body.appendChild(link);
                                     link.click();
                                     document.body.removeChild(link);
+                                    this.showNotification('Image saved!');
                                 } catch (err) {
                                     console.error('Error capturing image:', err);
-                                    alert('Sorry, an error occurred while trying to save the image.');
+                                    this.showNotification('Error saving image. See console.', true);
                                 } finally {
-                                    this.controlsPanel.style.display = 'flex';
+                                    this.controlsPanel.style.visibility = 'visible';
+                                }
+                            }
+                            showNotification(message, isError = false, persistent = false) {
+                                const notification = document.getElementById('copy-notification'); // Re-use for general notifications
+                                if (!notification) return;
+                                notification.textContent = message;
+                                notification.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
+                                if (document.body.classList.contains('dark-theme')) {
+                                    notification.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+                                    notification.style.color = '#0d1117';
+                                } else {
+                                    notification.style.color = 'white';
+                                }
+                                notification.style.display = 'block';
+                                if (!persistent) {
+                                    setTimeout(() => {
+                                        notification.style.display = 'none';
+                                    }, isError ? 4000 : 2500);
                                 }
                             }
                         }
-                        
                         // List Item Controller
                         class ListItemController {
                             constructor() {
                                 this.contentContainer = document.getElementById('content-container');
-                                this.notification = document.getElementById('copy-notification');
+                                this.notificationElement = document.getElementById('copy-notification');
                                 this.longPressTimer = null;
                                 this.longPressElement = null;
                                 this.init();
                             }
-                            
                             init() {
-                                if (!this.contentContainer || !this.notification) return;
-                                
-                                // Initial setup after content loads
-                                setTimeout(() => this.attachListeners(), 500);
-                                
-                                // Watch for dynamic content changes
-                                const observer = new MutationObserver(() => this.attachListeners());
+                                if (!this.contentContainer || !this.notificationElement) return;
+                                // Initial setup after content loads and KaTeX renders
+                                const setupListeners = () => {
+                                    // Debounce to avoid multiple calls during rapid DOM changes
+                                    if (this.setupTimeout) clearTimeout(this.setupTimeout);
+                                    this.setupTimeout = setTimeout(() => this.attachListeners(), 300);
+                                };
+
+                                // Call once after initial load
+                                setTimeout(setupListeners, 500); // Give KaTeX and other scripts time
+
+                                // Watch for dynamic content changes (e.g., if KaTeX modifies the DOM significantly)
+                                const observer = new MutationObserver(setupListeners);
                                 observer.observe(this.contentContainer, {
                                     childList: true,
                                     subtree: true
                                 });
                             }
-                            
                             attachListeners() {
                                 const listItems = this.contentContainer.querySelectorAll('li');
-                                
                                 listItems.forEach((li, index) => {
-                                    // Skip if already initialized
-                                    if (li.dataset.initialized === 'true') return;
-                                    
-                                    li.dataset.listIndex = index;
-                                    li.dataset.initialized = 'true';
-                                    
-                                    // Mouse events
-                                    li.addEventListener('mousedown', (e) => this.handleStart(li, e));
-                                    li.addEventListener('mouseup', () => this.handleEnd());
+                                    if (li.dataset.listCopyInitialized === 'true') return;
+                                    li.dataset.listIndex = index; // Use original index for APP_DATA mapping
+                                    li.dataset.listCopyInitialized = 'true';
+
+                                    li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); }); // Only left click
+                                    li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
                                     li.addEventListener('mouseleave', () => this.handleEnd());
-                                    
-                                    // Touch events
+
                                     li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
-                                    li.addEventListener('touchend', (e) => {
-                                        e.preventDefault();
-                                        this.handleEnd();
-                                    }, { passive: false });
+                                    li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
                                     li.addEventListener('touchcancel', () => this.handleEnd());
-                                    li.addEventListener('touchmove', () => this.handleEnd());
+                                    li.addEventListener('touchmove', () => this.handleEnd()); // Cancel long press if finger moves
                                 });
                             }
-                            
                             handleStart(element, event) {
+                                this.handleEnd(); // Clear any existing timer/highlight
                                 this.longPressElement = element;
                                 element.classList.add('list-item-highlight');
-                                
                                 this.longPressTimer = setTimeout(async () => {
-                                    await this.copyListContent(element);
-                                    this.handleEnd();
+                                    if (this.longPressElement === element) { // Check if still the same element
+                                        await this.copyListContent(element);
+                                    }
+                                    this.handleEnd(); // Clear highlight after copy or if element changed
                                 }, CONFIG.LONG_PRESS_DURATION);
                             }
-                            
                             handleEnd() {
                                 if (this.longPressTimer) {
                                     clearTimeout(this.longPressTimer);
                                     this.longPressTimer = null;
                                 }
-                                
                                 if (this.longPressElement) {
                                     this.longPressElement.classList.remove('list-item-highlight');
                                     this.longPressElement = null;
                                 }
                             }
-                            
                             async copyListContent(element) {
                                 try {
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
-                                    if (isNaN(listIndex) || !APP_DATA.listItems || !APP_DATA.listItems[listIndex]) {
-                                        throw new Error('List item data not found');
+                                    if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
+                                        console.warn('List item data not found for index:', listIndex, element);
+                                        // Fallback to innerText if APP_DATA is missing/mismatched
+                                        const textContent = element.innerText || element.textContent || "";
+                                        if (textContent.trim()) {
+                                            await this._copyToClipboard(textContent.trim());
+                                            this.showNotification('List item text copied!');
+                                        } else {
+                                            throw new Error('List item content is empty.');
+                                        }
+                                        return;
                                     }
-                                    
                                     const textContent = APP_DATA.listItems[listIndex].content;
-                                    
-                                    await this.copyToClipboard(textContent);
-                                    this.showNotification('List content copied to clipboard!');
+                                    await this._copyToClipboard(textContent);
+                                    this.showNotification('List content copied!');
                                 } catch (err) {
                                     console.error('Failed to copy list item:', err);
-                                    this.showNotification('Failed to copy to clipboard');
+                                    this.showNotification('Failed to copy. See console.', true);
                                 }
                             }
-                            
-                            async copyToClipboard(text) {
+                            async _copyToClipboard(text) { // Renamed to avoid conflict with global Utils
                                 if (navigator.clipboard?.writeText) {
                                     return navigator.clipboard.writeText(text);
                                 }
-                                
-                                // Fallback
                                 const textArea = document.createElement('textarea');
                                 textArea.value = text;
-                                textArea.style.position = 'fixed';
-                                textArea.style.left = '-999999px';
-                                textArea.style.top = '-999999px';
+                                textArea.style.position = 'fixed'; textArea.style.opacity = '0';
                                 document.body.appendChild(textArea);
-                                textArea.focus();
                                 textArea.select();
                                 document.execCommand('copy');
                                 document.body.removeChild(textArea);
                             }
-                            
-                            showNotification(message) {
-                                this.notification.textContent = message;
-                                this.notification.style.display = 'block';
+                            showNotification(message, isError = false) {
+                                if (!this.notificationElement) return;
+                                this.notificationElement.textContent = message;
+                                this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
+                                if (document.body.classList.contains('dark-theme')) {
+                                    this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+                                    this.notificationElement.style.color = '#0d1117';
+                                } else {
+                                    this.notificationElement.style.color = 'white';
+                                }
+                                this.notificationElement.style.display = 'block';
                                 setTimeout(() => {
-                                    this.notification.style.display = 'none';
-                                }, 2000);
+                                    this.notificationElement.style.display = 'none';
+                                }, isError ? 3500 : 2000);
                             }
                         }
-                        
                         // Initialize the app
                         document.addEventListener('DOMContentLoaded', () => {
-                            new UIController();
+                            window.markdownRendererUI = new UIController(); // Make it accessible for debugging if needed
                         });
                     })();
                 `;
             }
         }
-
         // Main Markdown Renderer Application
         class MarkdownRendererApp {
             constructor() {
                 this.dom = {};
                 this.init();
             }
-            
             init() {
                 document.addEventListener('DOMContentLoaded', () => {
                     this.cacheDOMElements();
@@ -981,7 +1168,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.bindEventListeners();
                 });
             }
-            
             cacheDOMElements() {
                 this.dom = {
                     markdownInput: document.getElementById('markdownInput'),
@@ -990,62 +1176,56 @@ Don't write something like $E=mc^2$ across multiple lines.
                     clearButton: document.getElementById('clearBtn')
                 };
             }
-            
             setupMarked() {
                 if (typeof marked === 'undefined') {
                     console.error("Marked.js is not loaded!");
+                    if (this.dom.renderButton) this.dom.renderButton.disabled = true;
+                    if (this.dom.pasteAndRenderButton) this.dom.pasteAndRenderButton.disabled = true;
                     return;
                 }
-                
                 marked.setOptions({
                     gfm: true,
-                    breaks: true,
-                    smartypants: false,
+                    breaks: true, // Convert single newlines in paragraphs to <br>
+                    smartypants: false, // Avoids converting quotes, dashes etc.
+                    // highlight: function(code, lang) { // Optional: Add syntax highlighting if desired
+                    //   const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    //   return hljs.highlight(code, { language }).value;
+                    // }
                 });
             }
-            
             bindEventListeners() {
                 this.dom.renderButton?.addEventListener('click', () => this.handleRender());
                 this.dom.pasteAndRenderButton?.addEventListener('click', () => this.handlePasteAndRender());
                 this.dom.clearButton?.addEventListener('click', () => this.handleClear());
-                
-                // Add keyboard shortcuts
                 this.dom.markdownInput?.addEventListener('keydown', (e) => {
-                    if (e.ctrlKey || e.metaKey) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            this.handleRender();
-                        }
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        this.handleRender();
                     }
                 });
             }
-            
             handleRender() {
                 const markdownText = this.dom.markdownInput.value;
                 if (!markdownText.trim()) {
                     alert('Please enter some markdown content to render.');
                     return;
                 }
-                
                 this.renderMarkdown(markdownText);
             }
-            
             async handlePasteAndRender() {
                 if (!navigator.clipboard?.readText) {
                     alert('Clipboard API not available. Please use a modern browser or check permissions.');
                     return;
                 }
-                
                 try {
                     const text = await navigator.clipboard.readText();
                     this.dom.markdownInput.value = text;
                     this.handleRender();
                 } catch (err) {
                     console.error('Failed to read clipboard:', err);
-                    alert('Failed to read from clipboard. Please check permissions.');
+                    alert('Failed to read from clipboard. Please check permissions or paste manually.');
                 }
             }
-            
             handleClear() {
                 if (this.dom.markdownInput.value && !confirm('Are you sure you want to clear the input?')) {
                     return;
@@ -1053,44 +1233,36 @@ Don't write something like $E=mc^2$ across multiple lines.
                 this.dom.markdownInput.value = '';
                 this.dom.markdownInput.focus();
             }
-            
             renderMarkdown(markdownText) {
-                // Process math expressions
-                const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
-                
-                // Convert markdown to HTML
-                let html = marked.parse(tempText);
-                
-                // Restore math expressions
-                html = MathProcessor.restoreMathExpressions(html, mathExpressions);
-                
-                // Parse list items for copy functionality
-                const listItems = ListItemParser.parse(markdownText);
-                
-                // Build the complete page
-                const fullPageHtml = RenderedPageBuilder.build(
-                    html, 
-                    markdownText, 
-                    "Rendered Markdown & LaTeX",
-                    listItems
-                );
-                
-                // Open in new tab
-                this.openInNewTab(fullPageHtml);
+                try {
+                    const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
+                    let html = marked.parse(tempText);
+                    html = MathProcessor.restoreMathExpressions(html, mathExpressions);
+                    const listItems = ListItemParser.parse(markdownText); // Parse original for accurate content
+                    const fullPageHtml = RenderedPageBuilder.build(
+                        html,
+                        markdownText,
+                        "Rendered Markdown & LaTeX",
+                        listItems
+                    );
+                    this.openInNewTab(fullPageHtml);
+                } catch (error) {
+                    console.error("Error during markdown rendering:", error);
+                    alert("An error occurred while rendering the markdown. Please check the console for details.");
+                }
             }
-            
             openInNewTab(htmlContent) {
                 const newTab = window.open('', '_blank');
                 if (newTab) {
                     newTab.document.open();
                     newTab.document.write(htmlContent);
                     newTab.document.close();
+                    newTab.focus();
                 } else {
                     alert("Failed to open new tab. Please check your pop-up blocker settings.");
                 }
             }
         }
-        
         // Initialize the application
         new MarkdownRendererApp();
     </script>
