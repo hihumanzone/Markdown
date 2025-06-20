@@ -1021,7 +1021,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     );
                                     const timestamp = new Date().getTime();
                                     const randomPart = Math.random().toString(36).substring(2, 10);
-                                    const filename = `markdown-render-${timestamp}-${randomPart}.png`;
+                                    const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
                                     const link = document.createElement('a');
                                     link.href = croppedCanvas.toDataURL('image/png');
                                     link.download = filename;
