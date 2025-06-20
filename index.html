@@ -119,16 +119,13 @@
             <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
 # Hello World
 This is **bold** and _italic_.
-
 `inline code`
-
 ```javascript
 function greet(name) {
   console.log("Hello, " + name + "!");
 }
 greet("Developer");
 ```
-
 ## Math Examples (KaTeX will render these):
 Inline: $E = mc^2$ or \( \alpha + \beta \)
 Display:
@@ -138,25 +135,19 @@ $$
 \[
 \text{H}_2\text{O} \quad \text{or H$_2$O}
 \]
-
 > This is a blockquote.
 > It can span multiple lines.
-
 - Unordered list item 1
 - Unordered list item 2
   - Nested item
 1. Ordered list item 1
 2. Ordered list item 2
-
 [This is a link to Google](https://www.google.com)
-
 ---
-
 | Header 1 | Header 2 | Header 3 |
 | -------- | -------- | -------- |
 | Cell 1   | Cell 2   | Cell 3   |
 | Cell 4   | Cell 5   | Cell 6   |
-
 ## Note
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
@@ -172,7 +163,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             <ul>
                 <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li><strong>Font size controls</strong>, theme toggle, save-as-image functionality, and raw/rendered view toggle are available in the rendered output tab.</li>
+                <li><strong>Font size controls</strong>, theme toggle, save-as-image, save-as-PDF functionality, and raw/rendered view toggle are available in the rendered output tab.</li>
                 <li><strong>Long press on list items</strong> to copy their content (without list markers) to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
@@ -180,14 +171,14 @@ Don't write something like $E=mc^2$ across multiple lines.
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-
         const CONFIG = {
             CDN: {
-                githubMarkdownCSS: 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css', 
+                githubMarkdownCSS: 'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css',
                 katexCSS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css',
                 katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
                 html2canvasJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+                html2pdfJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js' // Added for PDF export
             },
             MATH_PATTERNS: [
                 { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
@@ -210,7 +201,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 CONTROLS_COLLAPSED: 'fontControlsCollapsed'
             }
         };
-
         const Utils = {
             escapeHtml(text) {
                 const div = document.createElement('div');
@@ -221,7 +211,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 if (navigator.clipboard?.writeText) {
                     return navigator.clipboard.writeText(text);
                 }
-
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
                 textArea.style.position = 'fixed';
@@ -248,7 +237,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 };
             }
         };
-
         class ListItemParser {
             static parse(markdownText) {
                 const listItems = [];
@@ -264,7 +252,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         const isOrdered = !!orderedMatch;
                         let fullContent = content;
                         let j = i + 1;
-
                         while (j < lines.length) {
                             const nextLine = lines[j];
                             const nextTrimmed = nextLine.trim();
@@ -291,7 +278,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 return listItems;
             }
         }
-
         class MathProcessor {
             static preserveMathExpressions(markdownText) {
                 const mathExpressions = [];
@@ -320,7 +306,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 return restoredHtml;
             }
         }
-
         class RenderedPageBuilder {
             static build(content, rawMarkdown, title, listItems) {
                 return `
@@ -350,6 +335,7 @@ Don't write something like $E=mc^2$ across multiple lines.
     <script defer src="${CONFIG.CDN.html2canvasJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
+    <script defer src="${CONFIG.CDN.html2pdfJS}"><\/script> 
     <script>
         ${this.getClientScript()}
     <\/script>
@@ -358,14 +344,13 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             static getStyles() {
                 return `<style>
-
                     body.markdown-body {
                         box-sizing: border-box;
                         min-width: 200px;
                         max-width: 980px;
                         margin: 0 auto;
                         padding: 45px;
-                        padding-top: 70px; 
+                        padding-top: 70px;
                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
                         line-height: 1.6;
                         transition: background-color 0.3s ease, color 0.3s ease;
@@ -373,16 +358,15 @@ Don't write something like $E=mc^2$ across multiple lines.
                     @media (max-width: 767px) {
                         body.markdown-body {
                             padding: 20px;
-                            padding-top: 60px; 
+                            padding-top: 60px;
                         }
                     }
-
                     body.markdown-body {
                         background-color: #ffffff;
-                        color: #24292e; 
+                        color: #24292e;
                     }
                     body.markdown-body a {
-                        color: #0366d6; 
+                        color: #0366d6;
                         text-decoration: none;
                     }
                     body.markdown-body a:hover {
@@ -392,15 +376,15 @@ Don't write something like $E=mc^2$ across multiple lines.
                         color: #0366d6;
                     }
                     body.markdown-body hr {
-                        background-color: #e1e4e8; 
+                        background-color: #e1e4e8;
                         border: 0;
                         height: 0.25em;
                         margin: 24px 0;
                         padding: 0;
                     }
                     body.markdown-body blockquote {
-                        border-left: 0.25em solid #dfe2e5; 
-                        color: #6a737d; 
+                        border-left: 0.25em solid #dfe2e5;
+                        color: #6a737d;
                         padding: 0 1em;
                         margin-left: 0;
                         margin-right: 0;
@@ -415,26 +399,26 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                     body.markdown-body th,
                     body.markdown-body td {
-                        border: 1px solid #dfe2e5; 
+                        border: 1px solid #dfe2e5;
                         padding: 6px 13px;
                     }
                     body.markdown-body th {
-                        background-color: #f6f8fa; 
+                        background-color: #f6f8fa;
                         font-weight: 600;
                     }
                     body.markdown-body tr:nth-child(2n) {
-                        background-color: #f6f8fa; 
+                        background-color: #f6f8fa;
                     }
-                    body.markdown-body code:not([class*="language-"]) { 
-                        background-color: rgba(27,31,35,0.05); 
+                    body.markdown-body code:not([class*="language-"]) {
+                        background-color: rgba(27,31,35,0.05);
                         border-radius: 3px;
                         font-size: 85%;
                         margin: 0;
                         padding: 0.2em 0.4em;
                         font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
                     }
-                    body.markdown-body pre { 
-                        background-color: #f6f8fa; 
+                    body.markdown-body pre {
+                        background-color: #f6f8fa;
                         border-radius: 6px;
                         font-size: 85%;
                         line-height: 1.45;
@@ -442,7 +426,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         padding: 16px;
                         margin: 16px 0;
                     }
-                    body.markdown-body pre code { 
+                    body.markdown-body pre code {
                         background-color: transparent;
                         border: 0;
                         display: inline;
@@ -451,8 +435,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                         margin: 0;
                         overflow: visible;
                         padding: 0;
-                        word-wrap: normal; 
-                        font-size: 100%; 
+                        word-wrap: normal;
+                        font-size: 100%;
                     }
                     body.markdown-body h1,
                     body.markdown-body h2,
@@ -472,10 +456,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body h4 { font-size: 1em; }
                     body.markdown-body h5 { font-size: 0.875em; }
                     body.markdown-body h6 { font-size: 0.85em; color: #6a737d; }
-
                     body.markdown-body h1,
                     body.markdown-body h2 {
-                        border-bottom: 1px solid #eaecef; 
+                        border-bottom: 1px solid #eaecef;
                         padding-bottom: 0.3em;
                     }
                     body.markdown-body strong {
@@ -493,9 +476,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body li {
                         margin-bottom: 0.25em;
                     }
-                    body.markdown-body li > p { 
+                    body.markdown-body li > p {
                         margin-top: 0;
-                        margin-bottom: 0; 
+                        margin-bottom: 0;
                     }
                     body.markdown-body li + li {
                         margin-top: 0.25em;
@@ -503,41 +486,40 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body img {
                         max-width: 100%;
                         box-sizing: content-box;
-                        background-color: #ffffff; 
+                        background-color: #ffffff;
                     }
-
                     body.markdown-body.dark-theme {
-                        background-color: #0d1117; 
-                        color: #c9d1d9; 
+                        background-color: #0d1117;
+                        color: #c9d1d9;
                     }
                     body.markdown-body.dark-theme a {
-                        color: #58a6ff; 
+                        color: #58a6ff;
                     }
                     body.markdown-body.dark-theme a:visited {
                         color: #58a6ff;
                     }
                     body.markdown-body.dark-theme hr {
-                        background-color: #30363d; 
+                        background-color: #30363d;
                     }
                     body.markdown-body.dark-theme blockquote {
-                        color: #8b949e; 
-                        border-left-color: #30363d; 
+                        color: #8b949e;
+                        border-left-color: #30363d;
                     }
                     body.markdown-body.dark-theme th,
                     body.markdown-body.dark-theme td {
-                        border-color: #30363d; 
+                        border-color: #30363d;
                     }
                     body.markdown-body.dark-theme th {
-                        background-color: #161b22; 
+                        background-color: #161b22;
                     }
                     body.markdown-body.dark-theme tr:nth-child(2n) {
-                        background-color: #161b22; 
+                        background-color: #161b22;
                     }
-                    body.markdown-body.dark-theme code:not([class*="language-"]) { 
-                        background-color: rgba(110,118,129,0.4); 
+                    body.markdown-body.dark-theme code:not([class*="language-"]) {
+                        background-color: rgba(110,118,129,0.4);
                     }
-                    body.markdown-body.dark-theme pre { 
-                        background-color: #161b22; 
+                    body.markdown-body.dark-theme pre {
+                        background-color: #161b22;
                     }
                     body.markdown-body.dark-theme h1,
                     body.markdown-body.dark-theme h2,
@@ -550,20 +532,19 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body.dark-theme h6 { color: #8b949e; }
                     body.markdown-body.dark-theme h1,
                     body.markdown-body.dark-theme h2 {
-                        border-bottom-color: #21262d; 
+                        border-bottom-color: #21262d;
                     }
                     body.markdown-body.dark-theme img {
-                        background-color: #0d1117; 
+                        background-color: #0d1117;
                     }
                     body.markdown-body.dark-theme #raw-markdown {
                         background-color: #161b22 !important;
                         color: #c9d1d9 !important;
                         border-color: #30363d !important;
                     }
-                    body.markdown-body.dark-theme .katex { 
+                    body.markdown-body.dark-theme .katex {
                         color: #c9d1d9;
                     }
-
                     .fc-panel {
                         position: fixed;
                         top: 10px;
@@ -605,9 +586,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                         font-weight: 500;
                         font-size: 12px;
                     }
-
                     body.markdown-body.dark-theme .fc-panel {
-                        background: rgba(22, 27, 34, 0.9); 
+                        background: rgba(22, 27, 34, 0.9);
                         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
                     }
                     body.markdown-body.dark-theme .fc-button {
@@ -622,16 +602,14 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body.dark-theme .fc-display {
                         color: #c9d1d9;
                     }
-
                     .list-item-highlight {
-                        background-color: rgba(3, 102, 214, 0.1) !important; 
+                        background-color: rgba(3, 102, 214, 0.1) !important;
                         transition: background-color 0.2s ease !important;
                         border-radius: 3px;
                     }
                     body.markdown-body.dark-theme .list-item-highlight {
-                        background-color: rgba(88, 166, 255, 0.15) !important; 
+                        background-color: rgba(88, 166, 255, 0.15) !important;
                     }
-
                     #raw-markdown {
                         white-space: pre-wrap;
                         word-wrap: break-word;
@@ -639,13 +617,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                         font-size: 14px;
                         line-height: 1.5;
                         padding: 20px;
-                        margin: 0; 
+                        margin: 0;
                         border: 1px solid #e1e4e8;
                         border-radius: 6px;
                         background-color: #f6f8fa;
                         color: #24292e;
                     }
-
                     #copy-notification {
                         display: none;
                         position: fixed;
@@ -664,23 +641,21 @@ Don't write something like $E=mc^2$ across multiple lines.
                          background: rgba(200, 200, 200, 0.9);
                          color: #0d1117;
                     }
-
                     li[data-list-index] {
                         cursor: pointer;
                         user-select: none;
                         -webkit-user-select: none;
                         -moz-user-select: none;
                         -ms-user-select: none;
-                        position: relative; 
+                        position: relative;
                     }
-
-                    .katex-display { 
+                    .katex-display {
                         margin: 1em 0;
-                        overflow-x: auto; 
+                        overflow-x: auto;
                         overflow-y: hidden;
                     }
-                    .katex { 
-                        font-size: 1.1em; 
+                    .katex {
+                        font-size: 1.1em;
                     }
                 </style>`;
             }
@@ -695,6 +670,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
                         <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
                         <button id="saveAsImageBtn" title="Save as image (Ctrl/Cmd + S)" class="fc-button">Save Image</button>
+                        <button id="saveAsPdfBtn" title="Save as PDF (Ctrl/Cmd + D)" class="fc-button">Save PDF</button>
                     </div>
                 `;
             }
@@ -704,7 +680,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         'use strict';
                         const APP_DATA = window.__APP_DATA__;
                         const CONFIG = APP_DATA.config;
-
                         class UIController {
                             constructor() {
                                 this.body = document.querySelector('body.markdown-body');
@@ -718,6 +693,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.collapsibleController = new CollapsibleController();
                                 this.viewToggleController = new ViewToggleController();
                                 this.saveImageController = new SaveImageController();
+                                this.savePdfController = new SavePdfController(); // Added for PDF
                                 this.listItemController = new ListItemController();
                             }
                             addGlobalKeydownListener() {
@@ -725,18 +701,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     if (e.ctrlKey || e.metaKey) {
                                         switch (e.key) {
                                             case '-': e.preventDefault(); this.fontSizeController.adjust(-CONFIG.FONT_SIZE.STEP); break;
-                                            case '=': 
+                                            case '=':
                                             case '+': e.preventDefault(); this.fontSizeController.adjust(CONFIG.FONT_SIZE.STEP); break;
                                             case '0': e.preventDefault(); this.fontSizeController.reset(); break;
                                             case 't': case 'T': e.preventDefault(); this.themeController.toggle(); break;
                                             case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
                                             case 's': case 'S': e.preventDefault(); this.saveImageController.saveAsImage(); break;
+                                            case 'd': case 'D': e.preventDefault(); this.savePdfController.saveAsPdf(); break; // Added for PDF
                                         }
                                     }
                                 });
                             }
                         }
-
                         class KatexRenderer {
                             constructor() {
                                 this.init();
@@ -745,7 +721,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 if (typeof renderMathInElement === 'function') {
                                     this.render();
                                 } else {
-
                                     const intervalId = setInterval(() => {
                                         if (typeof renderMathInElement === 'function') {
                                             clearInterval(intervalId);
@@ -764,14 +739,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             {left: "\\\\(", right: "\\\\)", display: false}
                                         ],
                                         throwOnError: false,
-
                                     });
                                 } catch (error) {
                                     console.error("KaTeX rendering error:", error);
                                 }
                             }
                         }
-
                         class ThemeController {
                             constructor(body) {
                                 this.body = body;
@@ -785,9 +758,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
                                 const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                                 this.applyTheme(localStorage.getItem(this.lsKey) || preferredTheme);
-
                                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                                    if (!localStorage.getItem(this.lsKey)) { 
+                                    if (!localStorage.getItem(this.lsKey)) {
                                         this.applyTheme(e.matches ? 'dark' : 'light');
                                     }
                                 });
@@ -800,7 +772,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.body.classList.remove(this.darkClass);
                                     this.toggleBtn.textContent = 'Dark Theme';
                                 }
-
                                 if (document.activeElement === this.toggleBtn || localStorage.getItem(this.lsKey)) {
                                    localStorage.setItem(this.lsKey, theme);
                                 }
@@ -809,10 +780,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const currentTheme = this.body.classList.contains(this.darkClass) ? 'dark' : 'light';
                                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                                 this.applyTheme(newTheme);
-                                localStorage.setItem(this.lsKey, newTheme); 
+                                localStorage.setItem(this.lsKey, newTheme);
                             }
                         }
-
                         class FontSizeController {
                             constructor(body) {
                                 this.body = body;
@@ -844,7 +814,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 localStorage.setItem(this.lsKey, this.currentPercent);
                             }
                         }
-
                         class CollapsibleController {
                             constructor() {
                                 this.toggleButton = document.getElementById('toggleCollapseBtn');
@@ -855,11 +824,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                             init() {
                                 if (!this.toggleButton) return;
                                 this.toggleButton.addEventListener('click', () => this.toggle());
-                                this.applyState(JSON.parse(localStorage.getItem(this.lsKey) || 'false')); 
+                                this.applyState(JSON.parse(localStorage.getItem(this.lsKey) || 'false'));
                             }
                             toggle() {
-                                const currentState = this.controlsToToggle[0].style.display === 'none'; 
-                                this.applyState(!currentState); 
+                                const currentState = this.controlsToToggle[0].style.display === 'none';
+                                this.applyState(!currentState);
                             }
                             applyState(collapsed) {
                                 this.controlsToToggle.forEach(control => {
@@ -870,7 +839,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 localStorage.setItem(this.lsKey, JSON.stringify(collapsed));
                             }
                         }
-
                         class ViewToggleController {
                             constructor() {
                                 this.toggleBtn = document.getElementById('toggleViewBtn');
@@ -903,7 +871,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 localStorage.setItem(this.lsKey, mode);
                             }
                         }
-
                         class SaveImageController {
                             constructor() {
                                 this.saveBtn = document.getElementById('saveAsImageBtn');
@@ -929,57 +896,51 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     return;
                                 }
                                 const bodyBackgroundColor = window.getComputedStyle(document.body).backgroundColor;
-                                this.controlsPanel.style.visibility = 'hidden'; 
+                                this.controlsPanel.style.visibility = 'hidden';
                                 this.showNotification('Generating image...', false, true);
-
                                 try {
-                                    await new Promise(resolve => setTimeout(resolve, 100)); 
-
-                                    const canvas = await html2canvas(document.body, { 
+                                    await new Promise(resolve => setTimeout(resolve, 100)); // Allow UI to update
+                                    const canvas = await html2canvas(document.body, {
                                         logging: false,
                                         useCORS: true,
                                         backgroundColor: bodyBackgroundColor,
-                                        scrollX: -window.scrollX, 
+                                        scrollX: -window.scrollX,
                                         scrollY: -window.scrollY,
                                         windowWidth: document.documentElement.scrollWidth,
                                         windowHeight: document.documentElement.scrollHeight,
                                         onclone: (clonedDoc) => {
-
                                             const clonedControls = clonedDoc.getElementById('font-controls');
                                             if (clonedControls) clonedControls.style.display = 'none';
-
                                             const clonedContentDiv = clonedDoc.getElementById('content-container');
                                             if (clonedContentDiv) {
-                                                 clonedContentDiv.style.padding = '40px'; 
-                                                 clonedContentDiv.style.margin = '0 auto'; 
+                                                 clonedContentDiv.style.padding = '40px'; // Add padding for better image capture
+                                                 clonedContentDiv.style.margin = '0 auto';
                                             }
                                         }
                                     });
-
+                                    // Crop to content-container with padding
                                     const contentRect = this.contentContainer.getBoundingClientRect();
                                     const croppedCanvas = document.createElement('canvas');
                                     const ctx = croppedCanvas.getContext('2d');
                                     const dpr = window.devicePixelRatio || 1;
-
-                                    const padding = 40 * dpr;
-                                    croppedCanvas.width = contentRect.width * dpr + 2 * padding;
-                                    croppedCanvas.height = contentRect.height * dpr + 2 * padding;
-
+                                    const padding = 40 * dpr; // Padding in pixels, adjusted for device pixel ratio
+                                    croppedCanvas.width = contentRect.width *dpr + 2* padding;
+                                    croppedCanvas.height = contentRect.height *dpr + 2* padding;
+                                    // Fill background
                                     ctx.fillStyle = bodyBackgroundColor;
                                     ctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
-
+                                    // Draw the relevant part of the main canvas onto the cropped canvas
                                     ctx.drawImage(
                                         canvas,
-                                        contentRect.left * dpr - padding, 
-                                        contentRect.top * dpr - padding,  
-                                        croppedCanvas.width, 
-                                        croppedCanvas.height, 
-                                        0, 
-                                        0, 
-                                        croppedCanvas.width, 
-                                        croppedCanvas.height 
+                                        contentRect.left * dpr - padding, // Source X
+                                        contentRect.top * dpr - padding,  // Source Y
+                                        croppedCanvas.width,             // Source Width
+                                        croppedCanvas.height,            // Source Height
+                                        0,                               // Destination X
+                                        0,                               // Destination Y
+                                        croppedCanvas.width,             // Destination Width
+                                        croppedCanvas.height             // Destination Height
                                     );
-
                                     const timestamp = new Date().getTime();
                                     const randomPart = Math.random().toString(36).substring(2, 10);
                                     const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
@@ -998,7 +959,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 }
                             }
                             showNotification(message, isError = false, persistent = false) {
-                                const notification = document.getElementById('copy-notification'); 
+                                const notification = document.getElementById('copy-notification');
                                 if (!notification) return;
                                 notification.textContent = message;
                                 notification.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
@@ -1016,7 +977,91 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 }
                             }
                         }
-
+                        class SavePdfController { // New controller for PDF export
+                            constructor() {
+                                this.saveBtn = document.getElementById('saveAsPdfBtn');
+                                this.controlsPanel = document.getElementById('font-controls');
+                                this.content = document.getElementById('content-container');
+                                this.rawContainer = document.getElementById('raw-container');
+                                this.init();
+                            }
+                            init() {
+                                if (!this.saveBtn || !this.content) {
+                                    if (this.saveBtn) this.saveBtn.style.display = 'none';
+                                    return;
+                                }
+                                this.saveBtn.addEventListener('click', () => this.saveAsPdf());
+                            }
+                            async saveAsPdf() {
+                                if (typeof html2pdf === 'undefined') {
+                                    this.showNotification('Error: PDF library (html2pdf) not loaded.', true);
+                                    return;
+                                }
+                                if (this.rawContainer && this.rawContainer.style.display !== 'none') {
+                                    this.showNotification('Switch to rendered view to save as PDF.', true);
+                                    return;
+                                }
+                                this.controlsPanel.style.visibility = 'hidden';
+                                this.showNotification('Generating PDF...', false, true);
+                                try {
+                                    const opt = {
+                                        margin: [10, 10, 10, 10], // top, left, bottom, right in mm
+                                        filename: 'markdown-export.pdf',
+                                        image: { type: 'jpeg', quality: 0.98 },
+                                        html2canvas: {
+                                            scale: 2, // Higher scale for better quality
+                                            logging: false,
+                                            useCORS: true,
+                                            onclone: (clonedDoc) => {
+                                                // Ensure controls are not part of the PDF
+                                                const clonedControls = clonedDoc.getElementById('font-controls');
+                                                if (clonedControls) clonedControls.style.display = 'none';
+                                                // Ensure KaTeX is rendered (it should be already, but just in case)
+                                                if (typeof renderMathInElement === 'function') {
+                                                    renderMathInElement(clonedDoc.body, {
+                                                        delimiters: [
+                                                            {left: "$$", right: "$$", display: true},
+                                                            {left: "\\\\[", right: "\\\\]", display: true},
+                                                            {left: "$", right: "$", display: false, throwOnError: false},
+                                                            {left: "\\\\(", right: "\\\\)", display: false}
+                                                        ],
+                                                        throwOnError: false
+                                                    });
+                                                }
+                                            }
+                                        },
+                                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                                    };
+                                    // Use the content-container as the source for the PDF
+                                    await html2pdf().from(this.content).set(opt).save();
+                                    this.showNotification('PDF saved!');
+                                } catch (err) {
+                                    console.error('Error exporting PDF:', err);
+                                    this.showNotification('Error saving PDF. See console.', true);
+                                } finally {
+                                    this.controlsPanel.style.visibility = 'visible';
+                                }
+                            }
+                            showNotification(message, isError = false, persistent = false) {
+                                const notification = document.getElementById('copy-notification');
+                                if (!notification) return;
+                                notification.textContent = message;
+                                notification.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
+                                if (document.body.classList.contains('dark-theme')) {
+                                    notification.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+                                    notification.style.color = '#0d1117';
+                                } else {
+                                    notification.style.color = 'white';
+                                }
+                                notification.style.display = 'block';
+                                if (!persistent) {
+                                    setTimeout(() => {
+                                        notification.style.display = 'none';
+                                    }, isError ? 4000 : 2500);
+                                }
+                            }
+                        }
                         class ListItemController {
                             constructor() {
                                 this.contentContainer = document.getElementById('content-container');
@@ -1027,15 +1072,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                             }
                             init() {
                                 if (!this.contentContainer || !this.notificationElement) return;
-
                                 const setupListeners = () => {
-
                                     if (this.setupTimeout) clearTimeout(this.setupTimeout);
                                     this.setupTimeout = setTimeout(() => this.attachListeners(), 300);
                                 };
-
-                                setTimeout(setupListeners, 500); 
-
+                                setTimeout(setupListeners, 500); // Initial delay
                                 const observer = new MutationObserver(setupListeners);
                                 observer.observe(this.contentContainer, {
                                     childList: true,
@@ -1046,28 +1087,26 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const listItems = this.contentContainer.querySelectorAll('li');
                                 listItems.forEach((li, index) => {
                                     if (li.dataset.listCopyInitialized === 'true') return;
-                                    li.dataset.listIndex = index; 
+                                    li.dataset.listIndex = index;
                                     li.dataset.listCopyInitialized = 'true';
-
-                                    li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); }); 
+                                    li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
                                     li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
                                     li.addEventListener('mouseleave', () => this.handleEnd());
-
                                     li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
                                     li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
                                     li.addEventListener('touchcancel', () => this.handleEnd());
-                                    li.addEventListener('touchmove', () => this.handleEnd()); 
+                                    li.addEventListener('touchmove', () => this.handleEnd()); // Cancel long press on scroll
                                 });
                             }
                             handleStart(element, event) {
-                                this.handleEnd(); 
+                                this.handleEnd(); // Clear any existing timer/highlight
                                 this.longPressElement = element;
                                 element.classList.add('list-item-highlight');
                                 this.longPressTimer = setTimeout(async () => {
-                                    if (this.longPressElement === element) { 
+                                    if (this.longPressElement === element) { // Check if it's still the same element
                                         await this.copyListContent(element);
                                     }
-                                    this.handleEnd(); 
+                                    this.handleEnd(); // Always clear after action or timeout
                                 }, CONFIG.LONG_PRESS_DURATION);
                             }
                             handleEnd() {
@@ -1085,7 +1124,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
                                     if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
                                         console.warn('List item data not found for index:', listIndex, element);
-
+                                        // Fallback: copy innerText if parsed data is unavailable
                                         const textContent = element.innerText || element.textContent || "";
                                         if (textContent.trim()) {
                                             await this._copyToClipboard(textContent.trim());
@@ -1103,10 +1142,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.showNotification('Failed to copy. See console.', true);
                                 }
                             }
-                            async _copyToClipboard(text) { 
+                            async _copyToClipboard(text) {
                                 if (navigator.clipboard?.writeText) {
                                     return navigator.clipboard.writeText(text);
                                 }
+                                // Fallback for older browsers
                                 const textArea = document.createElement('textarea');
                                 textArea.value = text;
                                 textArea.style.position = 'fixed'; textArea.style.opacity = '0';
@@ -1131,15 +1171,13 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 }, isError ? 3500 : 2000);
                             }
                         }
-
                         document.addEventListener('DOMContentLoaded', () => {
-                            window.markdownRendererUI = new UIController(); 
+                            window.markdownRendererUI = new UIController();
                         });
                     })();
                 `;
             }
         }
-
         class MarkdownRendererApp {
             constructor() {
                 this.dom = {};
@@ -1169,9 +1207,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                 }
                 marked.setOptions({
                     gfm: true,
-                    breaks: true, 
-                    smartypants: false, 
-
+                    breaks: true,
+                    smartypants: false,
                 });
             }
             bindEventListeners() {
@@ -1219,7 +1256,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
                     let html = marked.parse(tempText);
                     html = MathProcessor.restoreMathExpressions(html, mathExpressions);
-                    const listItems = ListItemParser.parse(markdownText); 
+                    const listItems = ListItemParser.parse(markdownText);
                     const fullPageHtml = RenderedPageBuilder.build(
                         html,
                         markdownText,
@@ -1244,7 +1281,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 }
             }
         }
-
         new MarkdownRendererApp();
     </script>
 </body>
