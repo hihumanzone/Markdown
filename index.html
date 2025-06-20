@@ -116,7 +116,7 @@
         <div class="input-section">
             <h2>Markdown Input</h2>
             <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
-            <textarea id="markdownInput" placeholder="Type or paste Markdown here..."></textarea>
+            <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
 # Hello World
 This is **bold** and _italic_.
 `inline code`
@@ -150,6 +150,7 @@ $$
 ## Note
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
+            </textarea>
             <div class="button-group">
                 <button id="renderMarkdownBtn" title="Render the markdown content">Render Markdown</button>
                 <button id="pasteAndRenderBtn" title="Paste from clipboard and render">Paste & Render</button>
