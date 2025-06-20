@@ -544,8 +544,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body.dark-theme .katex {
                         color: #c9d1d9;
                     }
-
-                    /* High-Contrast / true black theme */
                     body.markdown-body.high-contrast-theme{
                         background:#000!important;
                         color:#fff!important;
@@ -577,7 +575,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body.high-contrast-theme #raw-markdown{
                         background:#000!important;color:#fff!important;border-color:#fff!important
                     }
-                    /* Font-controls panel for high-contrast */
                     body.markdown-body.high-contrast-theme .fc-panel{
                         background:rgba(0,0,0,.92);box-shadow:0 2px 10px rgba(255,255,255,.35)
                     }
@@ -588,14 +585,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                         background:#222;border-color:#777
                     }
                     body.markdown-body.high-contrast-theme .fc-display{color:#fff}
-                    /* Copy notification for high-contrast */
                     body.markdown-body.high-contrast-theme #copy-notification{
                         background:rgba(255,255,255,.9);color:#000
                     }
                     body.markdown-body.high-contrast-theme .list-item-highlight{
                         background:rgba(8,136,255,.25)!important
                     }
-
                     .fc-panel {
                         position: fixed;
                         top: 10px;
@@ -722,11 +717,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                             max-width: 100% !important;
                         }
                         body.markdown-body.dark-theme a,
-                        body.markdown-body.high-contrast-theme a { /* Added high-contrast for print */
+                        body.markdown-body.high-contrast-theme a {
                            color: #000 !important;
                         }
                         body.markdown-body.dark-theme .katex,
-                        body.markdown-body.high-contrast-theme .katex { /* Added high-contrast for print */
+                        body.markdown-body.high-contrast-theme .katex {
                            color: #000 !important;
                         }
                         pre, blockquote, table, img, .katex-display {
@@ -773,7 +768,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.saveImageController = new SaveImageController();
                                 this.listItemController = new ListItemController();
                                 this.savePdfController = new SavePdfController();
-                                this.exportMarkdownController = new ExportMarkdownController(); // New
+                                this.exportMarkdownController = new ExportMarkdownController();
                             }
                             addGlobalKeydownListener() {
                                 document.addEventListener('keydown', (e) => {
@@ -829,7 +824,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.body = body;
                                 this.toggleBtn = document.getElementById('toggleThemeBtn');
                                 this.darkClass = 'dark-theme';
-                                this.highContrastClass = 'high-contrast-theme'; // Added
+                                this.highContrastClass = 'high-contrast-theme';
                                 this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME;
                                 this.init();
                             }
@@ -837,30 +832,27 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 if (!this.toggleBtn) return;
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
                                 const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                                this.applyTheme(localStorage.getItem(this.lsKey) || preferredTheme); // Modified
+                                this.applyTheme(localStorage.getItem(this.lsKey) || preferredTheme);
                                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                                    if (!localStorage.getItem(this.lsKey)) { // Only if no theme is explicitly set by user
+                                    if (!localStorage.getItem(this.lsKey)) {
                                         this.applyTheme(e.matches ? 'dark' : 'light');
                                     }
                                 });
                             }
-                            applyTheme(theme) { // Replaced
-                                // remove any previous theme classes
+                            applyTheme(theme) {
                                 this.body.classList.remove(this.darkClass, this.highContrastClass);
-
                                 if (theme === 'dark') {
                                     this.body.classList.add(this.darkClass);
                                     this.toggleBtn.textContent = 'High Contrast';
                                 } else if (theme === 'high-contrast') {
                                     this.body.classList.add(this.highContrastClass);
                                     this.toggleBtn.textContent = 'Light Theme';
-                                } else { /* light or default */
-                                    // classes already removed, set button text for light
+                                } else {
                                     this.toggleBtn.textContent = 'Dark Theme';
                                 }
                                 localStorage.setItem(this.lsKey, theme);
                             }
-                            toggle() { // Replaced
+                            toggle() {
                                 const cls = this.body.classList;
                                 const current = cls.contains(this.highContrastClass) ? 'high-contrast' :
                                               (cls.contains(this.darkClass) ? 'dark' : 'light');
@@ -997,6 +989,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                                         onclone: (clonedDoc) => {
                                             const clonedControls = clonedDoc.getElementById('font-controls');
                                             if (clonedControls) clonedControls.style.display = 'none';
+                                            const clonedNotif = clonedDoc.getElementById('copy-notification');
+                                            if (clonedNotif) clonedNotif.style.display = 'none';
                                             const clonedContentDiv = clonedDoc.getElementById('content-container');
                                             if (clonedContentDiv) {
                                                  clonedContentDiv.style.padding = '40px';
@@ -1008,21 +1002,21 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     const croppedCanvas = document.createElement('canvas');
                                     const ctx = croppedCanvas.getContext('2d');
                                     const dpr = window.devicePixelRatio || 1;
-                                    const padding = 40 * dpr; // Padding in device pixels
+                                    const padding = 40 * dpr;
                                     croppedCanvas.width = contentRect.width * dpr + 2 * padding;
                                     croppedCanvas.height = contentRect.height * dpr + 2 * padding;
                                     ctx.fillStyle = bodyBackgroundColor;
                                     ctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
                                     ctx.drawImage(
-                                        canvas, // source canvas
-                                        (contentRect.left * dpr) - padding, // source x
-                                        (contentRect.top * dpr) - padding,  // source y
-                                        croppedCanvas.width, // source width
-                                        croppedCanvas.height, // source height
-                                        0, // destination x
-                                        0, // destination y
-                                        croppedCanvas.width, // destination width
-                                        croppedCanvas.height // destination height
+                                        canvas,
+                                        (contentRect.left * dpr) - padding,
+                                        (contentRect.top * dpr) - padding,
+                                        croppedCanvas.width,
+                                        croppedCanvas.height,
+                                        0,
+                                        0,
+                                        croppedCanvas.width,
+                                        croppedCanvas.height
                                     );
                                     const timestamp = new Date().getTime();
                                     const randomPart = Math.random().toString(36).substring(2, 10);
@@ -1045,22 +1039,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const notification = document.getElementById('copy-notification');
                                 if (!notification) return;
                                 notification.textContent = message;
-                                
-                                // Default for light theme
                                 notification.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
                                 notification.style.color = 'white';
-
                                 if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                                    // This logic will be applied if dark OR high-contrast.
-                                    // For high-contrast, its specific CSS for #copy-notification (light bg, dark text)
-                                    // will be overridden by these inline styles if they differ.
-                                    // The provided CSS for high-contrast notification: background:rgba(255,255,255,.9);color:#000
-                                    // The dark theme JS sets: background:rgba(200,200,200,.9);color:#0d1117
-                                    // Sticking to instruction: apply dark theme's JS logic to high-contrast too.
                                     notification.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
                                     notification.style.color = '#0d1117';
                                 }
-                                
                                 notification.style.display = 'block';
                                 if (!persistent) {
                                     setTimeout(() => {
@@ -1188,24 +1172,19 @@ Don't write something like $E=mc^2$ across multiple lines.
                             showNotification(message, isError = false) {
                                 if (!this.notificationElement) return;
                                 this.notificationElement.textContent = message;
-
-                                // Default for light theme
                                 this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
                                 this.notificationElement.style.color = 'white';
-                                
                                 if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                                    // Apply dark theme's notification JS logic if dark OR high-contrast
                                     this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
                                     this.notificationElement.style.color = '#0d1117';
                                 }
-
                                 this.notificationElement.style.display = 'block';
                                 setTimeout(() => {
                                     this.notificationElement.style.display = 'none';
                                 }, isError ? 3500 : 2000);
                             }
                         }
-                        class ExportMarkdownController { // New Controller
+                        class ExportMarkdownController {
                             constructor() {
                                 this.btn = document.getElementById('exportMarkdownBtn');
                                 this.init();
@@ -1219,14 +1198,13 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
-                                // Create a more readable timestamp like YYYY-MM-DDTHH-MM-SS
                                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
                                 link.href = url;
                                 link.download = \`markdown-export-\${timestamp}.md\`;
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
-                                URL.revokeObjectURL(url); // Clean up the object URL
+                                URL.revokeObjectURL(url);
                             }
                         }
                         document.addEventListener('DOMContentLoaded', () => {
@@ -1254,8 +1232,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                     renderButton: document.getElementById('renderMarkdownBtn'),
                     pasteAndRenderButton: document.getElementById('pasteAndRenderBtn'),
                     clearButton: document.getElementById('clearBtn'),
-                    importBtn: document.getElementById('importBtn'), // New
-                    importFileInput: document.getElementById('importFileInput') // New
+                    importBtn: document.getElementById('importBtn'),
+                    importFileInput: document.getElementById('importFileInput')
                 };
             }
             setupMarked() {
@@ -1281,14 +1259,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                         this.handleRender();
                     }
                 });
-                // New Event Listeners for Import
                 this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
                 this.dom.importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
             }
-            handleImportFile(e) { // New Method
+            handleImportFile(e) {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                // Reset file input to allow selecting the same file again if needed
                 e.target.value = '';
                 if (this.dom.markdownInput.value.trim() &&
                     !confirm("This will replace the current content in the editor. Are you sure?")) {
