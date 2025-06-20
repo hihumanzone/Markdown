@@ -164,7 +164,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             <ul>
                 <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li><strong>Font size controls</strong>, theme toggle, save-as-image functionality, save-as-PDF, <strong>export as .md</strong>, and raw/rendered view toggle are available in the rendered output tab.</li>
+                <li><strong>Font size controls</strong>, theme toggle, save-as-PDF, <strong>export as .md</strong>, and raw/rendered view toggle are available in the rendered output tab.</li>
                 <li><strong>Long press on list items</strong> to copy their content (without list markers) to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
@@ -178,7 +178,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 katexCSS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css',
                 katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
-                html2canvasJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
             },
             MATH_PATTERNS: [
                 { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
@@ -332,7 +331,6 @@ Don't write something like $E=mc^2$ across multiple lines.
             config: ${JSON.stringify(CONFIG)}
         };
     <\/script>
-    <script defer src="${CONFIG.CDN.html2canvasJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
     <script>
@@ -741,7 +739,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         <button id="resetFontBtn" title="Reset font size (Ctrl/Cmd + 0)" class="fc-button">Reset</button>
                         <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
                         <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
-                        <button id="saveAsImageBtn" title="Save as image (Ctrl/Cmd + S)" class="fc-button">Save Image</button>
                         <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
                         <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
                     </div>
@@ -765,7 +762,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.fontSizeController = new FontSizeController(this.body);
                                 this.collapsibleController = new CollapsibleController();
                                 this.viewToggleController = new ViewToggleController();
-                                this.saveImageController = new SaveImageController();
                                 this.listItemController = new ListItemController();
                                 this.savePdfController = new SavePdfController();
                                 this.exportMarkdownController = new ExportMarkdownController();
@@ -780,7 +776,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             case '0': e.preventDefault(); this.fontSizeController.reset(); break;
                                             case 't': case 'T': e.preventDefault(); this.themeController.toggle(); break;
                                             case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
-                                            case 's': case 'S': e.preventDefault(); this.saveImageController.saveAsImage(); break;
                                             case 'p': case 'P': e.preventDefault(); this.savePdfController.saveAsPdf(); break;
                                         }
                                     }
@@ -947,111 +942,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.toggleBtn.title = 'Show Raw Markdown';
                                 }
                                 localStorage.setItem(this.lsKey, mode);
-                            }
-                        }
-                        class SaveImageController {
-                            constructor() {
-                                this.saveBtn = document.getElementById('saveAsImageBtn');
-                                this.controlsPanel = document.getElementById('font-controls');
-                                this.contentContainer = document.getElementById('content-container');
-                                this.init();
-                            }
-                            init() {
-                                if (!this.saveBtn || !this.controlsPanel || !this.contentContainer) {
-                                    if (this.saveBtn) this.saveBtn.style.display = 'none';
-                                    return;
-                                }
-                                this.saveBtn.addEventListener('click', () => this.saveAsImage());
-                            }
-                            async saveAsImage() {
-                                if (typeof html2canvas === 'undefined') {
-                                    this.showNotification('Error: Image library (html2canvas) not loaded.', true);
-                                    return;
-                                }
-                                const rawContainer = document.getElementById('raw-container');
-                                if (rawContainer && rawContainer.style.display !== 'none') {
-                                    this.showNotification('Switch to rendered view to save as image.', true);
-                                    return;
-                                }
-                                const bodyBackgroundColor = window.getComputedStyle(document.body).backgroundColor;
-                                this.controlsPanel.style.visibility = 'hidden';
-                                this.showNotification('Generating image...', false, true);
-                                try {
-                                    await new Promise(resolve => setTimeout(resolve, 100));
-                                    const canvas = await html2canvas(document.body, {
-                                        logging: false,
-                                        useCORS: true,
-                                        backgroundColor: bodyBackgroundColor,
-                                        scrollX: -window.scrollX,
-                                        scrollY: -window.scrollY,
-                                        windowWidth: document.documentElement.scrollWidth,
-                                        windowHeight: document.documentElement.scrollHeight,
-                                        onclone: (clonedDoc) => {
-                                            const clonedControls = clonedDoc.getElementById('font-controls');
-                                            if (clonedControls) clonedControls.style.display = 'none';
-                                            const clonedNotif = clonedDoc.getElementById('copy-notification');
-                                            if (clonedNotif) clonedNotif.style.display = 'none';
-                                            const clonedContentDiv = clonedDoc.getElementById('content-container');
-                                            if (clonedContentDiv) {
-                                                clonedContentDiv.style.padding = '40px';
-                                                clonedContentDiv.style.margin = '0 auto';
-                                            }
-                                        }
-                                    });
-
-                                    const contentRect = this.contentContainer.getBoundingClientRect();
-                                    const croppedCanvas = document.createElement('canvas');
-                                    const ctx = croppedCanvas.getContext('2d');
-                                    const dpr = window.devicePixelRatio || 1;
-                                    const padding = 40 * dpr;
-                                    croppedCanvas.width = contentRect.width * dpr + 2 * padding;
-                                    croppedCanvas.height = contentRect.height * dpr + 2 * padding; // Increase height for padding
-                                    ctx.fillStyle = bodyBackgroundColor;
-                                    ctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
-                                    ctx.drawImage(
-                                        canvas,
-                                        (contentRect.left * dpr) - padding,
-                                        (contentRect.top * dpr) - padding,
-                                        croppedCanvas.width,
-                                        croppedCanvas.height,
-                                        0,
-                                        0,
-                                        croppedCanvas.width,
-                                        croppedCanvas.height
-                                    );
-                                    const timestamp = new Date().getTime();
-                                    const randomPart = Math.random().toString(36).substring(2, 10);
-                                    const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
-                                    const link = document.createElement('a');
-                                    link.href = croppedCanvas.toDataURL('image/png');
-                                    link.download = filename;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    this.showNotification('Image saved!');
-                                } catch (err) {
-                                    console.error('Error capturing image:', err);
-                                    this.showNotification('Error saving image. See console.', true);
-                                } finally {
-                                    this.controlsPanel.style.visibility = 'visible';
-                                }
-                            }
-                            showNotification(message, isError = false, persistent = false) {
-                                const notification = document.getElementById('copy-notification');
-                                if (!notification) return;
-                                notification.textContent = message;
-                                notification.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                notification.style.color = 'white';
-                                if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                                    notification.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
-                                    notification.style.color = '#0d1117';
-                                }
-                                notification.style.display = 'block';
-                                if (!persistent) {
-                                    setTimeout(() => {
-                                        notification.style.display = 'none';
-                                    }, isError ? 4000 : 2500);
-                                }
                             }
                         }
                         class SavePdfController {
