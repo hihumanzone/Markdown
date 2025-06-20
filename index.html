@@ -116,7 +116,7 @@
         <div class="input-section">
             <h2>Markdown Input</h2>
             <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
-            <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
+            <textarea id="markdownInput" placeholder="Type or paste Markdown here..."></textarea>
 # Hello World
 This is **bold** and _italic_.
 `inline code`
@@ -150,11 +150,12 @@ $$
 ## Note
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
-            </textarea>
             <div class="button-group">
                 <button id="renderMarkdownBtn" title="Render the markdown content">Render Markdown</button>
                 <button id="pasteAndRenderBtn" title="Paste from clipboard and render">Paste & Render</button>
                 <button id="clearBtn" title="Clear the input">Clear</button>
+                <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" />
+                <button id="importBtn" title="Import a local .md, .markdown, or .txt file">Import File</button>
             </div>
         </div>
         <div class="info">
@@ -162,7 +163,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             <ul>
                 <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li><strong>Font size controls</strong>, theme toggle, save-as-image functionality, save-as-PDF, and raw/rendered view toggle are available in the rendered output tab.</li>
+                <li><strong>Font size controls</strong>, theme toggle, save-as-image functionality, save-as-PDF, <strong>export as .md</strong>, and raw/rendered view toggle are available in the rendered output tab.</li>
                 <li><strong>Long press on list items</strong> to copy their content (without list markers) to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
@@ -654,7 +655,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     .katex {
                         font-size: 1.1em;
                     }
-
                     @media print {
                         #font-controls,
                         #copy-notification {
@@ -664,17 +664,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                             background: #fff !important;
                             color: #000 !important;
                             padding: 20px !important;
-                            box-shadow: none !important; 
-                            margin: 0 !important; 
-                            max-width: 100% !important; 
+                            box-shadow: none !important;
+                            margin: 0 !important;
+                            max-width: 100% !important;
                         }
-                        body.markdown-body.dark-theme a { 
+                        body.markdown-body.dark-theme a {
                            color: #000 !important;
                         }
-                        body.markdown-body.dark-theme .katex { 
+                        body.markdown-body.dark-theme .katex {
                            color: #000 !important;
                         }
-
                         pre, blockquote, table, img, .katex-display {
                             page-break-inside: avoid;
                         }
@@ -694,6 +693,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
                         <button id="saveAsImageBtn" title="Save as image (Ctrl/Cmd + S)" class="fc-button">Save Image</button>
                         <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
+                        <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
                     </div>
                 `;
             }
@@ -717,7 +717,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.viewToggleController = new ViewToggleController();
                                 this.saveImageController = new SaveImageController();
                                 this.listItemController = new ListItemController();
-                                this.savePdfController = new SavePdfController(); 
+                                this.savePdfController = new SavePdfController();
+                                this.exportMarkdownController = new ExportMarkdownController(); // New
                             }
                             addGlobalKeydownListener() {
                                 document.addEventListener('keydown', (e) => {
@@ -730,7 +731,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             case 't': case 'T': e.preventDefault(); this.themeController.toggle(); break;
                                             case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
                                             case 's': case 'S': e.preventDefault(); this.saveImageController.saveAsImage(); break;
-                                            case 'p': case 'P': e.preventDefault(); this.savePdfController.saveAsPdf(); break; 
+                                            case 'p': case 'P': e.preventDefault(); this.savePdfController.saveAsPdf(); break;
                                         }
                                     }
                                 });
@@ -922,7 +923,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.controlsPanel.style.visibility = 'hidden';
                                 this.showNotification('Generating image...', false, true);
                                 try {
-                                    await new Promise(resolve => setTimeout(resolve, 100)); 
+                                    await new Promise(resolve => setTimeout(resolve, 100));
                                     const canvas = await html2canvas(document.body, {
                                         logging: false,
                                         useCORS: true,
@@ -941,31 +942,29 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             }
                                         }
                                     });
-
                                     const contentRect = this.contentContainer.getBoundingClientRect();
                                     const croppedCanvas = document.createElement('canvas');
                                     const ctx = croppedCanvas.getContext('2d');
                                     const dpr = window.devicePixelRatio || 1;
-                                    const padding = 40 * dpr; 
+                                    const padding = 40 * dpr; // Padding in device pixels
 
                                     croppedCanvas.width = contentRect.width * dpr + 2 * padding;
                                     croppedCanvas.height = contentRect.height * dpr + 2 * padding;
-
-                                    ctx.fillStyle = bodyBackgroundColor; 
+                                    
+                                    ctx.fillStyle = bodyBackgroundColor;
                                     ctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
-
+                                    
                                     ctx.drawImage(
-                                        canvas,
-                                        (contentRect.left * dpr) - padding, 
-                                        (contentRect.top * dpr) - padding,  
-                                        croppedCanvas.width, 
-                                        croppedCanvas.height, 
-                                        0, 
-                                        0, 
-                                        croppedCanvas.width, 
-                                        croppedCanvas.height 
+                                        canvas, // source canvas
+                                        (contentRect.left * dpr) - padding, // source x
+                                        (contentRect.top * dpr) - padding,  // source y
+                                        croppedCanvas.width, // source width
+                                        croppedCanvas.height, // source height
+                                        0, // destination x
+                                        0, // destination y
+                                        croppedCanvas.width, // destination width
+                                        croppedCanvas.height // destination height
                                     );
-
                                     const timestamp = new Date().getTime();
                                     const randomPart = Math.random().toString(36).substring(2, 10);
                                     const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
@@ -1002,7 +1001,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 }
                             }
                         }
-
                         class SavePdfController {
                             constructor() {
                                 this.btn = document.getElementById('saveAsPdfBtn');
@@ -1022,13 +1020,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.controlsPanel.style.visibility = 'hidden';
                                 setTimeout(() => {
                                     window.print();
-                                    setTimeout(() => { 
+                                    setTimeout(() => {
                                         this.controlsPanel.style.visibility = 'visible';
                                     }, 150);
-                                }, 30); 
+                                }, 30);
                             }
                         }
-
                         class ListItemController {
                             constructor() {
                                 this.contentContainer = document.getElementById('content-container');
@@ -1043,8 +1040,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     if (this.setupTimeout) clearTimeout(this.setupTimeout);
                                     this.setupTimeout = setTimeout(() => this.attachListeners(), 300);
                                 };
-                                setTimeout(setupListeners, 500); 
-
+                                setTimeout(setupListeners, 500);
                                 const observer = new MutationObserver(setupListeners);
                                 observer.observe(this.contentContainer, {
                                     childList: true,
@@ -1054,29 +1050,27 @@ Don't write something like $E=mc^2$ across multiple lines.
                             attachListeners() {
                                 const listItems = this.contentContainer.querySelectorAll('li');
                                 listItems.forEach((li, index) => {
-                                    if (li.dataset.listCopyInitialized === 'true') return; 
+                                    if (li.dataset.listCopyInitialized === 'true') return;
                                     li.dataset.listIndex = index;
                                     li.dataset.listCopyInitialized = 'true';
-
                                     li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
                                     li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
-                                    li.addEventListener('mouseleave', () => this.handleEnd()); 
-
+                                    li.addEventListener('mouseleave', () => this.handleEnd());
                                     li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
                                     li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
                                     li.addEventListener('touchcancel', () => this.handleEnd());
-                                    li.addEventListener('touchmove', () => this.handleEnd()); 
+                                    li.addEventListener('touchmove', () => this.handleEnd());
                                 });
                             }
                             handleStart(element, event) {
-                                this.handleEnd(); 
+                                this.handleEnd();
                                 this.longPressElement = element;
                                 element.classList.add('list-item-highlight');
                                 this.longPressTimer = setTimeout(async () => {
-                                    if (this.longPressElement === element) { 
+                                    if (this.longPressElement === element) {
                                         await this.copyListContent(element);
                                     }
-                                    this.handleEnd(); 
+                                    this.handleEnd();
                                 }, CONFIG.LONG_PRESS_DURATION);
                             }
                             handleEnd() {
@@ -1094,7 +1088,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
                                     if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
                                         console.warn('List item data not found for index:', listIndex, element);
-
                                         const textContent = element.innerText || element.textContent || "";
                                         if (textContent.trim()) {
                                             await this._copyToClipboard(textContent.trim());
@@ -1112,11 +1105,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.showNotification('Failed to copy. See console.', true);
                                 }
                             }
-                            async _copyToClipboard(text) { 
+                            async _copyToClipboard(text) {
                                 if (navigator.clipboard?.writeText) {
                                     return navigator.clipboard.writeText(text);
                                 }
-
                                 const textArea = document.createElement('textarea');
                                 textArea.value = text;
                                 textArea.style.position = 'fixed'; textArea.style.opacity = '0';
@@ -1139,6 +1131,30 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 setTimeout(() => {
                                     this.notificationElement.style.display = 'none';
                                 }, isError ? 3500 : 2000);
+                            }
+                        }
+                        class ExportMarkdownController { // New Controller
+                            constructor() {
+                                this.btn = document.getElementById('exportMarkdownBtn');
+                                this.init();
+                            }
+                            init() {
+                                if (!this.btn) return;
+                                this.btn.addEventListener('click', () => this.exportMarkdown());
+                            }
+                            exportMarkdown() {
+                                const rawMarkdown = APP_DATA.rawMarkdown;
+                                const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                // Create a more readable timestamp like YYYY-MM-DDTHH-MM-SS
+                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4); 
+                                link.href = url;
+                                link.download = \`markdown-export-\${timestamp}.md\`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url); // Clean up the object URL
                             }
                         }
                         document.addEventListener('DOMContentLoaded', () => {
@@ -1165,7 +1181,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                     markdownInput: document.getElementById('markdownInput'),
                     renderButton: document.getElementById('renderMarkdownBtn'),
                     pasteAndRenderButton: document.getElementById('pasteAndRenderBtn'),
-                    clearButton: document.getElementById('clearBtn')
+                    clearButton: document.getElementById('clearBtn'),
+                    importBtn: document.getElementById('importBtn'), // New
+                    importFileInput: document.getElementById('importFileInput') // New
                 };
             }
             setupMarked() {
@@ -1191,6 +1209,32 @@ Don't write something like $E=mc^2$ across multiple lines.
                         this.handleRender();
                     }
                 });
+                // New Event Listeners for Import
+                this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
+                this.dom.importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
+            }
+            handleImportFile(e) { // New Method
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                // Reset file input to allow selecting the same file again if needed
+                e.target.value = ''; 
+
+                if (this.dom.markdownInput.value.trim() &&
+                    !confirm("This will replace the current content in the editor. Are you sure?")) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.dom.markdownInput.value = event.target.result;
+                    this.dom.markdownInput.focus();
+                };
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                    alert("Error reading file. Please check the console for details.");
+                };
+                reader.readAsText(file);
             }
             handleRender() {
                 const markdownText = this.dom.markdownInput.value;
