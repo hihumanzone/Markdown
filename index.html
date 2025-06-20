@@ -544,6 +544,58 @@ Don't write something like $E=mc^2$ across multiple lines.
                     body.markdown-body.dark-theme .katex {
                         color: #c9d1d9;
                     }
+
+                    /* High-Contrast / true black theme */
+                    body.markdown-body.high-contrast-theme{
+                        background:#000!important;
+                        color:#fff!important;
+                    }
+                    body.markdown-body.high-contrast-theme a{color:#08f}
+                    body.markdown-body.high-contrast-theme hr{background:#444}
+                    body.markdown-body.high-contrast-theme blockquote{
+                        color:#ccc;border-left-color:#444
+                    }
+                    body.markdown-body.high-contrast-theme th,
+                    body.markdown-body.high-contrast-theme td{border-color:#444}
+                    body.markdown-body.high-contrast-theme th{background:#111}
+                    body.markdown-body.high-contrast-theme tr:nth-child(2n){background:#111}
+                    body.markdown-body.high-contrast-theme code:not([class*="language-"]){
+                        background:#222;color:#fff
+                    }
+                    body.markdown-body.high-contrast-theme pre{background:#111}
+                    body.markdown-body.high-contrast-theme h1,
+                    body.markdown-body.high-contrast-theme h2,
+                    body.markdown-body.high-contrast-theme h3,
+                    body.markdown-body.high-contrast-theme h4,
+                    body.markdown-body.high-contrast-theme h5,
+                    body.markdown-body.high-contrast-theme h6{color:#fff}
+                    body.markdown-body.high-contrast-theme h6{color:#bbb}
+                    body.markdown-body.high-contrast-theme h1,
+                    body.markdown-body.high-contrast-theme h2{border-bottom-color:#444}
+                    body.markdown-body.high-contrast-theme img{background:#000}
+                    body.markdown-body.high-contrast-theme .katex{color:#fff}
+                    body.markdown-body.high-contrast-theme #raw-markdown{
+                        background:#000!important;color:#fff!important;border-color:#fff!important
+                    }
+                    /* Font-controls panel for high-contrast */
+                    body.markdown-body.high-contrast-theme .fc-panel{
+                        background:rgba(0,0,0,.92);box-shadow:0 2px 10px rgba(255,255,255,.35)
+                    }
+                    body.markdown-body.high-contrast-theme .fc-button{
+                        background:#111;color:#fff;border:1px solid #555
+                    }
+                    body.markdown-body.high-contrast-theme .fc-button:hover{
+                        background:#222;border-color:#777
+                    }
+                    body.markdown-body.high-contrast-theme .fc-display{color:#fff}
+                    /* Copy notification for high-contrast */
+                    body.markdown-body.high-contrast-theme #copy-notification{
+                        background:rgba(255,255,255,.9);color:#000
+                    }
+                    body.markdown-body.high-contrast-theme .list-item-highlight{
+                        background:rgba(8,136,255,.25)!important
+                    }
+
                     .fc-panel {
                         position: fixed;
                         top: 10px;
@@ -669,10 +721,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                             margin: 0 !important;
                             max-width: 100% !important;
                         }
-                        body.markdown-body.dark-theme a {
+                        body.markdown-body.dark-theme a,
+                        body.markdown-body.high-contrast-theme a { /* Added high-contrast for print */
                            color: #000 !important;
                         }
-                        body.markdown-body.dark-theme .katex {
+                        body.markdown-body.dark-theme .katex,
+                        body.markdown-body.high-contrast-theme .katex { /* Added high-contrast for print */
                            color: #000 !important;
                         }
                         pre, blockquote, table, img, .katex-display {
@@ -775,6 +829,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.body = body;
                                 this.toggleBtn = document.getElementById('toggleThemeBtn');
                                 this.darkClass = 'dark-theme';
+                                this.highContrastClass = 'high-contrast-theme'; // Added
                                 this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME;
                                 this.init();
                             }
@@ -782,30 +837,36 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 if (!this.toggleBtn) return;
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
                                 const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                                this.applyTheme(localStorage.getItem(this.lsKey) || preferredTheme);
+                                this.applyTheme(localStorage.getItem(this.lsKey) || preferredTheme); // Modified
                                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                                    if (!localStorage.getItem(this.lsKey)) {
+                                    if (!localStorage.getItem(this.lsKey)) { // Only if no theme is explicitly set by user
                                         this.applyTheme(e.matches ? 'dark' : 'light');
                                     }
                                 });
                             }
-                            applyTheme(theme) {
+                            applyTheme(theme) { // Replaced
+                                // remove any previous theme classes
+                                this.body.classList.remove(this.darkClass, this.highContrastClass);
+
                                 if (theme === 'dark') {
                                     this.body.classList.add(this.darkClass);
+                                    this.toggleBtn.textContent = 'High Contrast';
+                                } else if (theme === 'high-contrast') {
+                                    this.body.classList.add(this.highContrastClass);
                                     this.toggleBtn.textContent = 'Light Theme';
-                                } else {
-                                    this.body.classList.remove(this.darkClass);
+                                } else { /* light or default */
+                                    // classes already removed, set button text for light
                                     this.toggleBtn.textContent = 'Dark Theme';
                                 }
-                                if (document.activeElement === this.toggleBtn || localStorage.getItem(this.lsKey)) {
-                                   localStorage.setItem(this.lsKey, theme);
-                                }
+                                localStorage.setItem(this.lsKey, theme);
                             }
-                            toggle() {
-                                const currentTheme = this.body.classList.contains(this.darkClass) ? 'dark' : 'light';
-                                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                                this.applyTheme(newTheme);
-                                localStorage.setItem(this.lsKey, newTheme);
+                            toggle() { // Replaced
+                                const cls = this.body.classList;
+                                const current = cls.contains(this.highContrastClass) ? 'high-contrast' :
+                                              (cls.contains(this.darkClass) ? 'dark' : 'light');
+                                const next = current === 'light' ? 'dark' :
+                                             (current === 'dark' ? 'high-contrast' : 'light');
+                                this.applyTheme(next);
                             }
                         }
                         class FontSizeController {
@@ -948,13 +1009,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     const ctx = croppedCanvas.getContext('2d');
                                     const dpr = window.devicePixelRatio || 1;
                                     const padding = 40 * dpr; // Padding in device pixels
-
                                     croppedCanvas.width = contentRect.width * dpr + 2 * padding;
                                     croppedCanvas.height = contentRect.height * dpr + 2 * padding;
-                                    
                                     ctx.fillStyle = bodyBackgroundColor;
                                     ctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
-                                    
                                     ctx.drawImage(
                                         canvas, // source canvas
                                         (contentRect.left * dpr) - padding, // source x
@@ -987,13 +1045,22 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const notification = document.getElementById('copy-notification');
                                 if (!notification) return;
                                 notification.textContent = message;
+                                
+                                // Default for light theme
                                 notification.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                if (document.body.classList.contains('dark-theme')) {
+                                notification.style.color = 'white';
+
+                                if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
+                                    // This logic will be applied if dark OR high-contrast.
+                                    // For high-contrast, its specific CSS for #copy-notification (light bg, dark text)
+                                    // will be overridden by these inline styles if they differ.
+                                    // The provided CSS for high-contrast notification: background:rgba(255,255,255,.9);color:#000
+                                    // The dark theme JS sets: background:rgba(200,200,200,.9);color:#0d1117
+                                    // Sticking to instruction: apply dark theme's JS logic to high-contrast too.
                                     notification.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
                                     notification.style.color = '#0d1117';
-                                } else {
-                                    notification.style.color = 'white';
                                 }
+                                
                                 notification.style.display = 'block';
                                 if (!persistent) {
                                     setTimeout(() => {
@@ -1121,13 +1188,17 @@ Don't write something like $E=mc^2$ across multiple lines.
                             showNotification(message, isError = false) {
                                 if (!this.notificationElement) return;
                                 this.notificationElement.textContent = message;
+
+                                // Default for light theme
                                 this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                if (document.body.classList.contains('dark-theme')) {
+                                this.notificationElement.style.color = 'white';
+                                
+                                if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
+                                    // Apply dark theme's notification JS logic if dark OR high-contrast
                                     this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
                                     this.notificationElement.style.color = '#0d1117';
-                                } else {
-                                    this.notificationElement.style.color = 'white';
                                 }
+
                                 this.notificationElement.style.display = 'block';
                                 setTimeout(() => {
                                     this.notificationElement.style.display = 'none';
@@ -1149,7 +1220,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 // Create a more readable timestamp like YYYY-MM-DDTHH-MM-SS
-                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4); 
+                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
                                 link.href = url;
                                 link.download = \`markdown-export-\${timestamp}.md\`;
                                 document.body.appendChild(link);
@@ -1217,15 +1288,12 @@ Don't write something like $E=mc^2$ across multiple lines.
             handleImportFile(e) { // New Method
                 const file = e.target.files?.[0];
                 if (!file) return;
-
                 // Reset file input to allow selecting the same file again if needed
-                e.target.value = ''; 
-
+                e.target.value = '';
                 if (this.dom.markdownInput.value.trim() &&
                     !confirm("This will replace the current content in the editor. Are you sure?")) {
                     return;
                 }
-
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     this.dom.markdownInput.value = event.target.result;
