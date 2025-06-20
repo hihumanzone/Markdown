@@ -163,7 +163,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             <ul>
                 <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li><strong>Font size controls</strong>, theme toggle, save-as-image, save-as-PDF functionality, and raw/rendered view toggle are available in the rendered output tab.</li>
+                <li><strong>Font size controls</strong>, theme toggle, save-as-image functionality, save-as-PDF, and raw/rendered view toggle are available in the rendered output tab.</li>
                 <li><strong>Long press on list items</strong> to copy their content (without list markers) to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
@@ -178,7 +178,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
                 html2canvasJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-                html2pdfJS: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js' // Added for PDF export
             },
             MATH_PATTERNS: [
                 { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
@@ -335,7 +334,6 @@ Don't write something like $E=mc^2$ across multiple lines.
     <script defer src="${CONFIG.CDN.html2canvasJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
-    <script defer src="${CONFIG.CDN.html2pdfJS}"><\/script> 
     <script>
         ${this.getClientScript()}
     <\/script>
@@ -657,6 +655,33 @@ Don't write something like $E=mc^2$ across multiple lines.
                     .katex {
                         font-size: 1.1em;
                     }
+
+                    /* --- PRINT STYLES --- */
+                    @media print {
+                        #font-controls,
+                        #copy-notification {
+                            display: none !important;
+                        }
+                        body.markdown-body {
+                            background: #fff !important;
+                            color: #000 !important;
+                            padding: 20px !important;
+                            box-shadow: none !important; /* Remove shadow for printing */
+                            margin: 0 !important; /* Ensure full width for printing */
+                            max-width: 100% !important; /* Ensure full width */
+                        }
+                        body.markdown-body.dark-theme a { /* Ensure links are black on white bg for print */
+                           color: #000 !important;
+                        }
+                        body.markdown-body.dark-theme .katex { /* Ensure KaTeX is black on white bg for print */
+                           color: #000 !important;
+                        }
+
+                        pre, blockquote, table, img, .katex-display {
+                            page-break-inside: avoid;
+                        }
+                        a[href]:after { content: ""; }
+                    }
                 </style>`;
             }
             static getControls() {
@@ -670,7 +695,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
                         <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
                         <button id="saveAsImageBtn" title="Save as image (Ctrl/Cmd + S)" class="fc-button">Save Image</button>
-                        <button id="saveAsPdfBtn" title="Save as PDF (Ctrl/Cmd + D)" class="fc-button">Save PDF</button>
+                        <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
                     </div>
                 `;
             }
@@ -693,8 +718,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.collapsibleController = new CollapsibleController();
                                 this.viewToggleController = new ViewToggleController();
                                 this.saveImageController = new SaveImageController();
-                                this.savePdfController = new SavePdfController(); // Added for PDF
                                 this.listItemController = new ListItemController();
+                                this.savePdfController = new SavePdfController(); // <-- ADDED
                             }
                             addGlobalKeydownListener() {
                                 document.addEventListener('keydown', (e) => {
@@ -707,7 +732,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             case 't': case 'T': e.preventDefault(); this.themeController.toggle(); break;
                                             case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
                                             case 's': case 'S': e.preventDefault(); this.saveImageController.saveAsImage(); break;
-                                            case 'd': case 'D': e.preventDefault(); this.savePdfController.saveAsPdf(); break; // Added for PDF
+                                            case 'p': case 'P': e.preventDefault(); this.savePdfController.saveAsPdf(); break; // <-- ADDED
                                         }
                                     }
                                 });
@@ -913,34 +938,36 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             if (clonedControls) clonedControls.style.display = 'none';
                                             const clonedContentDiv = clonedDoc.getElementById('content-container');
                                             if (clonedContentDiv) {
-                                                 clonedContentDiv.style.padding = '40px'; // Add padding for better image capture
+                                                 clonedContentDiv.style.padding = '40px';
                                                  clonedContentDiv.style.margin = '0 auto';
                                             }
                                         }
                                     });
-                                    // Crop to content-container with padding
+                                    // Cropping logic to capture only the content area with padding
                                     const contentRect = this.contentContainer.getBoundingClientRect();
                                     const croppedCanvas = document.createElement('canvas');
                                     const ctx = croppedCanvas.getContext('2d');
                                     const dpr = window.devicePixelRatio || 1;
-                                    const padding = 40 * dpr; // Padding in pixels, adjusted for device pixel ratio
-                                    croppedCanvas.width = contentRect.width *dpr + 2* padding;
-                                    croppedCanvas.height = contentRect.height *dpr + 2* padding;
-                                    // Fill background
-                                    ctx.fillStyle = bodyBackgroundColor;
+                                    const padding = 40 * dpr; // Padding around the content in the image
+
+                                    croppedCanvas.width = contentRect.width * dpr + 2 * padding;
+                                    croppedCanvas.height = contentRect.height * dpr + 2 * padding;
+                                    
+                                    ctx.fillStyle = bodyBackgroundColor; // Fill background for padding
                                     ctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
-                                    // Draw the relevant part of the main canvas onto the cropped canvas
+
                                     ctx.drawImage(
                                         canvas,
-                                        contentRect.left * dpr - padding, // Source X
-                                        contentRect.top * dpr - padding,  // Source Y
-                                        croppedCanvas.width,             // Source Width
-                                        croppedCanvas.height,            // Source Height
-                                        0,                               // Destination X
-                                        0,                               // Destination Y
-                                        croppedCanvas.width,             // Destination Width
-                                        croppedCanvas.height             // Destination Height
+                                        (contentRect.left * dpr) - padding, // Source X
+                                        (contentRect.top * dpr) - padding,  // Source Y
+                                        croppedCanvas.width, // Source Width
+                                        croppedCanvas.height, // Source Height
+                                        0, // Destination X
+                                        0, // Destination Y
+                                        croppedCanvas.width, // Destination Width
+                                        croppedCanvas.height // Destination Height
                                     );
+
                                     const timestamp = new Date().getTime();
                                     const randomPart = Math.random().toString(36).substring(2, 10);
                                     const filename = \`markdown-render-\${timestamp}-\${randomPart}.png\`;
@@ -977,91 +1004,35 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 }
                             }
                         }
-                        class SavePdfController { // New controller for PDF export
+
+                        // --- ADDED SavePdfController ---
+                        class SavePdfController {
                             constructor() {
-                                this.saveBtn = document.getElementById('saveAsPdfBtn');
+                                this.btn = document.getElementById('saveAsPdfBtn');
                                 this.controlsPanel = document.getElementById('font-controls');
-                                this.content = document.getElementById('content-container');
                                 this.rawContainer = document.getElementById('raw-container');
                                 this.init();
                             }
                             init() {
-                                if (!this.saveBtn || !this.content) {
-                                    if (this.saveBtn) this.saveBtn.style.display = 'none';
-                                    return;
-                                }
-                                this.saveBtn.addEventListener('click', () => this.saveAsPdf());
+                                if (!this.btn) return;
+                                this.btn.addEventListener('click', () => this.saveAsPdf());
                             }
-                            async saveAsPdf() {
-                                if (typeof html2pdf === 'undefined') {
-                                    this.showNotification('Error: PDF library (html2pdf) not loaded.', true);
-                                    return;
-                                }
+                            saveAsPdf() {
                                 if (this.rawContainer && this.rawContainer.style.display !== 'none') {
-                                    this.showNotification('Switch to rendered view to save as PDF.', true);
+                                    alert('Switch to the rendered view before exporting to PDF.');
                                     return;
                                 }
                                 this.controlsPanel.style.visibility = 'hidden';
-                                this.showNotification('Generating PDF...', false, true);
-                                try {
-                                    const opt = {
-                                        margin: [10, 10, 10, 10], // top, left, bottom, right in mm
-                                        filename: 'markdown-export.pdf',
-                                        image: { type: 'jpeg', quality: 0.98 },
-                                        html2canvas: {
-                                            scale: 2, // Higher scale for better quality
-                                            logging: false,
-                                            useCORS: true,
-                                            onclone: (clonedDoc) => {
-                                                // Ensure controls are not part of the PDF
-                                                const clonedControls = clonedDoc.getElementById('font-controls');
-                                                if (clonedControls) clonedControls.style.display = 'none';
-                                                // Ensure KaTeX is rendered (it should be already, but just in case)
-                                                if (typeof renderMathInElement === 'function') {
-                                                    renderMathInElement(clonedDoc.body, {
-                                                        delimiters: [
-                                                            {left: "$$", right: "$$", display: true},
-                                                            {left: "\\\\[", right: "\\\\]", display: true},
-                                                            {left: "$", right: "$", display: false, throwOnError: false},
-                                                            {left: "\\\\(", right: "\\\\)", display: false}
-                                                        ],
-                                                        throwOnError: false
-                                                    });
-                                                }
-                                            }
-                                        },
-                                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                                    };
-                                    // Use the content-container as the source for the PDF
-                                    await html2pdf().from(this.content).set(opt).save();
-                                    this.showNotification('PDF saved!');
-                                } catch (err) {
-                                    console.error('Error exporting PDF:', err);
-                                    this.showNotification('Error saving PDF. See console.', true);
-                                } finally {
-                                    this.controlsPanel.style.visibility = 'visible';
-                                }
-                            }
-                            showNotification(message, isError = false, persistent = false) {
-                                const notification = document.getElementById('copy-notification');
-                                if (!notification) return;
-                                notification.textContent = message;
-                                notification.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                if (document.body.classList.contains('dark-theme')) {
-                                    notification.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
-                                    notification.style.color = '#0d1117';
-                                } else {
-                                    notification.style.color = 'white';
-                                }
-                                notification.style.display = 'block';
-                                if (!persistent) {
-                                    setTimeout(() => {
-                                        notification.style.display = 'none';
-                                    }, isError ? 4000 : 2500);
-                                }
+                                setTimeout(() => {
+                                    window.print();
+                                    setTimeout(() => { // Restore visibility after print dialog is likely closed
+                                        this.controlsPanel.style.visibility = 'visible';
+                                    }, 150);
+                                }, 30); // Small delay to ensure UI updates before print dialog
                             }
                         }
+                        // --- END SavePdfController ---
+
                         class ListItemController {
                             constructor() {
                                 this.contentContainer = document.getElementById('content-container');
@@ -1076,7 +1047,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     if (this.setupTimeout) clearTimeout(this.setupTimeout);
                                     this.setupTimeout = setTimeout(() => this.attachListeners(), 300);
                                 };
-                                setTimeout(setupListeners, 500); // Initial delay
+                                setTimeout(setupListeners, 500); // Initial setup
+                                // Observe for dynamic content changes (e.g., if KaTeX re-renders)
                                 const observer = new MutationObserver(setupListeners);
                                 observer.observe(this.contentContainer, {
                                     childList: true,
@@ -1086,16 +1058,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                             attachListeners() {
                                 const listItems = this.contentContainer.querySelectorAll('li');
                                 listItems.forEach((li, index) => {
-                                    if (li.dataset.listCopyInitialized === 'true') return;
+                                    if (li.dataset.listCopyInitialized === 'true') return; // Already initialized
                                     li.dataset.listIndex = index;
                                     li.dataset.listCopyInitialized = 'true';
+
                                     li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
                                     li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
-                                    li.addEventListener('mouseleave', () => this.handleEnd());
+                                    li.addEventListener('mouseleave', () => this.handleEnd()); // Clear on mouse leave
+
                                     li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
                                     li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
                                     li.addEventListener('touchcancel', () => this.handleEnd());
-                                    li.addEventListener('touchmove', () => this.handleEnd()); // Cancel long press on scroll
+                                    li.addEventListener('touchmove', () => this.handleEnd()); // Cancel long press on move
                                 });
                             }
                             handleStart(element, event) {
@@ -1106,7 +1080,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     if (this.longPressElement === element) { // Check if it's still the same element
                                         await this.copyListContent(element);
                                     }
-                                    this.handleEnd(); // Always clear after action or timeout
+                                    this.handleEnd(); // Clear highlight and element after action or if timer completes without action
                                 }, CONFIG.LONG_PRESS_DURATION);
                             }
                             handleEnd() {
@@ -1124,7 +1098,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
                                     if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
                                         console.warn('List item data not found for index:', listIndex, element);
-                                        // Fallback: copy innerText if parsed data is unavailable
+                                        // Fallback to innerText if structured data is missing
                                         const textContent = element.innerText || element.textContent || "";
                                         if (textContent.trim()) {
                                             await this._copyToClipboard(textContent.trim());
@@ -1142,7 +1116,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.showNotification('Failed to copy. See console.', true);
                                 }
                             }
-                            async _copyToClipboard(text) {
+                            async _copyToClipboard(text) { // Using standard Utils.copyToClipboard
                                 if (navigator.clipboard?.writeText) {
                                     return navigator.clipboard.writeText(text);
                                 }
