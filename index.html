@@ -658,7 +658,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         white-space: pre-wrap;
                         word-wrap: break-word;
                         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-                        font-size: 14px;
+                        font-size: 0.875em;
                         line-height: 1.5;
                         padding: 20px;
                         margin: 0;
@@ -706,36 +706,26 @@ Don't write something like $E=mc^2$ across multiple lines.
                         #copy-notification {
                             display: none !important;
                         }
-                        body.markdown-body * {
-                            color: #000 !important;
-                            background-color: transparent !important;
-                            box-shadow: none !important;
-                            text-shadow: none !important;
-                        }
                         body.markdown-body {
                             background: #fff !important;
+                            color: #000 !important;
                             padding: 20px !important;
+                            box-shadow: none !important;
                             margin: 0 !important;
                             max-width: 100% !important;
                         }
-                        body.markdown-body table,
-                        body.markdown-body th,
-                        body.markdown-body td,
-                        body.markdown-body hr,
-                        body.markdown-body blockquote,
-                        body.markdown-body h1,
-                        body.markdown-body h2 {
-                            border-color: #e1e4e8 !important;
+                        body.markdown-body.dark-theme a,
+                        body.markdown-body.high-contrast-theme a {
+                           color: #000 !important;
                         }
-                        body.markdown-body img {
-                            background-color: #fff !important;
+                        body.markdown-body.dark-theme .katex,
+                        body.markdown-body.high-contrast-theme .katex {
+                           color: #000 !important;
                         }
                         pre, blockquote, table, img, .katex-display {
                             page-break-inside: avoid;
                         }
-                        a[href]:after {
-                            content: none !important;
-                        }
+                        a[href]:after { content: ""; }
                     }
                 </style>`;
             }
