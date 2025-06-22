@@ -351,6 +351,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
                         line-height: 1.6;
                         transition: background-color 0.3s ease, color 0.3s ease;
+                        overflow-y: auto;
+                        -webkit-overflow-scrolling: touch;
+                        touch-action: pan-y;
                     }
                     @media (max-width: 767px) {
                         body.markdown-body {
@@ -975,6 +978,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.notificationElement = document.getElementById('copy-notification');
                                 this.longPressTimer = null;
                                 this.longPressElement = null;
+                                this.startX = 0;
+                                this.startY = 0;
                                 this.init();
                             }
                             init() {
@@ -994,29 +999,36 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const listItems = this.contentContainer.querySelectorAll('li');
                                 listItems.forEach((li, index) => {
                                     if (li.dataset.listCopyInitialized === 'true') return;
-                                    li.dataset.listIndex = index;
                                     li.dataset.listCopyInitialized = 'true';
+                                    li.dataset.listIndex = index;
+                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+                                    li.addEventListener('touchmove', (e) => this.handleMove(e), { passive: true });
+                                    li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
+                                    li.addEventListener('touchcancel', (e) => this.handleEnd(), { passive: true });
                                     li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
                                     li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
                                     li.addEventListener('mouseleave', () => this.handleEnd());
-                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: false });
-                                    li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
-                                    li.addEventListener('touchcancel', () => this.handleEnd());
-                                    li.addEventListener('touchmove', () => this.handleEnd());
                                 });
                             }
                             handleStart(element, event) {
-                                if (event.type === 'touchstart') {
-                                    event.preventDefault();
+                                if (event.touches && event.touches[0]) {
+                                    this.startX = event.touches[0].clientX;
+                                    this.startY = event.touches[0].clientY;
                                 }
                                 this.handleEnd();
                                 this.longPressElement = element;
                                 element.classList.add('list-item-highlight');
                                 this.longPressTimer = setTimeout(async () => {
-                                    if (this.longPressElement === element) {
-                                        await this.copyListContent(element);
-                                    }
+                                    await this.copyListContent(element);
                                 }, CONFIG.LONG_PRESS_DURATION);
+                            }
+                            handleMove(event) {
+                                if (!this.longPressTimer || !event.touches || !event.touches[0]) return;
+                                const dx = Math.abs(event.touches[0].clientX - this.startX);
+                                const dy = Math.abs(event.touches[0].clientY - this.startY);
+                                if (dx > 10 || dy > 10) {
+                                    this.handleEnd();
+                                }
                             }
                             handleEnd() {
                                 if (this.longPressTimer) {
@@ -1031,44 +1043,39 @@ Don't write something like $E=mc^2$ across multiple lines.
                             async copyListContent(element) {
                                 try {
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
-                                    if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
-                                        console.warn('List item data not found for index:', listIndex, element);
-                                        const textContent = element.innerText || element.textContent || "";
-                                        if (textContent.trim()) {
-                                            await this._copyToClipboard(textContent.trim());
-                                            this.showNotification('List item text copied!');
-                                        } else {
-                                            throw new Error('List item content is empty.');
-                                        }
-                                        return;
+                                    let textToCopy = '';
+                                    if (!isNaN(listIndex) && APP_DATA.listItems && APP_DATA.listItems[listIndex]) {
+                                        textToCopy = APP_DATA.listItems[listIndex].content;
+                                    } else {
+                                        textToCopy = element.innerText.trim();
                                     }
-                                    const textContent = APP_DATA.listItems[listIndex].content;
-                                    await this._copyToClipboard(textContent);
+                                    await this._copyToClipboard(textToCopy);
                                     this.showNotification('List content copied!');
                                 } catch (err) {
-                                    console.error('Failed to copy list item:', err);
-                                    this.showNotification('Failed to copy. See console.', true);
+                                    console.error('Copy failed:', err);
+                                    this.showNotification('Failed to copy.', true);
                                 }
                             }
                             async _copyToClipboard(text) {
                                 if (navigator.clipboard?.writeText) {
                                     return navigator.clipboard.writeText(text);
                                 }
-                                const textArea = document.createElement('textarea');
-                                textArea.value = text;
-                                textArea.style.position = 'fixed'; textArea.style.opacity = '0';
-                                document.body.appendChild(textArea);
-                                textArea.select();
+                                const textarea = document.createElement('textarea');
+                                textarea.value = text;
+                                textarea.style.position = 'fixed';
+                                textarea.style.opacity = '0';
+                                document.body.appendChild(textarea);
+                                textarea.select();
                                 document.execCommand('copy');
-                                document.body.removeChild(textArea);
+                                document.body.removeChild(textarea);
                             }
                             showNotification(message, isError = false) {
                                 if (!this.notificationElement) return;
                                 this.notificationElement.textContent = message;
                                 this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                this.notificationElement.style.color = 'white';
+                                this.notificationElement.style.color = '#fff';
                                 if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                                    this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+                                    this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 255, 0.9)' : 'rgba(200, 200, 200, 0.9)';
                                     this.notificationElement.style.color = '#0d1117';
                                 }
                                 this.notificationElement.style.display = 'block';
