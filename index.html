@@ -258,7 +258,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 katexCSS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css',
                 katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
-                html2canvas: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+                html2canvas: 'https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js',
             },
             MATH_PATTERNS: [
                 { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
@@ -688,7 +688,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         backdrop-filter: blur(5px);
                         -webkit-backdrop-filter: blur(5px);
                         transition: background-color 0.3s ease, box-shadow 0.3s ease;
-                        flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+                        flex-wrap: wrap;
                         justify-content: flex-end;
                     }
                     .fc-button {
