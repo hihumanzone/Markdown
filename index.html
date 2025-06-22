@@ -999,13 +999,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
                                     li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
                                     li.addEventListener('mouseleave', () => this.handleEnd());
-                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: false });
                                     li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
                                     li.addEventListener('touchcancel', () => this.handleEnd());
                                     li.addEventListener('touchmove', () => this.handleEnd());
                                 });
                             }
                             handleStart(element, event) {
+                                if (event.type === 'touchstart') {
+                                    event.preventDefault();
+                                }
                                 this.handleEnd();
                                 this.longPressElement = element;
                                 element.classList.add('list-item-highlight');
