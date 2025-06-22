@@ -1320,14 +1320,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                 const file = e.target.files?.[0];
                 if (!file) return;
                 e.target.value = '';
-                if (this.dom.markdownInput.value.trim() &&
-                    !confirm("This will replace the current content in the editor. Are you sure?")) {
-                    return;
-                }
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     this.dom.markdownInput.value = event.target.result;
                     this.dom.markdownInput.focus();
+                    this.handleRender();
                 };
                 reader.onerror = (error) => {
                     console.error("Error reading file:", error);
