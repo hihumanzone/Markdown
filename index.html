@@ -848,8 +848,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                             reset() { this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT); }
                             applyFontSize(p) {
                                 this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, p));
-                                this.body.style.fontSize = `${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px`;
-                                this.display.textContent = `${this.currentPercent}%`;
+                                this.body.style.fontSize = \`\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\`;
+                                this.display.textContent = \`\${this.currentPercent}%\`;
                                 localStorage.setItem(this.lsKey, this.currentPercent);
                             }
                         }
@@ -1019,7 +1019,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 try {
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
                                     if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
-                                        console.warn('List item data not found for index:', listIndex);
                                         const textContent = (element.innerText || element.textContent || "").trim();
                                         if (textContent) {
                                             await this._copyToClipboard(textContent);
@@ -1071,7 +1070,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                                link.href = url; link.download = `markdown-export-${timestamp}.md`;
+                                link.href = url; link.download = \`markdown-export-\${timestamp}.md\`;
                                 document.body.appendChild(link); link.click();
                                 document.body.removeChild(link); URL.revokeObjectURL(url);
                             }
