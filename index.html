@@ -351,9 +351,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
                         line-height: 1.6;
                         transition: background-color 0.3s ease, color 0.3s ease;
-                        overflow-y: auto;
-                        -webkit-overflow-scrolling: touch;
-                        touch-action: pan-y;
                     }
                     @media (max-width: 767px) {
                         body.markdown-body {
@@ -786,87 +783,57 @@ Don't write something like $E=mc^2$ across multiple lines.
                             }
                         }
                         class KatexRenderer {
-                            constructor() {
-                                this.init();
-                            }
+                            constructor() { this.init(); }
                             init() {
-                                if (typeof renderMathInElement === 'function') {
-                                    this.render();
-                                } else {
-                                    const intervalId = setInterval(() => {
-                                        if (typeof renderMathInElement === 'function') {
-                                            clearInterval(intervalId);
-                                            this.render();
-                                        }
-                                    }, 100);
-                                }
+                                if (typeof renderMathInElement === 'function') { this.render(); } 
+                                else { const i = setInterval(() => { if (typeof renderMathInElement === 'function') { clearInterval(i); this.render(); }}, 100); }
                             }
                             render() {
                                 try {
                                     renderMathInElement(document.getElementById('content-container'), {
                                         delimiters: [
-                                            {left: "$$", right: "$$", display: true},
-                                            {left: "\\\\[", right: "\\\\]", display: true},
-                                            {left: "$", right: "$", display: false, throwOnError: false},
-                                            {left: "\\\\(", right: "\\\\)", display: false}
+                                            {left: "$$", right: "$$", display: true}, {left: "\\\\[", right: "\\\\]", display: true},
+                                            {left: "$", right: "$", display: false, throwOnError: false}, {left: "\\\\(", right: "\\\\)", display: false}
                                         ],
                                         throwOnError: false,
                                     });
-                                } catch (error) {
-                                    console.error("KaTeX rendering error:", error);
-                                }
+                                } catch (e) { console.error("KaTeX rendering error:", e); }
                             }
                         }
                         class ThemeController {
                             constructor(body) {
-                                this.body = body;
-                                this.toggleBtn = document.getElementById('toggleThemeBtn');
-                                this.darkClass = 'dark-theme';
-                                this.highContrastClass = 'high-contrast-theme';
-                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME;
-                                this.init();
+                                this.body = body; this.toggleBtn = document.getElementById('toggleThemeBtn');
+                                this.darkClass = 'dark-theme'; this.highContrastClass = 'high-contrast-theme';
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME; this.init();
                             }
                             init() {
                                 if (!this.toggleBtn) return;
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
-                                const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                                this.applyTheme(localStorage.getItem(this.lsKey) || preferredTheme);
+                                const p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                                this.applyTheme(localStorage.getItem(this.lsKey) || p);
                                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                                    if (!localStorage.getItem(this.lsKey)) {
-                                        this.applyTheme(e.matches ? 'dark' : 'light');
-                                    }
+                                    if (!localStorage.getItem(this.lsKey)) { this.applyTheme(e.matches ? 'dark' : 'light'); }
                                 });
                             }
                             applyTheme(theme) {
                                 this.body.classList.remove(this.darkClass, this.highContrastClass);
-                                if (theme === 'dark') {
-                                    this.body.classList.add(this.darkClass);
-                                    this.toggleBtn.textContent = 'High Contrast';
-                                } else if (theme === 'high-contrast') {
-                                    this.body.classList.add(this.highContrastClass);
-                                    this.toggleBtn.textContent = 'Light Theme';
-                                } else {
-                                    this.toggleBtn.textContent = 'Dark Theme';
-                                }
+                                if (theme === 'dark') { this.body.classList.add(this.darkClass); this.toggleBtn.textContent = 'High Contrast'; } 
+                                else if (theme === 'high-contrast') { this.body.classList.add(this.highContrastClass); this.toggleBtn.textContent = 'Light Theme'; } 
+                                else { this.toggleBtn.textContent = 'Dark Theme'; }
                                 localStorage.setItem(this.lsKey, theme);
                             }
                             toggle() {
-                                const cls = this.body.classList;
-                                const current = cls.contains(this.highContrastClass) ? 'high-contrast' :
-                                              (cls.contains(this.darkClass) ? 'dark' : 'light');
-                                const next = current === 'light' ? 'dark' :
-                                             (current === 'dark' ? 'high-contrast' : 'light');
+                                const c = this.body.classList;
+                                const current = c.contains(this.highContrastClass) ? 'high-contrast' : (c.contains(this.darkClass) ? 'dark' : 'light');
+                                const next = current === 'light' ? 'dark' : (current === 'dark' ? 'high-contrast' : 'light');
                                 this.applyTheme(next);
                             }
                         }
                         class FontSizeController {
                             constructor(body) {
-                                this.body = body;
-                                this.increaseBtn = document.getElementById('increaseFontBtn');
-                                this.decreaseBtn = document.getElementById('decreaseFontBtn');
-                                this.resetBtn = document.getElementById('resetFontBtn');
-                                this.display = document.getElementById('currentFontSizeDisplay');
-                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.FONT_SIZE;
+                                this.body = body; this.increaseBtn = document.getElementById('increaseFontBtn');
+                                this.decreaseBtn = document.getElementById('decreaseFontBtn'); this.resetBtn = document.getElementById('resetFontBtn');
+                                this.display = document.getElementById('currentFontSizeDisplay'); this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.FONT_SIZE;
                                 this.currentPercent = parseInt(localStorage.getItem(this.lsKey) || CONFIG.FONT_SIZE.DEFAULT, 10);
                                 this.init();
                             }
@@ -877,16 +844,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.resetBtn.addEventListener('click', () => this.reset());
                                 this.applyFontSize(this.currentPercent);
                             }
-                            adjust(step) {
-                                this.applyFontSize(this.currentPercent + step);
-                            }
-                            reset() {
-                                this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT);
-                            }
-                            applyFontSize(percent) {
-                                this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, percent));
-                                this.body.style.fontSize = \`\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\`;
-                                this.display.textContent = \`\${this.currentPercent}%\`;
+                            adjust(step) { this.applyFontSize(this.currentPercent + step); }
+                            reset() { this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT); }
+                            applyFontSize(p) {
+                                this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, p));
+                                this.body.style.fontSize = `${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px`;
+                                this.display.textContent = `${this.currentPercent}%`;
                                 localStorage.setItem(this.lsKey, this.currentPercent);
                             }
                         }
@@ -894,8 +857,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                             constructor() {
                                 this.toggleButton = document.getElementById('toggleCollapseBtn');
                                 this.controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
-                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED;
-                                this.init();
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED; this.init();
                             }
                             init() {
                                 if (!this.toggleButton) return;
@@ -903,13 +865,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.applyState(JSON.parse(localStorage.getItem(this.lsKey) || 'false'));
                             }
                             toggle() {
-                                const currentState = this.controlsToToggle[0].style.display === 'none';
-                                this.applyState(!currentState);
+                                const current = this.controlsToToggle[0].style.display === 'none';
+                                this.applyState(!current);
                             }
                             applyState(collapsed) {
-                                this.controlsToToggle.forEach(control => {
-                                    control.style.display = collapsed ? 'none' : '';
-                                });
+                                this.controlsToToggle.forEach(c => { c.style.display = collapsed ? 'none' : ''; });
                                 this.toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
                                 this.toggleButton.title = collapsed ? 'Expand Controls' : 'Collapse Controls';
                                 localStorage.setItem(this.lsKey, JSON.stringify(collapsed));
@@ -920,8 +880,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.toggleBtn = document.getElementById('toggleViewBtn');
                                 this.contentContainer = document.getElementById('content-container');
                                 this.rawContainer = document.getElementById('raw-container');
-                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.VIEW_MODE;
-                                this.init();
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.VIEW_MODE; this.init();
                             }
                             init() {
                                 if (!this.toggleBtn || !this.contentContainer || !this.rawContainer) return;
@@ -929,187 +888,195 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered');
                             }
                             toggle() {
-                                const currentMode = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
-                                this.applyViewMode(currentMode === 'rendered' ? 'raw' : 'rendered');
+                                const current = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
+                                this.applyViewMode(current === 'rendered' ? 'raw' : 'rendered');
                             }
                             applyViewMode(mode) {
                                 if (mode === 'raw') {
-                                    this.contentContainer.style.display = 'none';
-                                    this.rawContainer.style.display = 'block';
-                                    this.toggleBtn.textContent = 'Rendered';
-                                    this.toggleBtn.title = 'Show Rendered View';
+                                    this.contentContainer.style.display = 'none'; this.rawContainer.style.display = 'block';
+                                    this.toggleBtn.textContent = 'Rendered'; this.toggleBtn.title = 'Show Rendered View';
                                 } else {
-                                    this.contentContainer.style.display = 'block';
-                                    this.rawContainer.style.display = 'none';
-                                    this.toggleBtn.textContent = 'Raw';
-                                    this.toggleBtn.title = 'Show Raw Markdown';
+                                    this.contentContainer.style.display = 'block'; this.rawContainer.style.display = 'none';
+                                    this.toggleBtn.textContent = 'Raw'; this.toggleBtn.title = 'Show Raw Markdown';
                                 }
                                 localStorage.setItem(this.lsKey, mode);
                             }
                         }
                         class SavePdfController {
-                            constructor() {
+                             constructor() {
                                 this.btn = document.getElementById('saveAsPdfBtn');
                                 this.controlsPanel = document.getElementById('font-controls');
-                                this.rawContainer = document.getElementById('raw-container');
-                                this.init();
+                                this.rawContainer = document.getElementById('raw-container'); this.init();
                             }
-                            init() {
-                                if (!this.btn) return;
-                                this.btn.addEventListener('click', () => this.saveAsPdf());
-                            }
+                            init() { if (this.btn) { this.btn.addEventListener('click', () => this.saveAsPdf()); } }
                             saveAsPdf() {
                                 if (this.rawContainer && this.rawContainer.style.display !== 'none') {
-                                    alert('Switch to the rendered view before exporting to PDF.');
-                                    return;
+                                    alert('Switch to the rendered view before exporting to PDF.'); return;
                                 }
                                 this.controlsPanel.style.visibility = 'hidden';
-                                setTimeout(() => {
-                                    window.print();
-                                    setTimeout(() => {
-                                        this.controlsPanel.style.visibility = 'visible';
-                                    }, 150);
-                                }, 30);
+                                setTimeout(() => { window.print(); setTimeout(() => { this.controlsPanel.style.visibility = 'visible'; }, 150); }, 30);
                             }
                         }
+                        
                         class ListItemController {
                             constructor() {
                                 this.contentContainer = document.getElementById('content-container');
                                 this.notificationElement = document.getElementById('copy-notification');
                                 this.longPressTimer = null;
                                 this.longPressElement = null;
-                                this.startX = 0;
-                                this.startY = 0;
+                                this.touchStartX = 0;
+                                this.touchStartY = 0;
+                        
+                                this.boundHandleMove = this.handleMove.bind(this);
+                                this.boundHandleEnd = this.handleEnd.bind(this);
+                        
                                 this.init();
                             }
+                        
                             init() {
                                 if (!this.contentContainer || !this.notificationElement) return;
-                                const setupListeners = () => {
+                                const setup = () => {
                                     if (this.setupTimeout) clearTimeout(this.setupTimeout);
-                                    this.setupTimeout = setTimeout(() => this.attachListeners(), 300);
+                                    this.setupTimeout = setTimeout(() => this.attachInitialListeners(), 300);
                                 };
-                                setTimeout(setupListeners, 500);
-                                const observer = new MutationObserver(setupListeners);
-                                observer.observe(this.contentContainer, {
-                                    childList: true,
-                                    subtree: true
-                                });
+                                setTimeout(setup, 500);
+                                const observer = new MutationObserver(setup);
+                                observer.observe(this.contentContainer, { childList: true, subtree: true });
                             }
-                            attachListeners() {
+                        
+                            attachInitialListeners() {
                                 const listItems = this.contentContainer.querySelectorAll('li');
                                 listItems.forEach((li, index) => {
                                     if (li.dataset.listCopyInitialized === 'true') return;
-                                    li.dataset.listCopyInitialized = 'true';
                                     li.dataset.listIndex = index;
-                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
-                                    li.addEventListener('touchmove', (e) => this.handleMove(e), { passive: true });
-                                    li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
-                                    li.addEventListener('touchcancel', (e) => this.handleEnd(), { passive: true });
+                                    li.dataset.listCopyInitialized = 'true';
+                                    
                                     li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-                                    li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
-                                    li.addEventListener('mouseleave', () => this.handleEnd());
+                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
                                 });
                             }
+                        
                             handleStart(element, event) {
-                                if (event.touches && event.touches[0]) {
-                                    this.startX = event.touches[0].clientX;
-                                    this.startY = event.touches[0].clientY;
-                                }
                                 this.handleEnd();
+                        
                                 this.longPressElement = element;
+                        
+                                if (event.type === 'touchstart' && event.touches.length > 0) {
+                                    this.touchStartX = event.touches[0].clientX;
+                                    this.touchStartY = event.touches[0].clientY;
+                        
+                                    element.addEventListener('touchmove', this.boundHandleMove, { passive: true });
+                                    element.addEventListener('touchend', this.boundHandleEnd);
+                                    element.addEventListener('touchcancel', this.boundHandleEnd);
+                                } else if (event.type === 'mousedown') {
+                                    element.addEventListener('mouseup', this.boundHandleEnd);
+                                    element.addEventListener('mouseleave', this.boundHandleEnd);
+                                }
+                        
                                 element.classList.add('list-item-highlight');
+                                
                                 this.longPressTimer = setTimeout(async () => {
-                                    await this.copyListContent(element);
+                                    if (this.longPressElement === element) {
+                                        await this.copyListContent(element);
+                                    }
                                 }, CONFIG.LONG_PRESS_DURATION);
                             }
+                        
                             handleMove(event) {
-                                if (!this.longPressTimer || !event.touches || !event.touches[0]) return;
-                                const dx = Math.abs(event.touches[0].clientX - this.startX);
-                                const dy = Math.abs(event.touches[0].clientY - this.startY);
-                                if (dx > 10 || dy > 10) {
-                                    this.handleEnd();
+                                if (!this.longPressTimer) return;
+                        
+                                if (event.touches.length > 0) {
+                                    const touch = event.touches[0];
+                                    const deltaX = Math.abs(touch.clientX - this.touchStartX);
+                                    const deltaY = Math.abs(touch.clientY - this.touchStartY);
+                                
+                                    if (deltaX > 10 || deltaY > 10) {
+                                        this.handleEnd();
+                                    }
                                 }
                             }
+                        
                             handleEnd() {
                                 if (this.longPressTimer) {
                                     clearTimeout(this.longPressTimer);
                                     this.longPressTimer = null;
                                 }
+                        
                                 if (this.longPressElement) {
                                     this.longPressElement.classList.remove('list-item-highlight');
+                                    
+                                    this.longPressElement.removeEventListener('touchmove', this.boundHandleMove);
+                                    this.longPressElement.removeEventListener('touchend', this.boundHandleEnd);
+                                    this.longPressElement.removeEventListener('touchcancel', this.boundHandleEnd);
+                                    this.longPressElement.removeEventListener('mouseup', this.boundHandleEnd);
+                                    this.longPressElement.removeEventListener('mouseleave', this.boundHandleEnd);
+                                    
                                     this.longPressElement = null;
                                 }
                             }
+                        
                             async copyListContent(element) {
                                 try {
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
-                                    let textToCopy = '';
-                                    if (!isNaN(listIndex) && APP_DATA.listItems && APP_DATA.listItems[listIndex]) {
-                                        textToCopy = APP_DATA.listItems[listIndex].content;
-                                    } else {
-                                        textToCopy = element.innerText.trim();
+                                    if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
+                                        console.warn('List item data not found for index:', listIndex);
+                                        const textContent = (element.innerText || element.textContent || "").trim();
+                                        if (textContent) {
+                                            await this._copyToClipboard(textContent);
+                                            this.showNotification('List item text copied!');
+                                        } else {
+                                            throw new Error('List item content is empty.');
+                                        }
+                                        return;
                                     }
+                                    const textToCopy = APP_DATA.listItems[listIndex].content;
                                     await this._copyToClipboard(textToCopy);
                                     this.showNotification('List content copied!');
                                 } catch (err) {
-                                    console.error('Copy failed:', err);
-                                    this.showNotification('Failed to copy.', true);
+                                    console.error('Failed to copy list item:', err);
+                                    this.showNotification('Failed to copy. See console.', true);
                                 }
                             }
+                        
                             async _copyToClipboard(text) {
-                                if (navigator.clipboard?.writeText) {
-                                    return navigator.clipboard.writeText(text);
-                                }
-                                const textarea = document.createElement('textarea');
-                                textarea.value = text;
-                                textarea.style.position = 'fixed';
-                                textarea.style.opacity = '0';
-                                document.body.appendChild(textarea);
-                                textarea.select();
-                                document.execCommand('copy');
-                                document.body.removeChild(textarea);
+                                if (navigator.clipboard?.writeText) { return navigator.clipboard.writeText(text); }
+                                const ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.style.position = 'fixed'; ta.style.opacity = '0';
+                                document.body.appendChild(ta);
+                                ta.select(); document.execCommand('copy');
+                                document.body.removeChild(ta);
                             }
+                        
                             showNotification(message, isError = false) {
                                 if (!this.notificationElement) return;
                                 this.notificationElement.textContent = message;
                                 this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                this.notificationElement.style.color = '#fff';
+                                this.notificationElement.style.color = 'white';
                                 if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                                    this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 255, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+                                    this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
                                     this.notificationElement.style.color = '#0d1117';
                                 }
                                 this.notificationElement.style.display = 'block';
-                                setTimeout(() => {
-                                    this.notificationElement.style.display = 'none';
-                                }, isError ? 3500 : 2000);
+                                setTimeout(() => { this.notificationElement.style.display = 'none'; }, isError ? 3500 : 2000);
                             }
                         }
+
                         class ExportMarkdownController {
-                            constructor() {
-                                this.btn = document.getElementById('exportMarkdownBtn');
-                                this.init();
-                            }
-                            init() {
-                                if (!this.btn) return;
-                                this.btn.addEventListener('click', () => this.exportMarkdown());
-                            }
+                            constructor() { this.btn = document.getElementById('exportMarkdownBtn'); this.init(); }
+                            init() { if (this.btn) this.btn.addEventListener('click', () => this.exportMarkdown()); }
                             exportMarkdown() {
                                 const rawMarkdown = APP_DATA.rawMarkdown;
                                 const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                                link.href = url;
-                                link.download = \`markdown-export-\${timestamp}.md\`;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                URL.revokeObjectURL(url);
+                                link.href = url; link.download = `markdown-export-${timestamp}.md`;
+                                document.body.appendChild(link); link.click();
+                                document.body.removeChild(link); URL.revokeObjectURL(url);
                             }
                         }
-                        document.addEventListener('DOMContentLoaded', () => {
-                            window.markdownRendererUI = new UIController();
-                        });
+                        document.addEventListener('DOMContentLoaded', () => { window.markdownRendererUI = new UIController(); });
                     })();
                 `;
             }
