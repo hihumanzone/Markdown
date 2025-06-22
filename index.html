@@ -244,7 +244,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             <ul>
                 <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li><strong>Font size controls</strong>, theme toggle, save-as-PDF, <strong>export as .md</strong>, and raw/rendered view toggle are available in the rendered output tab.</li>
+                <li><strong>Font size controls</strong>, theme toggle, save-as-PDF, <strong>export as .md</strong>, and <strong>export as high-quality PNG</strong> are available in the rendered output tab.</li>
                 <li><strong>Long press on list items</strong> to copy their content (without list markers) to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
@@ -258,6 +258,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 katexCSS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css',
                 katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
                 katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
+                html2canvas: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
             },
             MATH_PATTERNS: [
                 { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },
@@ -413,6 +414,7 @@ Don't write something like $E=mc^2$ across multiple lines.
     <\/script>
     <script defer src="${CONFIG.CDN.katexJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
+    <script defer src="${CONFIG.CDN.html2canvas}"><\/script>
     <script>
         ${this.getClientScript()}
     <\/script>
@@ -686,6 +688,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                         backdrop-filter: blur(5px);
                         -webkit-backdrop-filter: blur(5px);
                         transition: background-color 0.3s ease, box-shadow 0.3s ease;
+                        flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+                        justify-content: flex-end;
                     }
                     .fc-button {
                         padding: 5px 10px;
@@ -698,9 +702,13 @@ Don't write something like $E=mc^2$ across multiple lines.
                         font-size: 12px;
                         line-height: 1.5;
                     }
-                    .fc-button:hover {
+                    .fc-button:hover:not(:disabled) {
                         background-color: #eef1f4;
                         border-color: #c0c5cb;
+                    }
+                    .fc-button:disabled {
+                         opacity: 0.6;
+                         cursor: not-allowed;
                     }
                     .fc-display {
                         color: #24292e;
@@ -719,7 +727,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         color: #c9d1d9;
                         border: 1px solid #30363d;
                     }
-                    body.markdown-body.dark-theme .fc-button:hover {
+                    body.markdown-body.dark-theme .fc-button:hover:not(:disabled) {
                         background-color: #30363d;
                         border-color: #484f58;
                     }
@@ -830,6 +838,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
                         <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
                         <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
+                        <button id="exportImageBtn" class="fc-button" title="Export rendered content as a high-quality PNG image">Export Image</button>
                         <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
                     </div>
                 `;
@@ -855,6 +864,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.listItemController = new ListItemController();
                                 this.savePdfController = new SavePdfController();
                                 this.exportMarkdownController = new ExportMarkdownController();
+                                this.exportImageController = new ExportImageController();
                             }
                             addGlobalKeydownListener() {
                                 document.addEventListener('keydown', (e) => {
@@ -1003,11 +1013,99 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 if (this.rawContainer && this.rawContainer.style.display !== 'none') {
                                     alert('Switch to the rendered view before exporting to PDF.'); return;
                                 }
-                                this.controlsPanel.style.visibility = 'hidden';
-                                setTimeout(() => { window.print(); setTimeout(() => { this.controlsPanel.style.visibility = 'visible'; }, 150); }, 30);
+                                this.controlsPanel.style.display = 'none';
+                                setTimeout(() => { window.print(); setTimeout(() => { this.controlsPanel.style.display = ''; }, 150); }, 30);
                             }
                         }
-                        
+                        class ExportImageController {
+                            constructor() {
+                                this.btn = document.getElementById('exportImageBtn');
+                                this.controlsPanel = document.getElementById('font-controls');
+                                this.notificationElement = document.getElementById('copy-notification');
+                                this.rawContainer = document.getElementById('raw-container');
+                                this.cachedKatexCSS = null;
+                                this.init();
+                            }
+                            init() {
+                                if (this.btn) {
+                                    this.btn.addEventListener('click', () => this.exportAsImage());
+                                }
+                            }
+                            async fetchKatexCSS() {
+                                if (this.cachedKatexCSS) {
+                                    return this.cachedKatexCSS;
+                                }
+                                try {
+                                    const cssUrl = APP_DATA.config.CDN.katexCSS;
+                                    const response = await fetch(cssUrl);
+                                    if (!response.ok) {
+                                        throw new Error(\`Failed to fetch CSS: \${response.statusText}\`);
+                                    }
+                                    const cssText = await response.text();
+                                    this.cachedKatexCSS = cssText;
+                                    return cssText;
+                                } catch (error) {
+                                    console.error('Could not fetch KaTeX CSS for image export:', error);
+                                    return '';
+                                }
+                            }
+                            async exportAsImage() {
+                                if (typeof html2canvas === 'undefined') {
+                                    alert('Image export library (html2canvas) is not loaded yet. Please try again in a moment.');
+                                    return;
+                                }
+                                if (this.rawContainer && this.rawContainer.style.display !== 'none') {
+                                    alert('Switch to the rendered view before exporting as an image.');
+                                    return;
+                                }
+                                const originalBtnText = this.btn.textContent;
+                                this.btn.textContent = 'Generating...';
+                                this.btn.disabled = true;
+
+                                const katexCSSText = await this.fetchKatexCSS();
+
+                                const originalControlsDisplay = this.controlsPanel.style.display;
+                                this.controlsPanel.style.display = 'none';
+                                if (this.notificationElement) this.notificationElement.style.display = 'none';
+                                
+                                try {
+                                    await new Promise(resolve => requestAnimationFrame(resolve));
+
+                                    const canvas = await html2canvas(document.body, {
+                                        scale: 2,
+                                        useCORS: true,
+                                        backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+                                        logging: false,
+                                        scrollX: -window.scrollX,
+                                        scrollY: -window.scrollY,
+                                        windowWidth: document.documentElement.scrollWidth,
+                                        windowHeight: document.documentElement.scrollHeight,
+                                        onclone: (clonedDoc) => {
+                                            if (katexCSSText) {
+                                                const style = clonedDoc.createElement('style');
+                                                style.innerHTML = katexCSSText;
+                                                clonedDoc.head.appendChild(style);
+                                            }
+                                        },
+                                    });
+
+                                    const link = document.createElement('a');
+                                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+                                    link.download = \`markdown-export-\${timestamp}.png\`;
+                                    link.href = canvas.toDataURL('image/png');
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                } catch (error) {
+                                    console.error('Error exporting image:', error);
+                                    alert('An error occurred while exporting the image. See console for details.');
+                                } finally {
+                                    this.controlsPanel.style.display = originalControlsDisplay;
+                                    this.btn.textContent = originalBtnText;
+                                    this.btn.disabled = false;
+                                }
+                            }
+                        }
                         class ListItemController {
                             constructor() {
                                 this.contentContainer = document.getElementById('content-container');
