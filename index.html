@@ -471,7 +471,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         margin-bottom: 16px;
                     }
                     body.markdown-body li {
-                        touch-action: pan-y;
                         margin-bottom: 0.25em;
                     }
                     body.markdown-body li > p {
@@ -1000,17 +999,15 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
                                     li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
                                     li.addEventListener('mouseleave', () => this.handleEnd());
-                                    li.addEventListener('touchstart', e => this.handleStart(li, e), { passive: false });
-                                    li.addEventListener('touchmove',  e => this.handleMove(e),       { passive: true  });
-                                    li.addEventListener('touchend',   e => { e.preventDefault(); this.handleEnd(); }, { passive: false });
+                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: false });
+                                    li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
                                     li.addEventListener('touchcancel', () => this.handleEnd());
                                     li.addEventListener('touchmove', () => this.handleEnd());
                                 });
                             }
                             handleStart(element, event) {
-                                if (event.type === 'touchstart' && event.touches?.length) {
-                                    this.startX = event.touches[0].clientX;
-                                    this.startY = event.touches[0].clientY;
+                                if (event.type === 'touchstart') {
+                                    event.preventDefault();
                                 }
                                 this.handleEnd();
                                 this.longPressElement = element;
@@ -1030,12 +1027,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.longPressElement.classList.remove('list-item-highlight');
                                     this.longPressElement = null;
                                 }
-                            }
-                            handleMove(event) {
-                                if (!this.longPressTimer || !event.touches?.length) return;
-                                const dx = Math.abs(event.touches[0].clientX - this.startX);
-                                const dy = Math.abs(event.touches[0].clientY - this.startY);
-                                if (dx > 10 || dy > 10) this.handleEnd();
                             }
                             async copyListContent(element) {
                                 try {
