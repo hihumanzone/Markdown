@@ -466,9 +466,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                     body.markdown-body ul,
                     body.markdown-body ol {
-                        padding-left: 2em;
-                        margin-top: 0;
-                        margin-bottom: 16px;
+                        list-style: none;
+                        padding-left: 0;
+                    }
+                    .custom-list-marker {
+                        user-select: none;
+                        cursor: pointer;
+                        display: inline-block;
+                        width: 1.2em;
+                        text-align: right;
+                        margin-right: 0.5em;
+                        font-weight: bold;
+                        color: var(--primary-color);
                     }
                     body.markdown-body li {
                         margin-bottom: 0.25em;
@@ -973,104 +982,74 @@ Don't write something like $E=mc^2$ across multiple lines.
                             constructor() {
                                 this.contentContainer = document.getElementById('content-container');
                                 this.notificationElement = document.getElementById('copy-notification');
-                                this.longPressTimer = null;
-                                this.longPressElement = null;
                                 this.init();
                             }
                             init() {
-                                if (!this.contentContainer || !this.notificationElement) return;
-                                const setupListeners = () => {
-                                    if (this.setupTimeout) clearTimeout(this.setupTimeout);
-                                    this.setupTimeout = setTimeout(() => this.attachListeners(), 300);
-                                };
-                                setTimeout(setupListeners, 500);
-                                const observer = new MutationObserver(setupListeners);
-                                observer.observe(this.contentContainer, {
-                                    childList: true,
-                                    subtree: true
-                                });
+                                this.augmentListMarkers();
+                                const observer = new MutationObserver(() => this.augmentListMarkers());
+                                observer.observe(this.contentContainer, { childList: true, subtree: true });
                             }
-                            attachListeners() {
+                            augmentListMarkers() {
                                 const listItems = this.contentContainer.querySelectorAll('li');
-                                listItems.forEach((li, index) => {
-                                    if (li.dataset.listCopyInitialized === 'true') return;
-                                    li.dataset.listIndex = index;
-                                    li.dataset.listCopyInitialized = 'true';
-                                    li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-                                    li.addEventListener('mouseup', (e) => { if (e.button === 0) this.handleEnd(); });
-                                    li.addEventListener('mouseleave', () => this.handleEnd());
-                                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: false });
-                                    li.addEventListener('touchend', (e) => { e.preventDefault(); this.handleEnd(); }, { passive: false });
-                                    li.addEventListener('touchcancel', () => this.handleEnd());
-                                    li.addEventListener('touchmove', () => this.handleEnd());
+                                listItems.forEach((li) => {
+                                    if (li.dataset.markerInjected === 'true') return;
+                                    li.dataset.markerInjected = 'true';
+
+                                    let marker = window.getComputedStyle(li, '::marker').content || '';
+                                    marker = marker.replace(/^"(.*)"$/, '$1');
+
+                                    li.style.listStyle = 'none';
+
+                                    const span = document.createElement('span');
+                                    span.className = 'custom-list-marker';
+                                    span.textContent = marker;
+
+                                    span.addEventListener('dblclick', async (e) => {
+                                        e.stopPropagation();
+                                        await this.copyListContent(li);
+                                    });
+                                    li.insertBefore(span, li.firstChild);
                                 });
-                            }
-                            handleStart(element, event) {
-                                if (event.type === 'touchstart') {
-                                    event.preventDefault();
-                                }
-                                this.handleEnd();
-                                this.longPressElement = element;
-                                element.classList.add('list-item-highlight');
-                                this.longPressTimer = setTimeout(async () => {
-                                    if (this.longPressElement === element) {
-                                        await this.copyListContent(element);
-                                    }
-                                }, CONFIG.LONG_PRESS_DURATION);
-                            }
-                            handleEnd() {
-                                if (this.longPressTimer) {
-                                    clearTimeout(this.longPressTimer);
-                                    this.longPressTimer = null;
-                                }
-                                if (this.longPressElement) {
-                                    this.longPressElement.classList.remove('list-item-highlight');
-                                    this.longPressElement = null;
-                                }
                             }
                             async copyListContent(element) {
                                 try {
-                                    const listIndex = parseInt(element.dataset.listIndex, 10);
-                                    if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
-                                        console.warn('List item data not found for index:', listIndex, element);
-                                        const textContent = element.innerText || element.textContent || "";
-                                        if (textContent.trim()) {
-                                            await this._copyToClipboard(textContent.trim());
-                                            this.showNotification('List item text copied!');
-                                        } else {
-                                            throw new Error('List item content is empty.');
-                                        }
-                                        return;
+                                    const index = parseInt(element.dataset.listIndex, 10);
+                                    let text = '';
+                                    if (!isNaN(index) && APP_DATA.listItems && APP_DATA.listItems[index]) {
+                                        text = APP_DATA.listItems[index].content;
+                                    } else {
+                                        text = element.innerText.trim();
                                     }
-                                    const textContent = APP_DATA.listItems[listIndex].content;
-                                    await this._copyToClipboard(textContent);
-                                    this.showNotification('List content copied!');
+                                    if (text) {
+                                        await this._copyToClipboard(text);
+                                        this.showNotification('List content copied!');
+                                    } else {
+                                        throw new Error('No content to copy');
+                                    }
                                 } catch (err) {
-                                    console.error('Failed to copy list item:', err);
-                                    this.showNotification('Failed to copy. See console.', true);
+                                    console.error('Copy failed:', err);
+                                    this.showNotification('Copy failed.', true);
                                 }
                             }
                             async _copyToClipboard(text) {
-                                if (navigator.clipboard?.writeText) {
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
                                     return navigator.clipboard.writeText(text);
                                 }
-                                const textArea = document.createElement('textarea');
-                                textArea.value = text;
-                                textArea.style.position = 'fixed'; textArea.style.opacity = '0';
-                                document.body.appendChild(textArea);
-                                textArea.select();
+                                const ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.style.position = 'fixed';
+                                ta.style.opacity = '0';
+                                document.body.appendChild(ta);
+                                ta.select();
                                 document.execCommand('copy');
-                                document.body.removeChild(textArea);
+                                document.body.removeChild(ta);
                             }
+
                             showNotification(message, isError = false) {
                                 if (!this.notificationElement) return;
                                 this.notificationElement.textContent = message;
-                                this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                this.notificationElement.style.color = 'white';
-                                if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                                    this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
-                                    this.notificationElement.style.color = '#0d1117';
-                                }
+                                this.notificationElement.style.backgroundColor = isError ? 'rgba(200,0,0,0.9)' : 'rgba(30,30,30,0.9)';
+                                this.notificationElement.style.color = '#fff';
                                 this.notificationElement.style.display = 'block';
                                 setTimeout(() => {
                                     this.notificationElement.style.display = 'none';
