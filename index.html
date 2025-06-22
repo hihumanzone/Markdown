@@ -789,6 +789,19 @@ Don't write something like $E=mc^2$ across multiple lines.
                     .katex {
                         font-size: 1.1em;
                     }
+                    @media (max-width: 640px) {
+                        .fc-panel {
+                            flex-direction: column;
+                            align-items: stretch;
+                            top: 5px;
+                            right: 5px;
+                            gap: 4px;
+                            width: 130px;
+                        }
+                        .fc-button, .fc-display {
+                            text-align: center;
+                        }
+                    }
                     @media print {
                         #font-controls,
                         #copy-notification {
