@@ -4,114 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown & LaTeX Renderer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+
         :root {
-            --primary-color: #007bff;
-            --primary-hover: #0056b3;
-            --bg-color: #f4f4f4;
-            --container-bg: #fff;
-            --text-color: #333;
-            --border-color: #ddd;
-            --info-bg: #e9ecef;
-            --shadow-color: rgba(0, 0, 0, 0.1);
+            --primary-color-hsl: 220, 85%, 55%;
+            --primary-color: hsl(var(--primary-color-hsl));
+            --primary-hover: hsl(220, 85%, 50%);
+            --primary-focus-shadow: hsla(var(--primary-color-hsl), 0.25);
+
+            --bg-color: hsl(210, 40%, 98%);
+            --surface-color: #fff;
+            --text-color: hsl(214, 20%, 25%);
+            --text-muted-color: hsl(214, 15%, 55%);
+            --border-color: hsl(210, 30%, 88%);
+            --shadow-color: hsla(220, 40%, 15%, 0.08);
         }
+
         * {
             box-sizing: border-box;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
         }
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 25px;
-            background-color: var(--container-bg);
-            box-shadow: 0 0 15px var(--shadow-color);
-            border-radius: 8px;
+
+        .main-content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
         }
-        h1, h2 {
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
             color: var(--text-color);
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-top: 0;
+            margin-bottom: 3rem;
+            border-bottom: none;
+            padding-bottom: 0;
         }
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 14px;
-            margin-bottom: 15px;
-            resize: vertical;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.2s ease;
-        }
-        button:hover:not(:disabled) {
-            background-color: var(--primary-hover);
-        }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .info {
-            font-size: 0.9em;
-            color: #555;
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--info-bg);
-            border-left: 4px solid var(--primary-color);
-            border-radius: 4px;
-        }
-        .info ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        .info li {
-            margin: 5px 0;
-        }
-        .input-section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed #ccc;
-        }
-        .input-section:last-child {
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0;
             border-bottom: none;
         }
-        .example-text {
-            font-size: 0.85em;
-            color: #666;
-            white-space: pre-line;
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted-color);
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 40vh;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--surface-color);
+            font-family: 'Fira Code', 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+            resize: vertical;
+            box-shadow: 0 1px 2px var(--shadow-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        textarea:focus,
+        textarea:focus-visible {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-focus-shadow), 0 1px 2px var(--shadow-color);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            padding: 0.65rem 1.25rem;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.2;
+            transition: all 0.2s ease-in-out;
+            user-select: none;
+        }
+
+        button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px var(--primary-focus-shadow);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .button-primary:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .button-secondary {
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        .button-secondary:hover:not(:disabled) {
+            border-color: hsl(210, 30%, 80%);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .info {
+            font-size: 0.9rem;
+            color: var(--text-muted-color);
+            margin-top: 3rem;
+            padding: 1.5rem 2rem;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .info p:first-of-type {
+            margin-top: 0;
+        }
+
+        .info strong {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .info ul {
+            margin: 1rem 0 0;
+            padding-left: 1.25rem;
+        }
+
+        .info li {
+            margin: 0.5rem 0;
+            padding-left: 0.5rem;
+        }
+
+        .info li::marker {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+            padding-bottom: 0;
+            border-bottom: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="main-content">
         <h1>Markdown & LaTeX Renderer</h1>
         <div class="input-section">
             <h2>Markdown Input</h2>
@@ -152,11 +232,11 @@ Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
             </textarea>
             <div class="button-group">
-                <button id="renderMarkdownBtn" title="Render the markdown content">Render Markdown</button>
-                <button id="pasteAndRenderBtn" title="Paste from clipboard and render">Paste & Render</button>
-                <button id="clearBtn" title="Clear the input">Clear</button>
+                <button id="renderMarkdownBtn" class="button-primary" title="Render the markdown content">Render Markdown</button>
+                <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render">Paste & Render</button>
+                <button id="clearBtn" class="button-secondary" title="Clear the input">Clear</button>
                 <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" />
-                <button id="importBtn" title="Import a local .md, .markdown, or .txt file">Import File</button>
+                <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file">Import File</button>
             </div>
         </div>
         <div class="info">
