@@ -9,13 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
-
         :root {
             --primary-color-hsl: 220, 85%, 55%;
             --primary-color: hsl(var(--primary-color-hsl));
             --primary-hover: hsl(220, 85%, 50%);
             --primary-focus-shadow: hsla(var(--primary-color-hsl), 0.25);
-
             --bg-color: hsl(210, 40%, 98%);
             --surface-color: #fff;
             --text-color: hsl(214, 20%, 25%);
@@ -23,11 +21,7 @@
             --border-color: hsl(210, 30%, 88%);
             --shadow-color: hsla(220, 40%, 15%, 0.08);
         }
-
-        * {
-            box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -35,13 +29,11 @@
             color: var(--text-color);
             line-height: 1.6;
         }
-
         .main-content {
             max-width: 960px;
             margin: 0 auto;
             padding: 3rem 1.5rem;
         }
-
         h1 {
             font-size: 2.5rem;
             font-weight: 700;
@@ -52,7 +44,6 @@
             border-bottom: none;
             padding-bottom: 0;
         }
-
         h2 {
             font-size: 1.5rem;
             font-weight: 600;
@@ -61,7 +52,6 @@
             padding-bottom: 0;
             border-bottom: none;
         }
-
         label {
             display: block;
             margin-bottom: 0.75rem;
@@ -69,7 +59,6 @@
             color: var(--text-muted-color);
             font-size: 0.9rem;
         }
-
         textarea {
             width: 100%;
             min-height: 40vh;
@@ -85,21 +74,18 @@
             box-shadow: 0 1px 2px var(--shadow-color);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-
         textarea:focus,
         textarea:focus-visible {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 4px var(--primary-focus-shadow), 0 1px 2px var(--shadow-color);
         }
-
         .button-group {
             display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
             align-items: center;
         }
-
         button {
             padding: 0.65rem 1.25rem;
             border: 1px solid transparent;
@@ -111,44 +97,37 @@
             transition: all 0.2s ease-in-out;
             user-select: none;
         }
-
         button:focus-visible {
             outline: none;
             box-shadow: 0 0 0 4px var(--primary-focus-shadow);
         }
-
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-
         .button-primary {
             background-color: var(--primary-color);
             color: white;
             border-color: var(--primary-color);
         }
-
         .button-primary:hover:not(:disabled) {
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
             transform: translateY(-1px);
             box-shadow: 0 4px 8px var(--shadow-color);
         }
-
         .button-secondary {
             background-color: var(--surface-color);
             color: var(--text-color);
             border-color: var(--border-color);
         }
-
         .button-secondary:hover:not(:disabled) {
             border-color: hsl(210, 30%, 80%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px var(--shadow-color);
         }
-
         .info {
             font-size: 0.9rem;
             color: var(--text-muted-color);
@@ -158,31 +137,23 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
         }
-
-        .info p:first-of-type {
-            margin-top: 0;
-        }
-
+        .info p:first-of-type { margin-top: 0; }
         .info strong {
             color: var(--text-color);
             font-weight: 600;
         }
-
         .info ul {
             margin: 1rem 0 0;
             padding-left: 1.25rem;
         }
-
         .info li {
             margin: 0.5rem 0;
             padding-left: 0.5rem;
         }
-
         .info li::marker {
             color: var(--primary-color);
             font-weight: bold;
         }
-
         .input-section {
             margin-bottom: 2rem;
             padding-bottom: 0;
@@ -220,6 +191,8 @@ $$
 - Unordered list item 1
 - Unordered list item 2
   - Nested item
+    with another line
+      and a more nested line.
 1. Ordered list item 1
 2. Ordered list item 2
 ---
@@ -266,13 +239,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 { regex: /\$([^$\n]+?)\$/g, open: '$', close: '$' },
                 { regex: /\\\((.+?)\\\)/g, open: '\\(', close: '\\)' },
             ],
-            FONT_SIZE: {
-                BASE: 16,
-                STEP: 10,
-                MIN: 50,
-                MAX: 300,
-                DEFAULT: 100
-            },
+            FONT_SIZE: { BASE: 16, STEP: 10, MIN: 50, MAX: 300, DEFAULT: 100 },
             LONG_PRESS_DURATION: 500,
             LOCAL_STORAGE_KEYS: {
                 THEME: 'renderedOutputTheme',
@@ -281,6 +248,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 CONTROLS_COLLAPSED: 'fontControlsCollapsed'
             }
         };
+
         const Utils = {
             escapeHtml(text) {
                 const div = document.createElement('div');
@@ -294,8 +262,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
                 textArea.style.position = 'fixed';
-                textArea.style.left = '-999999px';
-                textArea.style.top = '-999999px';
+                textArea.style.opacity = '0';
                 document.body.appendChild(textArea);
                 textArea.focus();
                 textArea.select();
@@ -304,60 +271,54 @@ Don't write something like $E=mc^2$ across multiple lines.
                 } finally {
                     document.body.removeChild(textArea);
                 }
-            },
-            debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
             }
         };
+
         class ListItemParser {
             static parse(markdownText) {
                 const listItems = [];
                 const lines = markdownText.split('\n');
+                const listMarkerRegex = /^\s*([-*+]|\d+\.)\s+/;
+
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
-                    const unorderedMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
-                    const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
-                    if (unorderedMatch || orderedMatch) {
-                        const match = unorderedMatch || orderedMatch;
-                        const indent = match[1].length;
-                        const content = match[2];
-                        const isOrdered = !!orderedMatch;
-                        let fullContent = content;
-                        let j = i + 1;
-                        while (j < lines.length) {
-                            const nextLine = lines[j];
-                            const nextTrimmed = nextLine.trim();
-                            if (nextTrimmed === '' ||
-                                nextLine.match(/^\s*[-*+]\s+/) ||
-                                nextLine.match(/^\s*\d+\.\s+/)) {
+                    const listMatch = line.match(/^(\s*)(?:[-*+]|\d+\.)\s+(.*)$/);
+
+                    if (listMatch) {
+                        const [, indentText, firstLineContent] = listMatch;
+                        const isOrdered = /^\d/.test(listMatch[0].trim());
+                        const contentStartColumn = line.indexOf(firstLineContent);
+                        
+                        let fullContent = firstLineContent;
+                        let nextLineIndex = i + 1;
+
+                        while (nextLineIndex < lines.length) {
+                            const nextLine = lines[nextLineIndex];
+                            if (nextLine.trim() === '' || listMarkerRegex.test(nextLine)) {
                                 break;
                             }
-                            if (nextLine.length > indent && nextTrimmed !== '') {
-                                fullContent += '\n' + nextLine.slice(indent);
-                                j++;
+
+                            const leadingWhitespaceLength = (nextLine.match(/^\s*/) || [''])[0].length;
+                            if (leadingWhitespaceLength >= contentStartColumn) {
+                                fullContent += '\n' + nextLine.substring(contentStartColumn);
                             } else {
                                 break;
                             }
+                            nextLineIndex++;
                         }
+
                         listItems.push({
                             content: fullContent,
-                            indent: indent,
-                            isOrdered: isOrdered
+                            indent: indentText.length,
+                            isOrdered,
                         });
-                        i = j - 1;
+                        i = nextLineIndex - 1;
                     }
                 }
                 return listItems;
             }
         }
+
         class MathProcessor {
             static preserveMathExpressions(markdownText) {
                 const mathExpressions = [];
@@ -386,6 +347,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 return restoredHtml;
             }
         }
+
         class RenderedPageBuilder {
             static build(content, rawMarkdown, title, listItems) {
                 return `
@@ -423,421 +385,87 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             static getStyles() {
                 return `<style>
-                    body.markdown-body {
-                        box-sizing: border-box;
-                        min-width: 200px;
-                        max-width: 980px;
-                        margin: 0 auto;
-                        padding: 45px;
-                        padding-top: 70px;
-                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-                        line-height: 1.6;
-                        transition: background-color 0.3s ease, color 0.3s ease;
-                    }
-                    @media (max-width: 767px) {
-                        body.markdown-body {
-                            padding: 20px;
-                            padding-top: 60px;
-                        }
-                    }
-                    body.markdown-body {
-                        background-color: #ffffff;
-                        color: #24292e;
-                    }
-                    body.markdown-body a {
-                        color: #0366d6;
-                        text-decoration: none;
-                    }
-                    body.markdown-body a:hover {
-                        text-decoration: underline;
-                    }
-                    body.markdown-body a:visited {
-                        color: #0366d6;
-                    }
-                    body.markdown-body hr {
-                        background-color: #e1e4e8;
-                        border: 0;
-                        height: 0.25em;
-                        margin: 24px 0;
-                        padding: 0;
-                    }
-                    body.markdown-body blockquote {
-                        border-left: 0.25em solid #dfe2e5;
-                        color: #6a737d;
-                        padding: 0 1em;
-                        margin-left: 0;
-                        margin-right: 0;
-                    }
-                    body.markdown-body table {
-                        border-collapse: collapse;
-                        margin: 16px 0;
-                        display: block;
-                        width: max-content;
-                        max-width: 100%;
-                        overflow: auto;
-                    }
-                    body.markdown-body th,
-                    body.markdown-body td {
-                        border: 1px solid #dfe2e5;
-                        padding: 6px 13px;
-                    }
-                    body.markdown-body th {
-                        background-color: #f6f8fa;
-                        font-weight: 600;
-                    }
-                    body.markdown-body tr:nth-child(2n) {
-                        background-color: #f6f8fa;
-                    }
-                    body.markdown-body code:not([class*="language-"]) {
-                        background-color: rgba(27,31,35,0.05);
-                        border-radius: 3px;
-                        font-size: 85%;
-                        margin: 0;
-                        padding: 0.2em 0.4em;
-                        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-                    }
-                    body.markdown-body pre {
-                        background-color: #f6f8fa;
-                        border-radius: 6px;
-                        font-size: 85%;
-                        line-height: 1.45;
-                        overflow: auto;
-                        padding: 16px;
-                        margin: 16px 0;
-                    }
-                    body.markdown-body pre code {
-                        background-color: transparent;
-                        border: 0;
-                        display: inline;
-                        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-                        line-height: inherit;
-                        margin: 0;
-                        overflow: visible;
-                        padding: 0;
-                        word-wrap: normal;
-                        font-size: 100%;
-                    }
-                    body.markdown-body h1,
-                    body.markdown-body h2,
-                    body.markdown-body h3,
-                    body.markdown-body h4,
-                    body.markdown-body h5,
-                    body.markdown-body h6 {
-                        color: #24292e;
-                        font-weight: 600;
-                        line-height: 1.25;
-                        margin-bottom: 16px;
-                        margin-top: 24px;
-                    }
-                    body.markdown-body h1 { font-size: 2em; }
-                    body.markdown-body h2 { font-size: 1.5em; }
-                    body.markdown-body h3 { font-size: 1.25em; }
-                    body.markdown-body h4 { font-size: 1em; }
-                    body.markdown-body h5 { font-size: 0.875em; }
-                    body.markdown-body h6 { font-size: 0.85em; color: #6a737d; }
-                    body.markdown-body h1,
-                    body.markdown-body h2 {
-                        border-bottom: 1px solid #eaecef;
-                        padding-bottom: 0.3em;
-                    }
-                    body.markdown-body strong {
-                        font-weight: 600;
-                    }
-                    body.markdown-body em {
-                        font-style: italic;
-                    }
-                    body.markdown-body ul,
-                    body.markdown-body ol {
-                        padding-left: 2em;
-                        margin-top: 0;
-                        margin-bottom: 16px;
-                    }
-                    body.markdown-body li {
-                        margin-bottom: 0.25em;
-                    }
-                    body.markdown-body li > p {
-                        margin-top: 0;
-                        margin-bottom: 0;
-                    }
-                    body.markdown-body li + li {
-                        margin-top: 0.25em;
-                    }
-                    body.markdown-body img {
-                        max-width: 100%;
-                        box-sizing: content-box;
-                        background-color: #ffffff;
-                    }
-                    body.markdown-body.dark-theme {
-                        background-color: #0d1117;
-                        color: #c9d1d9;
-                    }
-                    body.markdown-body.dark-theme a {
-                        color: #58a6ff;
-                    }
-                    body.markdown-body.dark-theme a:visited {
-                        color: #58a6ff;
-                    }
-                    body.markdown-body.dark-theme hr {
-                        background-color: #30363d;
-                    }
-                    body.markdown-body.dark-theme blockquote {
-                        color: #8b949e;
-                        border-left-color: #30363d;
-                    }
-                    body.markdown-body.dark-theme th,
-                    body.markdown-body.dark-theme td {
-                        border-color: #30363d;
-                    }
-                    body.markdown-body.dark-theme th {
-                        background-color: #161b22;
-                    }
-                    body.markdown-body.dark-theme tr:nth-child(2n) {
-                        background-color: #161b22;
-                    }
-                    body.markdown-body.dark-theme code:not([class*="language-"]) {
-                        background-color: rgba(110,118,129,0.4);
-                    }
-                    body.markdown-body.dark-theme pre {
-                        background-color: #161b22;
-                    }
-                    body.markdown-body.dark-theme h1,
-                    body.markdown-body.dark-theme h2,
-                    body.markdown-body.dark-theme h3,
-                    body.markdown-body.dark-theme h4,
-                    body.markdown-body.dark-theme h5,
-                    body.markdown-body.dark-theme h6 {
-                        color: #c9d1d9;
-                    }
-                    body.markdown-body.dark-theme h6 { color: #8b949e; }
-                    body.markdown-body.dark-theme h1,
-                    body.markdown-body.dark-theme h2 {
-                        border-bottom-color: #21262d;
-                    }
-                    body.markdown-body.dark-theme img {
-                        background-color: #0d1117;
-                    }
-                    body.markdown-body.dark-theme #raw-markdown {
-                        background-color: #161b22 !important;
-                        color: #c9d1d9 !important;
-                        border-color: #30363d !important;
-                    }
-                    body.markdown-body.dark-theme .katex {
-                        color: #c9d1d9;
-                    }
-                    body.markdown-body.high-contrast-theme{
-                        background:#000!important;
-                        color:#fff!important;
-                    }
+                    body.markdown-body{box-sizing:border-box;min-width:200px;max-width:980px;margin:0 auto;padding:45px;padding-top:70px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";line-height:1.6;transition:background-color .3s ease,color .3s ease}
+                    @media (max-width:767px){body.markdown-body{padding:20px;padding-top:60px}}
+                    body.markdown-body{background-color:#fff;color:#24292e}
+                    body.markdown-body a{color:#0366d6;text-decoration:none}
+                    body.markdown-body a:hover{text-decoration:underline}
+                    body.markdown-body a:visited{color:#0366d6}
+                    body.markdown-body hr{background-color:#e1e4e8;border:0;height:.25em;margin:24px 0;padding:0}
+                    body.markdown-body blockquote{border-left:.25em solid #dfe2e5;color:#6a737d;padding:0 1em;margin:0}
+                    body.markdown-body table{border-collapse:collapse;margin:16px 0;display:block;width:max-content;max-width:100%;overflow:auto}
+                    body.markdown-body th,body.markdown-body td{border:1px solid #dfe2e5;padding:6px 13px}
+                    body.markdown-body th{background-color:#f6f8fa;font-weight:600}
+                    body.markdown-body tr:nth-child(2n){background-color:#f6f8fa}
+                    body.markdown-body code:not([class*="language-"]){background-color:rgba(27,31,35,.05);border-radius:3px;font-size:85%;margin:0;padding:.2em .4em;font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace}
+                    body.markdown-body pre{background-color:#f6f8fa;border-radius:6px;font-size:85%;line-height:1.45;overflow:auto;padding:16px;margin:16px 0}
+                    body.markdown-body pre code{background-color:transparent;border:0;display:inline;font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace;line-height:inherit;margin:0;overflow:visible;padding:0;word-wrap:normal;font-size:100%}
+                    body.markdown-body h1,body.markdown-body h2,body.markdown-body h3,body.markdown-body h4,body.markdown-body h5,body.markdown-body h6{color:#24292e;font-weight:600;line-height:1.25;margin-bottom:16px;margin-top:24px}
+                    body.markdown-body h1{font-size:2em} body.markdown-body h2{font-size:1.5em} body.markdown-body h3{font-size:1.25em} body.markdown-body h4{font-size:1em} body.markdown-body h5{font-size:.875em} body.markdown-body h6{font-size:.85em;color:#6a737d}
+                    body.markdown-body h1,body.markdown-body h2{border-bottom:1px solid #eaecef;padding-bottom:.3em}
+                    body.markdown-body strong{font-weight:600}
+                    body.markdown-body em{font-style:italic}
+                    body.markdown-body ul,body.markdown-body ol{padding-left:2em;margin-top:0;margin-bottom:16px}
+                    body.markdown-body li{margin-bottom:.25em}
+                    body.markdown-body li>p{margin-top:0;margin-bottom:0}
+                    body.markdown-body li+li{margin-top:.25em}
+                    body.markdown-body img{max-width:100%;box-sizing:content-box;background-color:#fff}
+                    body.markdown-body.dark-theme{background-color:#0d1117;color:#c9d1d9}
+                    body.markdown-body.dark-theme a{color:#58a6ff}
+                    body.markdown-body.dark-theme a:visited{color:#58a6ff}
+                    body.markdown-body.dark-theme hr{background-color:#30363d}
+                    body.markdown-body.dark-theme blockquote{color:#8b949e;border-left-color:#30363d}
+                    body.markdown-body.dark-theme th,body.markdown-body.dark-theme td{border-color:#30363d}
+                    body.markdown-body.dark-theme th{background-color:#161b22}
+                    body.markdown-body.dark-theme tr:nth-child(2n){background-color:#161b22}
+                    body.markdown-body.dark-theme code:not([class*="language-"]){background-color:rgba(110,118,129,.4)}
+                    body.markdown-body.dark-theme pre{background-color:#161b22}
+                    body.markdown-body.dark-theme h1,body.markdown-body.dark-theme h2,body.markdown-body.dark-theme h3,body.markdown-body.dark-theme h4,body.markdown-body.dark-theme h5,body.markdown-body.dark-theme h6{color:#c9d1d9}
+                    body.markdown-body.dark-theme h6{color:#8b949e}
+                    body.markdown-body.dark-theme h1,body.markdown-body.dark-theme h2{border-bottom-color:#21262d}
+                    body.markdown-body.dark-theme img{background-color:#0d1117}
+                    body.markdown-body.dark-theme #raw-markdown{background-color:#161b22!important;color:#c9d1d9!important;border-color:#30363d!important}
+                    body.markdown-body.dark-theme .katex{color:#c9d1d9}
+                    body.markdown-body.high-contrast-theme{background:#000!important;color:#fff!important}
                     body.markdown-body.high-contrast-theme a{color:#08f}
                     body.markdown-body.high-contrast-theme hr{background:#444}
-                    body.markdown-body.high-contrast-theme blockquote{
-                        color:#ccc;border-left-color:#444
-                    }
-                    body.markdown-body.high-contrast-theme th,
-                    body.markdown-body.high-contrast-theme td{border-color:#444}
+                    body.markdown-body.high-contrast-theme blockquote{color:#ccc;border-left-color:#444}
+                    body.markdown-body.high-contrast-theme th,body.markdown-body.high-contrast-theme td{border-color:#444}
                     body.markdown-body.high-contrast-theme th{background:#111}
                     body.markdown-body.high-contrast-theme tr:nth-child(2n){background:#111}
-                    body.markdown-body.high-contrast-theme code:not([class*="language-"]){
-                        background:#222;color:#fff
-                    }
+                    body.markdown-body.high-contrast-theme code:not([class*="language-"]){background:#222;color:#fff}
                     body.markdown-body.high-contrast-theme pre{background:#111}
-                    body.markdown-body.high-contrast-theme h1,
-                    body.markdown-body.high-contrast-theme h2,
-                    body.markdown-body.high-contrast-theme h3,
-                    body.markdown-body.high-contrast-theme h4,
-                    body.markdown-body.high-contrast-theme h5,
-                    body.markdown-body.high-contrast-theme h6{color:#fff}
+                    body.markdown-body.high-contrast-theme h1,body.markdown-body.high-contrast-theme h2,body.markdown-body.high-contrast-theme h3,body.markdown-body.high-contrast-theme h4,body.markdown-body.high-contrast-theme h5,body.markdown-body.high-contrast-theme h6{color:#fff}
                     body.markdown-body.high-contrast-theme h6{color:#bbb}
-                    body.markdown-body.high-contrast-theme h1,
-                    body.markdown-body.high-contrast-theme h2{border-bottom-color:#444}
+                    body.markdown-body.high-contrast-theme h1,body.markdown-body.high-contrast-theme h2{border-bottom-color:#444}
                     body.markdown-body.high-contrast-theme img{background:#000}
                     body.markdown-body.high-contrast-theme .katex{color:#fff}
-                    body.markdown-body.high-contrast-theme #raw-markdown{
-                        background:#000!important;color:#fff!important;border-color:#fff!important
-                    }
-                    body.markdown-body.high-contrast-theme .fc-panel{
-                        background:rgba(0,0,0,.92);box-shadow:0 2px 10px rgba(255,255,255,.35)
-                    }
-                    body.markdown-body.high-contrast-theme .fc-button{
-                        background:#111;color:#fff;border:1px solid #555
-                    }
-                    body.markdown-body.high-contrast-theme .fc-button:hover{
-                        background:#222;border-color:#777
-                    }
+                    body.markdown-body.high-contrast-theme #raw-markdown{background:#000!important;color:#fff!important;border-color:#fff!important}
+                    body.markdown-body.high-contrast-theme .fc-panel{background:rgba(0,0,0,.92);box-shadow:0 2px 10px rgba(255,255,255,.35)}
+                    body.markdown-body.high-contrast-theme .fc-button{background:#111;color:#fff;border:1px solid #555}
+                    body.markdown-body.high-contrast-theme .fc-button:hover{background:#222;border-color:#777}
                     body.markdown-body.high-contrast-theme .fc-display{color:#fff}
-                    body.markdown-body.high-contrast-theme #copy-notification{
-                        background:rgba(255,255,255,.9);color:#000
-                    }
-                    body.markdown-body.high-contrast-theme .list-item-highlight{
-                        background:rgba(8,136,255,.25)!important
-                    }
-                    .fc-panel {
-                        position: fixed;
-                        top: 10px;
-                        right: 10px;
-                        padding: 8px;
-                        border-radius: 6px;
-                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                        z-index: 1000;
-                        display: flex;
-                        align-items: center;
-                        gap: 6px;
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                        font-size: 13px;
-                        background: rgba(255, 255, 255, 0.95);
-                        backdrop-filter: blur(5px);
-                        -webkit-backdrop-filter: blur(5px);
-                        transition: background-color 0.3s ease, box-shadow 0.3s ease;
-                        flex-wrap: wrap;
-                        justify-content: flex-end;
-                    }
-                    .fc-button {
-                        padding: 5px 10px;
-                        cursor: pointer;
-                        background-color: #f6f8fa;
-                        color: #24292e;
-                        border: 1px solid #d1d5da;
-                        border-radius: 4px;
-                        transition: background-color 0.2s ease, border-color 0.2s ease;
-                        font-size: 12px;
-                        line-height: 1.5;
-                    }
-                    .fc-button:hover:not(:disabled) {
-                        background-color: #eef1f4;
-                        border-color: #c0c5cb;
-                    }
-                    .fc-button:disabled {
-                         opacity: 0.6;
-                         cursor: not-allowed;
-                    }
-                    .fc-display {
-                        color: #24292e;
-                        padding: 0 8px;
-                        min-width: 45px;
-                        text-align: center;
-                        font-weight: 500;
-                        font-size: 12px;
-                    }
-                    body.markdown-body.dark-theme .fc-panel {
-                        background: rgba(22, 27, 34, 0.9);
-                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-                    }
-                    body.markdown-body.dark-theme .fc-button {
-                        background-color: #21262d;
-                        color: #c9d1d9;
-                        border: 1px solid #30363d;
-                    }
-                    body.markdown-body.dark-theme .fc-button:hover:not(:disabled) {
-                        background-color: #30363d;
-                        border-color: #484f58;
-                    }
-                    body.markdown-body.dark-theme .fc-display {
-                        color: #c9d1d9;
-                    }
-                    .list-item-highlight {
-                        background-color: rgba(3, 102, 214, 0.1) !important;
-                        transition: background-color 0.2s ease !important;
-                        border-radius: 3px;
-                    }
-                    body.markdown-body.dark-theme .list-item-highlight {
-                        background-color: rgba(88, 166, 255, 0.15) !important;
-                    }
-                    #raw-markdown {
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-                        font-size: 0.875em;
-                        line-height: 1.5;
-                        padding: 20px;
-                        margin: 0;
-                        border: 1px solid #e1e4e8;
-                        border-radius: 6px;
-                        background-color: #f6f8fa;
-                        color: #24292e;
-                    }
-                    #copy-notification {
-                        display: none;
-                        position: fixed;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background: rgba(30, 30, 30, 0.9);
-                        color: white;
-                        padding: 12px 24px;
-                        border-radius: 6px;
-                        z-index: 2000;
-                        font-size: 14px;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                    }
-                    body.markdown-body.dark-theme #copy-notification {
-                         background: rgba(200, 200, 200, 0.9);
-                         color: #0d1117;
-                    }
-                    li[data-list-index] {
-                        cursor: pointer;
-                        user-select: none;
-                        -webkit-user-select: none;
-                        -moz-user-select: none;
-                        -ms-user-select: none;
-                        position: relative;
-                    }
-                    .katex-display {
-                        margin: 1em 0;
-                        overflow-x: auto;
-                        overflow-y: hidden;
-                    }
-                    .katex {
-                        font-size: 1.1em;
-                    }
-                    @media (max-width: 640px) {
-                        .fc-panel {
-                            flex-direction: column;
-                            align-items: stretch;
-                            top: 5px;
-                            right: 5px;
-                            gap: 4px;
-                            width: 130px;
-                        }
-                        .fc-button, .fc-display {
-                            text-align: center;
-                        }
-                    }
-                    @media print {
-                        #font-controls,
-                        #copy-notification {
-                            display: none !important;
-                        }
-                        body.markdown-body * {
-                            color: #000 !important;
-                            background-color: transparent !important;
-                            box-shadow: none !important;
-                            text-shadow: none !important;
-                        }
-                        body.markdown-body {
-                            background: #fff !important;
-                            padding: 20px !important;
-                            margin: 0 !important;
-                            max-width: 100% !important;
-                        }
-                        body.markdown-body table,
-                        body.markdown-body th,
-                        body.markdown-body td,
-                        body.markdown-body hr,
-                        body.markdown-body blockquote,
-                        body.markdown-body h1,
-                        body.markdown-body h2 {
-                            border-color: #e1e4e8 !important;
-                        }
-                        body.markdown-body img {
-                            background-color: #fff !important;
-                        }
-                        pre, blockquote, table, img, .katex-display {
-                            page-break-inside: avoid;
-                        }
-                        a[href]:after {
-                            content: none !important;
-                        }
-                    }
+                    body.markdown-body.high-contrast-theme #copy-notification{background:rgba(255,255,255,.9);color:#000}
+                    body.markdown-body.high-contrast-theme .list-item-highlight{background:rgba(8,136,255,.25)!important}
+                    .fc-panel{position:fixed;top:10px;right:10px;padding:8px;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.1);z-index:1000;display:flex;align-items:center;gap:6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;background:rgba(255,255,255,.95);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:background-color .3s ease,box-shadow .3s ease;flex-wrap:wrap;justify-content:flex-end}
+                    .fc-button{padding:5px 10px;cursor:pointer;background-color:#f6f8fa;color:#24292e;border:1px solid #d1d5da;border-radius:4px;transition:background-color .2s ease,border-color .2s ease;font-size:12px;line-height:1.5}
+                    .fc-button:hover:not(:disabled){background-color:#eef1f4;border-color:#c0c5cb}
+                    .fc-button:disabled{opacity:.6;cursor:not-allowed}
+                    .fc-display{color:#24292e;padding:0 8px;min-width:45px;text-align:center;font-weight:500;font-size:12px}
+                    body.markdown-body.dark-theme .fc-panel{background:rgba(22,27,34,.9);box-shadow:0 2px 10px rgba(0,0,0,.4)}
+                    body.markdown-body.dark-theme .fc-button{background-color:#21262d;color:#c9d1d9;border:1px solid #30363d}
+                    body.markdown-body.dark-theme .fc-button:hover:not(:disabled){background-color:#30363d;border-color:#484f58}
+                    body.markdown-body.dark-theme .fc-display{color:#c9d1d9}
+                    .list-item-highlight{background-color:rgba(3,102,214,.1)!important;transition:background-color .2s ease!important;border-radius:3px}
+                    body.markdown-body.dark-theme .list-item-highlight{background-color:rgba(88,166,255,.15)!important}
+                    #raw-markdown{white-space:pre-wrap;word-wrap:break-word;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:.875em;line-height:1.5;padding:20px;margin:0;border:1px solid #e1e4e8;border-radius:6px;background-color:#f6f8fa;color:#24292e}
+                    #copy-notification{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(30,30,30,.9);color:#fff;padding:12px 24px;border-radius:6px;z-index:2000;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+                    body.markdown-body.dark-theme #copy-notification{background:rgba(200,200,200,.9);color:#0d1117}
+                    li[data-list-index]{cursor:pointer;user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;position:relative}
+                    .katex-display{margin:1em 0;overflow-x:auto;overflow-y:hidden}
+                    .katex{font-size:1.1em}
+                    @media (max-width:640px){.fc-panel{flex-direction:column;align-items:stretch;top:5px;right:5px;gap:4px;width:130px}.fc-button,.fc-display{text-align:center}}
+                    @media print{#font-controls,#copy-notification{display:none!important}body.markdown-body *{color:#000!important;background-color:transparent!important;box-shadow:none!important;text-shadow:none!important}body.markdown-body{background:#fff!important;padding:20px!important;margin:0!important;max-width:100%!important}body.markdown-body table,body.markdown-body th,body.markdown-body td,body.markdown-body hr,body.markdown-body blockquote,body.markdown-body h1,body.markdown-body h2{border-color:#e1e4e8!important}body.markdown-body img{background-color:#fff!important}pre,blockquote,table,img,.katex-display{page-break-inside:avoid}a[href]:after{content:none!important}}
                 </style>`;
             }
             static getControls() {
@@ -853,8 +481,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
                         <button id="exportImageBtn" class="fc-button" title="Export rendered content as a high-quality PNG image">Export Image</button>
                         <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
-                    </div>
-                `;
+                    </div>`;
             }
             static getClientScript() {
                 return `
@@ -869,23 +496,22 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.addGlobalKeydownListener();
                             }
                             initializeControls() {
-                                this.katexRenderer = new KatexRenderer();
+                                new KatexRenderer();
                                 this.themeController = new ThemeController(this.body);
                                 this.fontSizeController = new FontSizeController(this.body);
                                 this.collapsibleController = new CollapsibleController();
                                 this.viewToggleController = new ViewToggleController();
-                                this.listItemController = new ListItemController();
+                                new ListItemController();
                                 this.savePdfController = new SavePdfController();
-                                this.exportMarkdownController = new ExportMarkdownController();
-                                this.exportImageController = new ExportImageController();
+                                new ExportMarkdownController();
+                                new ExportImageController();
                             }
                             addGlobalKeydownListener() {
                                 document.addEventListener('keydown', (e) => {
                                     if (e.ctrlKey || e.metaKey) {
                                         switch (e.key) {
                                             case '-': e.preventDefault(); this.fontSizeController.adjust(-CONFIG.FONT_SIZE.STEP); break;
-                                            case '=':
-                                            case '+': e.preventDefault(); this.fontSizeController.adjust(CONFIG.FONT_SIZE.STEP); break;
+                                            case '=': case '+': e.preventDefault(); this.fontSizeController.adjust(CONFIG.FONT_SIZE.STEP); break;
                                             case '0': e.preventDefault(); this.fontSizeController.reset(); break;
                                             case 't': case 'T': e.preventDefault(); this.themeController.toggle(); break;
                                             case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
@@ -899,7 +525,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                             constructor() { this.init(); }
                             init() {
                                 if (typeof renderMathInElement === 'function') { this.render(); } 
-                                else { const i = setInterval(() => { if (typeof renderMathInElement === 'function') { clearInterval(i); this.render(); }}, 100); }
+                                else { const renderInterval = setInterval(() => { if (typeof renderMathInElement === 'function') { clearInterval(renderInterval); this.render(); }}, 100); }
                             }
                             render() {
                                 try {
@@ -910,44 +536,54 @@ Don't write something like $E=mc^2$ across multiple lines.
                                         ],
                                         throwOnError: false,
                                     });
-                                } catch (e) { console.error("KaTeX rendering error:", e); }
+                                } catch (error) { console.error("KaTeX rendering error:", error); }
                             }
                         }
                         class ThemeController {
                             constructor(body) {
-                                this.body = body; this.toggleBtn = document.getElementById('toggleThemeBtn');
-                                this.darkClass = 'dark-theme'; this.highContrastClass = 'high-contrast-theme';
-                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME; this.init();
+                                this.body = body;
+                                this.toggleBtn = document.getElementById('toggleThemeBtn');
+                                this.themes = ['light', 'dark', 'high-contrast'];
+                                this.themeClasses = { light: [], dark: ['dark-theme'], 'high-contrast': ['high-contrast-theme'] };
+                                this.buttonText = { light: 'Dark Theme', dark: 'High Contrast', 'high-contrast': 'Light Theme' };
+                                this.localStorageKey = CONFIG.LOCAL_STORAGE_KEYS.THEME;
+                                this.init();
                             }
                             init() {
                                 if (!this.toggleBtn) return;
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
-                                const p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                                this.applyTheme(localStorage.getItem(this.lsKey) || p);
+                                const preferredColorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                                const savedTheme = localStorage.getItem(this.localStorageKey);
+                                this.applyTheme(this.themes.includes(savedTheme) ? savedTheme : preferredColorScheme);
                                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                                    if (!localStorage.getItem(this.lsKey)) { this.applyTheme(e.matches ? 'dark' : 'light'); }
+                                    if (!localStorage.getItem(this.localStorageKey)) { this.applyTheme(e.matches ? 'dark' : 'light'); }
                                 });
                             }
-                            applyTheme(theme) {
-                                this.body.classList.remove(this.darkClass, this.highContrastClass);
-                                if (theme === 'dark') { this.body.classList.add(this.darkClass); this.toggleBtn.textContent = 'High Contrast'; } 
-                                else if (theme === 'high-contrast') { this.body.classList.add(this.highContrastClass); this.toggleBtn.textContent = 'Light Theme'; } 
-                                else { this.toggleBtn.textContent = 'Dark Theme'; }
-                                localStorage.setItem(this.lsKey, theme);
+                            applyTheme(themeName) {
+                                this.body.classList.remove(...Object.values(this.themeClasses).flat());
+                                this.body.classList.add(...this.themeClasses[themeName]);
+                                this.toggleBtn.textContent = this.buttonText[themeName];
+                                localStorage.setItem(this.localStorageKey, themeName);
                             }
                             toggle() {
-                                const c = this.body.classList;
-                                const current = c.contains(this.highContrastClass) ? 'high-contrast' : (c.contains(this.darkClass) ? 'dark' : 'light');
-                                const next = current === 'light' ? 'dark' : (current === 'dark' ? 'high-contrast' : 'light');
-                                this.applyTheme(next);
+                                let currentTheme = 'light';
+                                const classList = this.body.classList;
+                                if (classList.contains(this.themeClasses.dark[0])) currentTheme = 'dark';
+                                if (classList.contains(this.themeClasses['high-contrast'][0])) currentTheme = 'high-contrast';
+                                const currentIndex = this.themes.indexOf(currentTheme);
+                                const nextTheme = this.themes[(currentIndex + 1) % this.themes.length];
+                                this.applyTheme(nextTheme);
                             }
                         }
                         class FontSizeController {
                             constructor(body) {
-                                this.body = body; this.increaseBtn = document.getElementById('increaseFontBtn');
-                                this.decreaseBtn = document.getElementById('decreaseFontBtn'); this.resetBtn = document.getElementById('resetFontBtn');
-                                this.display = document.getElementById('currentFontSizeDisplay'); this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.FONT_SIZE;
-                                this.currentPercent = parseInt(localStorage.getItem(this.lsKey) || CONFIG.FONT_SIZE.DEFAULT, 10);
+                                this.body = body;
+                                this.increaseBtn = document.getElementById('increaseFontBtn');
+                                this.decreaseBtn = document.getElementById('decreaseFontBtn');
+                                this.resetBtn = document.getElementById('resetFontBtn');
+                                this.display = document.getElementById('currentFontSizeDisplay');
+                                this.localStorageKey = CONFIG.LOCAL_STORAGE_KEYS.FONT_SIZE;
+                                this.currentPercent = parseInt(localStorage.getItem(this.localStorageKey) || CONFIG.FONT_SIZE.DEFAULT, 10);
                                 this.init();
                             }
                             init() {
@@ -959,33 +595,34 @@ Don't write something like $E=mc^2$ across multiple lines.
                             }
                             adjust(step) { this.applyFontSize(this.currentPercent + step); }
                             reset() { this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT); }
-                            applyFontSize(p) {
-                                this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, p));
+                            applyFontSize(newPercentage) {
+                                this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, newPercentage));
                                 this.body.style.fontSize = \`\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\`;
                                 this.display.textContent = \`\${this.currentPercent}%\`;
-                                localStorage.setItem(this.lsKey, this.currentPercent);
+                                localStorage.setItem(this.localStorageKey, this.currentPercent);
                             }
                         }
                         class CollapsibleController {
                             constructor() {
                                 this.toggleButton = document.getElementById('toggleCollapseBtn');
                                 this.controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
-                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED; this.init();
+                                this.localStorageKey = CONFIG.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED;
+                                this.init();
                             }
                             init() {
                                 if (!this.toggleButton) return;
                                 this.toggleButton.addEventListener('click', () => this.toggle());
-                                this.applyState(JSON.parse(localStorage.getItem(this.lsKey) || 'false'));
+                                this.applyState(JSON.parse(localStorage.getItem(this.localStorageKey) || 'false'));
                             }
                             toggle() {
-                                const current = this.controlsToToggle[0].style.display === 'none';
-                                this.applyState(!current);
+                                const isCurrentlyCollapsed = this.controlsToToggle[0].style.display === 'none';
+                                this.applyState(!isCurrentlyCollapsed);
                             }
-                            applyState(collapsed) {
-                                this.controlsToToggle.forEach(c => { c.style.display = collapsed ? 'none' : ''; });
-                                this.toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
-                                this.toggleButton.title = collapsed ? 'Expand Controls' : 'Collapse Controls';
-                                localStorage.setItem(this.lsKey, JSON.stringify(collapsed));
+                            applyState(isCollapsed) {
+                                this.controlsToToggle.forEach(control => { control.style.display = isCollapsed ? 'none' : ''; });
+                                this.toggleButton.textContent = isCollapsed ? 'Expand' : 'Collapse';
+                                this.toggleButton.title = isCollapsed ? 'Expand Controls' : 'Collapse Controls';
+                                localStorage.setItem(this.localStorageKey, JSON.stringify(isCollapsed));
                             }
                         }
                         class ViewToggleController {
@@ -993,37 +630,37 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.toggleBtn = document.getElementById('toggleViewBtn');
                                 this.contentContainer = document.getElementById('content-container');
                                 this.rawContainer = document.getElementById('raw-container');
-                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.VIEW_MODE; this.init();
+                                this.localStorageKey = CONFIG.LOCAL_STORAGE_KEYS.VIEW_MODE;
+                                this.init();
                             }
                             init() {
                                 if (!this.toggleBtn || !this.contentContainer || !this.rawContainer) return;
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
-                                this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered');
+                                this.applyViewMode(localStorage.getItem(this.localStorageKey) || 'rendered');
                             }
                             toggle() {
-                                const current = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
-                                this.applyViewMode(current === 'rendered' ? 'raw' : 'rendered');
+                                const currentMode = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
+                                this.applyViewMode(currentMode === 'rendered' ? 'raw' : 'rendered');
                             }
                             applyViewMode(mode) {
-                                if (mode === 'raw') {
-                                    this.contentContainer.style.display = 'none'; this.rawContainer.style.display = 'block';
-                                    this.toggleBtn.textContent = 'Rendered'; this.toggleBtn.title = 'Show Rendered View';
-                                } else {
-                                    this.contentContainer.style.display = 'block'; this.rawContainer.style.display = 'none';
-                                    this.toggleBtn.textContent = 'Raw'; this.toggleBtn.title = 'Show Raw Markdown';
-                                }
-                                localStorage.setItem(this.lsKey, mode);
+                                const isRaw = mode === 'raw';
+                                this.contentContainer.style.display = isRaw ? 'none' : 'block';
+                                this.rawContainer.style.display = isRaw ? 'block' : 'none';
+                                this.toggleBtn.textContent = isRaw ? 'Rendered' : 'Raw';
+                                this.toggleBtn.title = isRaw ? 'Show Rendered View' : 'Show Raw Markdown';
+                                localStorage.setItem(this.localStorageKey, mode);
                             }
                         }
                         class SavePdfController {
                              constructor() {
                                 this.btn = document.getElementById('saveAsPdfBtn');
                                 this.controlsPanel = document.getElementById('font-controls');
-                                this.rawContainer = document.getElementById('raw-container'); this.init();
+                                this.rawContainer = document.getElementById('raw-container');
+                                this.init();
                             }
                             init() { if (this.btn) { this.btn.addEventListener('click', () => this.saveAsPdf()); } }
                             saveAsPdf() {
-                                if (this.rawContainer && this.rawContainer.style.display !== 'none') {
+                                if (this.rawContainer?.style.display !== 'none') {
                                     alert('Switch to the rendered view before exporting to PDF.'); return;
                                 }
                                 this.controlsPanel.style.display = 'none';
@@ -1039,24 +676,14 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.cachedKatexCSS = null;
                                 this.init();
                             }
-                            init() {
-                                if (this.btn) {
-                                    this.btn.addEventListener('click', () => this.exportAsImage());
-                                }
-                            }
+                            init() { if (this.btn) { this.btn.addEventListener('click', () => this.exportAsImage()); } }
                             async fetchKatexCSS() {
-                                if (this.cachedKatexCSS) {
-                                    return this.cachedKatexCSS;
-                                }
+                                if (this.cachedKatexCSS) return this.cachedKatexCSS;
                                 try {
-                                    const cssUrl = APP_DATA.config.CDN.katexCSS;
-                                    const response = await fetch(cssUrl);
-                                    if (!response.ok) {
-                                        throw new Error(\`Failed to fetch CSS: \${response.statusText}\`);
-                                    }
-                                    const cssText = await response.text();
-                                    this.cachedKatexCSS = cssText;
-                                    return cssText;
+                                    const response = await fetch(APP_DATA.config.CDN.katexCSS);
+                                    if (!response.ok) throw new Error(\`Failed to fetch CSS: \${response.statusText}\`);
+                                    this.cachedKatexCSS = await response.text();
+                                    return this.cachedKatexCSS;
                                 } catch (error) {
                                     console.error('Could not fetch KaTeX CSS for image export:', error);
                                     return '';
@@ -1064,35 +691,25 @@ Don't write something like $E=mc^2$ across multiple lines.
                             }
                             async exportAsImage() {
                                 if (typeof html2canvas === 'undefined') {
-                                    alert('Image export library (html2canvas) is not loaded yet. Please try again in a moment.');
-                                    return;
+                                    alert('Image export library is not loaded. Please try again in a moment.'); return;
                                 }
                                 if (this.rawContainer?.style.display !== 'none') {
-                                    alert('Switch to the rendered view before exporting as an image.');
-                                    return;
+                                    alert('Switch to the rendered view before exporting as an image.'); return;
                                 }
-                        
                                 const originalBtnText = this.btn.textContent;
                                 const originalControlsDisplay = this.controlsPanel.style.display;
-                                const originalScrollX = window.scrollX;
-                                const originalScrollY = window.scrollY;
-                        
+                                const { scrollX, scrollY } = window;
                                 this.btn.textContent = 'Generating...';
                                 this.btn.disabled = true;
                                 this.controlsPanel.style.display = 'none';
                                 if (this.notificationElement) this.notificationElement.style.display = 'none';
-                        
                                 window.scrollTo(0, 0);
-                        
                                 try {
                                     await new Promise(resolve => requestAnimationFrame(resolve));
-                        
                                     const katexCSSText = await this.fetchKatexCSS();
                                     const canvas = await html2canvas(document.body, {
-                                        scale: 2,
-                                        useCORS: true,
+                                        scale: 2, useCORS: true, logging: false,
                                         backgroundColor: window.getComputedStyle(document.body).backgroundColor,
-                                        logging: false,
                                         windowWidth: document.documentElement.scrollWidth,
                                         windowHeight: document.documentElement.scrollHeight,
                                         onclone: (clonedDoc) => {
@@ -1103,14 +720,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             }
                                         },
                                     });
-                        
                                     const link = document.createElement('a');
-                                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                                    link.download = \`markdown-export-\${timestamp}.png\`;
+                                    link.download = \`markdown-export-\${new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4)}.png\`;
                                     link.href = canvas.toDataURL('image/png');
-                                    document.body.appendChild(link);
                                     link.click();
-                                    document.body.removeChild(link);
+                                    link.remove();
                                 } catch (error) {
                                     console.error('Error exporting image:', error);
                                     alert('An error occurred while exporting the image. See console for details.');
@@ -1118,7 +732,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.controlsPanel.style.display = originalControlsDisplay;
                                     this.btn.textContent = originalBtnText;
                                     this.btn.disabled = false;
-                                    window.scrollTo(originalScrollX, originalScrollY);
+                                    window.scrollTo(scrollX, scrollY);
                                 }
                             }
                         }
@@ -1130,13 +744,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.longPressElement = null;
                                 this.touchStartX = 0;
                                 this.touchStartY = 0;
-                        
                                 this.boundHandleMove = this.handleMove.bind(this);
                                 this.boundHandleEnd = this.handleEnd.bind(this);
-                        
                                 this.init();
                             }
-                        
                             init() {
                                 if (!this.contentContainer || !this.notificationElement) return;
                                 const setup = () => {
@@ -1147,28 +758,21 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 const observer = new MutationObserver(setup);
                                 observer.observe(this.contentContainer, { childList: true, subtree: true });
                             }
-                        
                             attachInitialListeners() {
-                                const listItems = this.contentContainer.querySelectorAll('li');
-                                listItems.forEach((li, index) => {
-                                    if (li.dataset.listCopyInitialized === 'true') return;
+                                this.contentContainer.querySelectorAll('li').forEach((li, index) => {
+                                    if (li.dataset.listCopyInitialized) return;
                                     li.dataset.listIndex = index;
                                     li.dataset.listCopyInitialized = 'true';
-                                    
                                     li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
                                     li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
                                 });
                             }
-                        
                             handleStart(element, event) {
                                 this.handleEnd();
-                        
                                 this.longPressElement = element;
-                        
                                 if (event.type === 'touchstart' && event.touches.length > 0) {
                                     this.touchStartX = event.touches[0].clientX;
                                     this.touchStartY = event.touches[0].clientY;
-                        
                                     element.addEventListener('touchmove', this.boundHandleMove, { passive: true });
                                     element.addEventListener('touchend', this.boundHandleEnd);
                                     element.addEventListener('touchcancel', this.boundHandleEnd);
@@ -1176,107 +780,68 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     element.addEventListener('mouseup', this.boundHandleEnd);
                                     element.addEventListener('mouseleave', this.boundHandleEnd);
                                 }
-                        
                                 element.classList.add('list-item-highlight');
-                                
-                                this.longPressTimer = setTimeout(async () => {
-                                    if (this.longPressElement === element) {
-                                        await this.copyListContent(element);
-                                    }
+                                this.longPressTimer = setTimeout(() => {
+                                    if (this.longPressElement === element) this.copyListContent(element);
                                 }, CONFIG.LONG_PRESS_DURATION);
                             }
-                        
                             handleMove(event) {
-                                if (!this.longPressTimer) return;
-                        
-                                if (event.touches.length > 0) {
-                                    const touch = event.touches[0];
-                                    const deltaX = Math.abs(touch.clientX - this.touchStartX);
-                                    const deltaY = Math.abs(touch.clientY - this.touchStartY);
-                                
-                                    if (deltaX > 10 || deltaY > 10) {
-                                        this.handleEnd();
-                                    }
-                                }
+                                if (!this.longPressTimer || event.touches.length === 0) return;
+                                const touch = event.touches[0];
+                                const deltaX = Math.abs(touch.clientX - this.touchStartX);
+                                const deltaY = Math.abs(touch.clientY - this.touchStartY);
+                                if (deltaX > 10 || deltaY > 10) this.handleEnd();
                             }
-                        
                             handleEnd() {
-                                if (this.longPressTimer) {
-                                    clearTimeout(this.longPressTimer);
-                                    this.longPressTimer = null;
-                                }
-                        
+                                clearTimeout(this.longPressTimer);
+                                this.longPressTimer = null;
                                 if (this.longPressElement) {
                                     this.longPressElement.classList.remove('list-item-highlight');
-                                    
                                     this.longPressElement.removeEventListener('touchmove', this.boundHandleMove);
                                     this.longPressElement.removeEventListener('touchend', this.boundHandleEnd);
                                     this.longPressElement.removeEventListener('touchcancel', this.boundHandleEnd);
                                     this.longPressElement.removeEventListener('mouseup', this.boundHandleEnd);
                                     this.longPressElement.removeEventListener('mouseleave', this.boundHandleEnd);
-                                    
                                     this.longPressElement = null;
                                 }
                             }
-                        
                             async copyListContent(element) {
                                 try {
                                     const listIndex = parseInt(element.dataset.listIndex, 10);
-                                    if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
-                                        const textContent = (element.innerText || element.textContent || "").trim();
-                                        if (textContent) {
-                                            await this._copyToClipboard(textContent);
-                                            this.showNotification('List item text copied!');
-                                        } else {
-                                            throw new Error('List item content is empty.');
-                                        }
-                                        return;
+                                    const listItemData = APP_DATA.listItems?.[listIndex];
+                                    const textToCopy = listItemData ? listItemData.content : (element.innerText || element.textContent || "").trim();
+                                    if (textToCopy) {
+                                        await Utils.copyToClipboard(textToCopy);
+                                        this.showNotification('List content copied!');
+                                    } else {
+                                        throw new Error('List item content is empty.');
                                     }
-                                    const textToCopy = APP_DATA.listItems[listIndex].content;
-                                    await this._copyToClipboard(textToCopy);
-                                    this.showNotification('List content copied!');
                                 } catch (err) {
                                     console.error('Failed to copy list item:', err);
                                     this.showNotification('Failed to copy. See console.', true);
                                 }
                             }
-                        
-                            async _copyToClipboard(text) {
-                                if (navigator.clipboard?.writeText) { return navigator.clipboard.writeText(text); }
-                                const ta = document.createElement('textarea');
-                                ta.value = text;
-                                ta.style.position = 'fixed'; ta.style.opacity = '0';
-                                document.body.appendChild(ta);
-                                ta.select(); document.execCommand('copy');
-                                document.body.removeChild(ta);
-                            }
-                        
                             showNotification(message, isError = false) {
                                 if (!this.notificationElement) return;
                                 this.notificationElement.textContent = message;
-                                this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                                this.notificationElement.style.color = 'white';
-                                if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                                    this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
-                                    this.notificationElement.style.color = '#0d1117';
-                                }
+                                this.notificationElement.style.backgroundColor = ''; this.notificationElement.style.color = '';
+                                this.notificationElement.classList.toggle('error', isError);
                                 this.notificationElement.style.display = 'block';
                                 setTimeout(() => { this.notificationElement.style.display = 'none'; }, isError ? 3500 : 2000);
                             }
                         }
-
                         class ExportMarkdownController {
                             constructor() { this.btn = document.getElementById('exportMarkdownBtn'); this.init(); }
                             init() { if (this.btn) this.btn.addEventListener('click', () => this.exportMarkdown()); }
                             exportMarkdown() {
-                                const rawMarkdown = APP_DATA.rawMarkdown;
-                                const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
+                                const blob = new Blob([APP_DATA.rawMarkdown], { type: 'text/markdown;charset=utf-8' });
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
-                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                                link.href = url; link.download = \`markdown-export-\${timestamp}.md\`;
-                                document.body.appendChild(link); link.click();
-                                document.body.removeChild(link); URL.revokeObjectURL(url);
+                                link.href = url;
+                                link.download = \`markdown-export-\${new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4)}.md\`;
+                                link.click();
+                                link.remove();
+                                URL.revokeObjectURL(url);
                             }
                         }
                         document.addEventListener('DOMContentLoaded', () => { window.markdownRendererUI = new UIController(); });
@@ -1284,6 +849,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 `;
             }
         }
+
         class MarkdownRendererApp {
             constructor() {
                 this.dom = {};
@@ -1309,42 +875,38 @@ Don't write something like $E=mc^2$ across multiple lines.
             setupMarked() {
                 if (typeof marked === 'undefined') {
                     console.error("Marked.js is not loaded!");
-                    if (this.dom.renderButton) this.dom.renderButton.disabled = true;
-                    if (this.dom.pasteAndRenderButton) this.dom.pasteAndRenderButton.disabled = true;
+                    this.dom.renderButton.disabled = true;
+                    this.dom.pasteAndRenderButton.disabled = true;
                     return;
                 }
-                marked.setOptions({
-                    gfm: true,
-                    breaks: true,
-                    smartypants: false,
-                });
+                marked.setOptions({ gfm: true, breaks: true, smartypants: false });
             }
             bindEventListeners() {
-                this.dom.renderButton?.addEventListener('click', () => this.handleRender());
-                this.dom.pasteAndRenderButton?.addEventListener('click', () => this.handlePasteAndRender());
-                this.dom.clearButton?.addEventListener('click', () => this.handleClear());
-                this.dom.markdownInput?.addEventListener('keydown', (e) => {
+                this.dom.renderButton.addEventListener('click', () => this.handleRender());
+                this.dom.pasteAndRenderButton.addEventListener('click', () => this.handlePasteAndRender());
+                this.dom.clearButton.addEventListener('click', () => this.handleClear());
+                this.dom.markdownInput.addEventListener('keydown', (e) => {
                     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                         e.preventDefault();
                         this.handleRender();
                     }
                 });
-                this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
-                this.dom.importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
+                this.dom.importBtn.addEventListener('click', () => this.dom.importFileInput.click());
+                this.dom.importFileInput.addEventListener('change', (e) => this.handleImportFile(e));
             }
-            handleImportFile(e) {
-                const file = e.target.files?.[0];
+            handleImportFile(event) {
+                const file = event.target.files?.[0];
                 if (!file) return;
-                e.target.value = '';
+                event.target.value = '';
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.dom.markdownInput.value = event.target.result;
+                reader.onload = (readEvent) => {
+                    this.dom.markdownInput.value = readEvent.target.result;
                     this.dom.markdownInput.focus();
                     this.handleRender();
                 };
                 reader.onerror = (error) => {
                     console.error("Error reading file:", error);
-                    alert("Error reading file. Please check the console for details.");
+                    alert("Error reading file. See console for details.");
                 };
                 reader.readAsText(file);
             }
@@ -1367,7 +929,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.handleRender();
                 } catch (err) {
                     console.error('Failed to read clipboard:', err);
-                    alert('Failed to read from clipboard. Please check permissions or paste manually.');
+                    alert('Failed to read from clipboard. Please paste manually.');
                 }
             }
             handleClear() {
@@ -1383,16 +945,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                     let html = marked.parse(tempText);
                     html = MathProcessor.restoreMathExpressions(html, mathExpressions);
                     const listItems = ListItemParser.parse(markdownText);
-                    const fullPageHtml = RenderedPageBuilder.build(
-                        html,
-                        markdownText,
-                        "Rendered Markdown & LaTeX",
-                        listItems
-                    );
+                    const fullPageHtml = RenderedPageBuilder.build(html, markdownText, "Rendered Markdown & LaTeX", listItems);
                     this.openInNewTab(fullPageHtml);
                 } catch (error) {
                     console.error("Error during markdown rendering:", error);
-                    alert("An error occurred while rendering the markdown. Please check the console for details.");
+                    alert("An error occurred while rendering the markdown. See console for details.");
                 }
             }
             openInNewTab(htmlContent) {
