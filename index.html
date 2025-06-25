@@ -332,8 +332,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         const contentOnFirstLine = match[2];
                         const isOrdered = !!orderedMatch;
 
-                        // Calculate the base indentation for continuation lines.
-                        // This is the column where the content on the first line starts.
                         const baseIndentation = line.indexOf(contentOnFirstLine);
 
                         let fullContent = contentOnFirstLine;
@@ -343,22 +341,17 @@ Don't write something like $E=mc^2$ across multiple lines.
                             const nextLine = lines[j];
                             const nextTrimmed = nextLine.trim();
 
-                            // Use original break conditions to minimize collateral changes.
-                            // This breaks on empty lines or new list items.
                             if (nextTrimmed === '' ||
                                 nextLine.match(/^\s*[-*+]\s+/) ||
                                 nextLine.match(/^\s*\d+\.\s+/)) {
                                 break;
                             }
 
-                            // Check for continuation based on proper indentation.
                             const leadingWhitespaceLength = (nextLine.match(/^\s*/) || [''])[0].length;
                             if (leadingWhitespaceLength >= baseIndentation && nextTrimmed !== '') {
-                                // This line is a continuation. Remove the base indentation.
                                 fullContent += '\n' + nextLine.substring(baseIndentation);
                                 j++;
                             } else {
-                                // Not indented enough, so it's not part of the current item.
                                 break;
                             }
                         }
