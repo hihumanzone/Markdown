@@ -24,6 +24,24 @@
             --shadow-color: hsla(220, 40%, 15%, 0.08);
         }
 
+        body.dark-theme {
+            --bg-color: #0d1117;
+            --surface-color: #161b22;
+            --text-color: #c9d1d9;
+            --text-muted-color: #8b949e;
+            --border-color: #30363d;
+            --shadow-color: hsla(220, 40%, 5%, 0.3);
+        }
+
+        body.high-contrast-theme {
+            --bg-color: #000;
+            --surface-color: #111;
+            --text-color: #fff;
+            --text-muted-color: #ccc;
+            --border-color: #444;
+            --shadow-color: hsla(220, 40%, 5%, 0.5);
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -77,6 +95,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background-color: var(--surface-color);
+            color: var(--text-color);
             font-family: 'Fira Code', 'JetBrains Mono', monospace;
             font-size: 1rem;
             line-height: 1.5;
@@ -239,6 +258,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <button id="clearBtn" class="button-secondary" title="Clear the input">Clear</button>
                 <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" />
                 <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file">Import File</button>
+                <button id="themeToggleBtn" class="button-secondary" title="Toggle theme (Ctrl/Cmd + T)">Dark Theme</button>
             </div>
         </div>
         <div class="info">
@@ -1415,7 +1435,64 @@ Don't write something like $E=mc^2$ across multiple lines.
                 }
             }
         }
+        
+        class MainPageThemeController {
+            constructor() {
+                this.body = document.body;
+                this.toggleBtn = document.getElementById('themeToggleBtn');
+                this.darkClass = 'dark-theme';
+                this.highContrastClass = 'high-contrast-theme';
+                this.lsKey = 'renderedOutputTheme';
+                this.init();
+            }
+            
+            init() {
+                if (!this.toggleBtn) return;
+                this.toggleBtn.addEventListener('click', () => this.toggle());
+                
+                document.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+                        e.preventDefault();
+                        this.toggle();
+                    }
+                });
+                
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                this.applyTheme(localStorage.getItem(this.lsKey) || prefersDark);
+                
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    if (!localStorage.getItem(this.lsKey)) {
+                        this.applyTheme(e.matches ? 'dark' : 'light');
+                    }
+                });
+            }
+            
+            applyTheme(theme) {
+                this.body.classList.remove(this.darkClass, this.highContrastClass);
+                if (theme === 'dark') {
+                    this.body.classList.add(this.darkClass);
+                    this.toggleBtn.textContent = 'High Contrast';
+                } else if (theme === 'high-contrast') {
+                    this.body.classList.add(this.highContrastClass);
+                    this.toggleBtn.textContent = 'Light Theme';
+                } else {
+                    this.toggleBtn.textContent = 'Dark Theme';
+                }
+                localStorage.setItem(this.lsKey, theme);
+            }
+            
+            toggle() {
+                const classList = this.body.classList;
+                const current = classList.contains(this.highContrastClass) ? 'high-contrast' : 
+                               (classList.contains(this.darkClass) ? 'dark' : 'light');
+                const next = current === 'light' ? 'dark' : 
+                            (current === 'dark' ? 'high-contrast' : 'light');
+                this.applyTheme(next);
+            }
+        }
+        
         new MarkdownRendererApp();
+        new MainPageThemeController();
     </script>
 </body>
 </html>
