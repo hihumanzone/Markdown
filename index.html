@@ -24,7 +24,6 @@
             --shadow-color: hsla(220, 40%, 15%, 0.08);
         }
 
-        /* Dark theme styles for main interface */
         body.dark-theme {
             --bg-color: #0d1117;
             --surface-color: #161b22;
@@ -96,6 +95,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background-color: var(--surface-color);
+            color: var(--text-color);
             font-family: 'Fira Code', 'JetBrains Mono', monospace;
             font-size: 1rem;
             line-height: 1.5;
@@ -1436,14 +1436,13 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
         }
         
-        // Main page theme controller
         class MainPageThemeController {
             constructor() {
                 this.body = document.body;
                 this.toggleBtn = document.getElementById('themeToggleBtn');
                 this.darkClass = 'dark-theme';
                 this.highContrastClass = 'high-contrast-theme';
-                this.lsKey = 'renderedOutputTheme'; // Use same key as rendered output
+                this.lsKey = 'renderedOutputTheme';
                 this.init();
             }
             
@@ -1451,7 +1450,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 if (!this.toggleBtn) return;
                 this.toggleBtn.addEventListener('click', () => this.toggle());
                 
-                // Listen for keyboard shortcut (Ctrl/Cmd + T)
                 document.addEventListener('keydown', (e) => {
                     if ((e.ctrlKey || e.metaKey) && e.key === 't') {
                         e.preventDefault();
@@ -1459,11 +1457,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                 });
                 
-                // Get initial theme from localStorage or system preference
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                 this.applyTheme(localStorage.getItem(this.lsKey) || prefersDark);
                 
-                // Listen for system theme changes
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
                     if (!localStorage.getItem(this.lsKey)) {
                         this.applyTheme(e.matches ? 'dark' : 'light');
