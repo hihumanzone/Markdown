@@ -1058,7 +1058,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 if (!this.toggleBtn) return;
                                 this.toggleBtn.addEventListener('click', () => this.toggle());
                                 
-                                // Listen for fullscreen change events
                                 document.addEventListener('fullscreenchange', () => this.updateButtonText());
                                 document.addEventListener('webkitfullscreenchange', () => this.updateButtonText());
                                 document.addEventListener('mozfullscreenchange', () => this.updateButtonText());
