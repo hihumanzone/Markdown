@@ -878,6 +878,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                         <button id="resetFontBtn" title="Reset font size (Ctrl/Cmd + 0)" class="fc-button">Reset</button>
                         <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
                         <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
+                        <button id="toggleFullscreenBtn" title="Toggle fullscreen mode (F11)" class="fc-button">Fullscreen</button>
                         <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
                         <button id="exportImageBtn" class="fc-button" title="Export rendered content as a high-quality PNG image">Export Image</button>
                         <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
@@ -902,6 +903,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                                 this.fontSizeController = new FontSizeController(this.body);
                                 this.collapsibleController = new CollapsibleController();
                                 this.viewToggleController = new ViewToggleController();
+                                this.fullscreenController = new FullscreenController();
                                 this.listItemController = new ListItemController();
                                 this.savePdfController = new SavePdfController();
                                 this.exportMarkdownController = new ExportMarkdownController();
@@ -919,6 +921,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                                             case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
                                             case 'p': case 'P': e.preventDefault(); this.savePdfController.saveAsPdf(); break;
                                         }
+                                    } else if (e.key === 'F11') {
+                                        e.preventDefault(); 
+                                        this.fullscreenController.toggle();
                                     }
                                 });
                             }
@@ -1041,6 +1046,70 @@ Don't write something like $E=mc^2$ across multiple lines.
                                     this.toggleBtn.textContent = 'Raw'; this.toggleBtn.title = 'Show Raw Markdown';
                                 }
                                 localStorage.setItem(this.lsKey, mode);
+                            }
+                        }
+                        class FullscreenController {
+                            constructor() {
+                                this.toggleBtn = document.getElementById('toggleFullscreenBtn');
+                                this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.FULLSCREEN || 'renderedOutputFullscreen';
+                                this.init();
+                            }
+                            init() {
+                                if (!this.toggleBtn) return;
+                                this.toggleBtn.addEventListener('click', () => this.toggle());
+                                
+                                // Listen for fullscreen change events
+                                document.addEventListener('fullscreenchange', () => this.updateButtonText());
+                                document.addEventListener('webkitfullscreenchange', () => this.updateButtonText());
+                                document.addEventListener('mozfullscreenchange', () => this.updateButtonText());
+                                document.addEventListener('msfullscreenchange', () => this.updateButtonText());
+                                
+                                this.updateButtonText();
+                            }
+                            toggle() {
+                                if (this.isFullscreen()) {
+                                    this.exitFullscreen();
+                                } else {
+                                    this.enterFullscreen();
+                                }
+                            }
+                            isFullscreen() {
+                                return !!(document.fullscreenElement || 
+                                         document.webkitFullscreenElement || 
+                                         document.mozFullScreenElement || 
+                                         document.msFullscreenElement);
+                            }
+                            enterFullscreen() {
+                                const elem = document.documentElement;
+                                if (elem.requestFullscreen) {
+                                    elem.requestFullscreen();
+                                } else if (elem.webkitRequestFullscreen) {
+                                    elem.webkitRequestFullscreen();
+                                } else if (elem.mozRequestFullScreen) {
+                                    elem.mozRequestFullScreen();
+                                } else if (elem.msRequestFullscreen) {
+                                    elem.msRequestFullscreen();
+                                }
+                            }
+                            exitFullscreen() {
+                                if (document.exitFullscreen) {
+                                    document.exitFullscreen();
+                                } else if (document.webkitExitFullscreen) {
+                                    document.webkitExitFullscreen();
+                                } else if (document.mozCancelFullScreen) {
+                                    document.mozCancelFullScreen();
+                                } else if (document.msExitFullscreen) {
+                                    document.msExitFullscreen();
+                                }
+                            }
+                            updateButtonText() {
+                                if (this.isFullscreen()) {
+                                    this.toggleBtn.textContent = 'Exit Fullscreen';
+                                    this.toggleBtn.title = 'Exit fullscreen mode (F11)';
+                                } else {
+                                    this.toggleBtn.textContent = 'Fullscreen';
+                                    this.toggleBtn.title = 'Enter fullscreen mode (F11)';
+                                }
                             }
                         }
                         class SavePdfController {
