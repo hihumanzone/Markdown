@@ -55,9 +55,19 @@
         }
 
         .main-content {
-            max-width: 960px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 3rem 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                max-width: 960px;
+            }
         }
 
         h1 {
@@ -207,15 +217,195 @@
             padding-bottom: 0;
             border-bottom: none;
         }
+
+        .sidebar {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                order: -1;
+            }
+        }
+
+        .sidebar h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: transparent;
+        }
+
+        .section-item:hover {
+            background-color: var(--bg-color);
+            border-color: var(--border-color);
+        }
+
+        .section-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .section-title {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 0.5rem;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .section-item:hover .section-actions {
+            opacity: 1;
+        }
+
+        .section-item.active .section-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            padding: 0.25rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .section-item:not(.active) .action-btn {
+            color: var(--text-muted-color);
+        }
+
+        .section-item:not(.active) .action-btn:hover {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .save-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: stretch;
+        }
+
+        .save-title-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .save-title-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--primary-focus-shadow);
+        }
+
+        .save-btn {
+            padding: 0.5rem 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        .save-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted-color);
+            font-size: 0.9rem;
+            padding: 1rem;
+            font-style: italic;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: transparent;
+        }
+
+        .history-item:hover {
+            background-color: var(--bg-color);
+            border-color: var(--border-color);
+        }
+
+        .history-title {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 0.5rem;
+        }
+
+        .history-date {
+            font-size: 0.75rem;
+            color: var(--text-muted-color);
+        }
     </style>
 </head>
 <body>
     <div class="main-content">
-        <h1>Markdown & LaTeX Renderer</h1>
-        <div class="input-section">
-            <h2>Markdown Input</h2>
-            <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
-            <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
+        <div class="main-area">
+            <h1>Markdown & LaTeX Renderer</h1>
+            <div class="input-section">
+                <h2>Markdown Input</h2>
+                <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
+                <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
 # Hello World
 This is **bold** and _italic_.
 `inline code`
@@ -270,6 +460,24 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <li><strong>Long press on list items</strong> to copy their content to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
+        </div>
+        <div class="sidebar">
+            <div class="saved-sections">
+                <h3>Saved Sections</h3>
+                <div class="save-controls">
+                    <input type="text" id="sectionTitle" class="save-title-input" placeholder="Section title...">
+                    <button id="saveBtn" class="save-btn">Save</button>
+                </div>
+                <div id="savedSectionsList" class="sections-list">
+                    <div class="empty-state">No saved sections yet</div>
+                </div>
+            </div>
+            <div class="recent-history" style="margin-top: 1.5rem;">
+                <h3>Recent History</h3>
+                <div id="historyList" class="history-list">
+                    <div class="empty-state">No recent history</div>
+                </div>
+            </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -1381,9 +1589,349 @@ Don't write something like $E=mc^2$ across multiple lines.
                 `;
             }
         }
+        
+        class SavedSectionsManager {
+            constructor(dom, app) {
+                this.dom = dom;
+                this.app = app;
+                this.STORAGE_KEYS = {
+                    SAVED_SECTIONS: 'markdownSavedSections',
+                    HISTORY: 'markdownHistory'
+                };
+                this.currentActiveSection = null;
+                this.init();
+            }
+            
+            init() {
+                this.bindEventListeners();
+                this.loadSavedSections();
+                this.loadHistory();
+            }
+            
+            bindEventListeners() {
+                this.dom.saveBtn?.addEventListener('click', () => this.saveCurrentSection());
+                this.dom.sectionTitle?.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.saveCurrentSection();
+                    }
+                });
+                
+                // Override the import functionality to also save as section
+                if (this.dom.importFileInput) {
+                    this.dom.importFileInput.addEventListener('change', (e) => this.handleImportFile(e));
+                }
+            }
+            
+            saveCurrentSection() {
+                const title = this.dom.sectionTitle?.value?.trim();
+                const content = this.dom.markdownInput?.value?.trim();
+                
+                if (!title) {
+                    alert('Please enter a title for the section.');
+                    return;
+                }
+                
+                if (!content) {
+                    alert('Please enter some content to save.');
+                    return;
+                }
+                
+                const section = {
+                    id: Date.now().toString(),
+                    title: title,
+                    content: content,
+                    createdAt: new Date().toISOString(),
+                    lastModified: new Date().toISOString()
+                };
+                
+                this.addSavedSection(section);
+                this.dom.sectionTitle.value = '';
+                alert('Section saved successfully!');
+            }
+            
+            addSavedSection(section) {
+                const sections = this.getSavedSections();
+                sections.unshift(section); // Add to beginning
+                this.setSavedSections(sections);
+                this.renderSavedSections();
+            }
+            
+            getSavedSections() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.SAVED_SECTIONS) || '[]');
+                } catch (e) {
+                    console.error('Error loading saved sections:', e);
+                    return [];
+                }
+            }
+            
+            setSavedSections(sections) {
+                try {
+                    localStorage.setItem(this.STORAGE_KEYS.SAVED_SECTIONS, JSON.stringify(sections));
+                } catch (e) {
+                    console.error('Error saving sections:', e);
+                    alert('Error saving section. Local storage may be full.');
+                }
+            }
+            
+            loadSavedSections() {
+                this.renderSavedSections();
+            }
+            
+            renderSavedSections() {
+                const sections = this.getSavedSections();
+                const container = this.dom.savedSectionsList;
+                
+                if (!container) return;
+                
+                if (sections.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No saved sections yet</div>';
+                    return;
+                }
+                
+                container.innerHTML = sections.map(section => `
+                    <div class="section-item" data-section-id="${section.id}">
+                        <div class="section-title" title="${this.escapeHtml(section.title)}">${this.escapeHtml(section.title)}</div>
+                        <div class="section-actions">
+                            <button class="action-btn rename-btn" title="Rename section">✎</button>
+                            <button class="action-btn export-btn" title="Export as .md file">↓</button>
+                            <button class="action-btn delete-btn" title="Delete section">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add event listeners to the rendered elements
+                container.querySelectorAll('.section-item').forEach(item => {
+                    const sectionId = item.dataset.sectionId;
+                    const section = sections.find(s => s.id === sectionId);
+                    
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('action-btn')) {
+                            this.loadSection(section);
+                        }
+                    });
+                    
+                    const renameBtn = item.querySelector('.rename-btn');
+                    const exportBtn = item.querySelector('.export-btn');
+                    const deleteBtn = item.querySelector('.delete-btn');
+                    
+                    renameBtn?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.renameSection(section);
+                    });
+                    
+                    exportBtn?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.exportSection(section);
+                    });
+                    
+                    deleteBtn?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteSection(section);
+                    });
+                });
+            }
+            
+            loadSection(section) {
+                if (this.dom.markdownInput) {
+                    this.dom.markdownInput.value = section.content;
+                    this.dom.markdownInput.focus();
+                }
+                
+                // Update active section visual state
+                this.updateActiveSection(section.id);
+                
+                // Add to history
+                this.addToHistory(section);
+            }
+            
+            updateActiveSection(sectionId) {
+                this.currentActiveSection = sectionId;
+                
+                // Remove active class from all items
+                const allItems = this.dom.savedSectionsList?.querySelectorAll('.section-item');
+                allItems?.forEach(item => item.classList.remove('active'));
+                
+                // Add active class to current item
+                const currentItem = this.dom.savedSectionsList?.querySelector(`[data-section-id="${sectionId}"]`);
+                currentItem?.classList.add('active');
+            }
+            
+            renameSection(section) {
+                const newTitle = prompt('Enter new title:', section.title);
+                if (newTitle && newTitle.trim() !== section.title) {
+                    const sections = this.getSavedSections();
+                    const sectionIndex = sections.findIndex(s => s.id === section.id);
+                    if (sectionIndex !== -1) {
+                        sections[sectionIndex].title = newTitle.trim();
+                        sections[sectionIndex].lastModified = new Date().toISOString();
+                        this.setSavedSections(sections);
+                        this.renderSavedSections();
+                    }
+                }
+            }
+            
+            exportSection(section) {
+                const blob = new Blob([section.content], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const timestamp = new Date(section.lastModified).toISOString().replace(/[:.]/g, '-').slice(0, -4);
+                const filename = `${section.title.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.md`;
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+            
+            deleteSection(section) {
+                if (confirm(`Are you sure you want to delete "${section.title}"?`)) {
+                    const sections = this.getSavedSections();
+                    const filteredSections = sections.filter(s => s.id !== section.id);
+                    this.setSavedSections(filteredSections);
+                    this.renderSavedSections();
+                    
+                    // Clear active state if this section was active
+                    if (this.currentActiveSection === section.id) {
+                        this.currentActiveSection = null;
+                    }
+                }
+            }
+            
+            // History management
+            addToHistory(section) {
+                const history = this.getHistory();
+                
+                // Remove if already exists to avoid duplicates
+                const filtered = history.filter(item => item.id !== section.id);
+                
+                // Add to beginning
+                filtered.unshift({
+                    id: section.id,
+                    title: section.title,
+                    content: section.content,
+                    viewedAt: new Date().toISOString()
+                });
+                
+                // Keep only last 5 items
+                const limited = filtered.slice(0, 5);
+                
+                this.setHistory(limited);
+                this.renderHistory();
+            }
+            
+            getHistory() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.HISTORY) || '[]');
+                } catch (e) {
+                    console.error('Error loading history:', e);
+                    return [];
+                }
+            }
+            
+            setHistory(history) {
+                try {
+                    localStorage.setItem(this.STORAGE_KEYS.HISTORY, JSON.stringify(history));
+                } catch (e) {
+                    console.error('Error saving history:', e);
+                }
+            }
+            
+            loadHistory() {
+                this.renderHistory();
+            }
+            
+            renderHistory() {
+                const history = this.getHistory();
+                const container = this.dom.historyList;
+                
+                if (!container) return;
+                
+                if (history.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No recent history</div>';
+                    return;
+                }
+                
+                container.innerHTML = history.map(item => {
+                    const date = new Date(item.viewedAt);
+                    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    return `
+                        <div class="history-item" data-history-id="${item.id}">
+                            <div class="history-title" title="${this.escapeHtml(item.title)}">${this.escapeHtml(item.title)}</div>
+                            <div class="history-date">${timeStr}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Add event listeners
+                container.querySelectorAll('.history-item').forEach(item => {
+                    const historyId = item.dataset.historyId;
+                    const historyItem = history.find(h => h.id === historyId);
+                    
+                    item.addEventListener('click', () => {
+                        if (this.dom.markdownInput) {
+                            this.dom.markdownInput.value = historyItem.content;
+                            this.dom.markdownInput.focus();
+                        }
+                        
+                        // Update active section if it's in saved sections
+                        this.updateActiveSection(historyId);
+                    });
+                });
+            }
+            
+            // Enhanced import functionality
+            handleImportFile(e) {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                e.target.value = '';
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    
+                    // Load content into textarea
+                    this.dom.markdownInput.value = content;
+                    this.dom.markdownInput.focus();
+                    
+                    // Auto-populate title from filename
+                    const filename = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                    if (this.dom.sectionTitle) {
+                        this.dom.sectionTitle.value = filename;
+                    }
+                    
+                    // Ask user if they want to save as section
+                    setTimeout(() => {
+                        if (confirm(`Would you like to save "${filename}" as a section?`)) {
+                            this.saveCurrentSection();
+                        }
+                    }, 100);
+                    
+                    // Render the content
+                    this.app.handleRender();
+                };
+                
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                    alert("Error reading file. Please check the console for details.");
+                };
+                
+                reader.readAsText(file);
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
         class MarkdownRendererApp {
             constructor() {
                 this.dom = {};
+                this.savedSectionsManager = null;
                 this.init();
             }
             init() {
@@ -1391,6 +1939,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.cacheDOMElements();
                     this.setupMarked();
                     this.bindEventListeners();
+                    this.savedSectionsManager = new SavedSectionsManager(this.dom, this);
                 });
             }
             cacheDOMElements() {
@@ -1400,7 +1949,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                     pasteAndRenderButton: document.getElementById('pasteAndRenderBtn'),
                     clearButton: document.getElementById('clearBtn'),
                     importBtn: document.getElementById('importBtn'),
-                    importFileInput: document.getElementById('importFileInput')
+                    importFileInput: document.getElementById('importFileInput'),
+                    sectionTitle: document.getElementById('sectionTitle'),
+                    saveBtn: document.getElementById('saveBtn'),
+                    savedSectionsList: document.getElementById('savedSectionsList'),
+                    historyList: document.getElementById('historyList')
                 };
             }
             setupMarked() {
@@ -1427,23 +1980,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                 });
                 this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
-                this.dom.importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
-            }
-            handleImportFile(e) {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                e.target.value = '';
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.dom.markdownInput.value = event.target.result;
-                    this.dom.markdownInput.focus();
-                    this.handleRender();
-                };
-                reader.onerror = (error) => {
-                    console.error("Error reading file:", error);
-                    alert("Error reading file. Please check the console for details.");
-                };
-                reader.readAsText(file);
+                // Note: importFileInput handler is now managed by SavedSectionsManager
             }
             handleRender() {
                 const markdownText = this.dom.markdownInput.value;
@@ -1451,7 +1988,37 @@ Don't write something like $E=mc^2$ across multiple lines.
                     alert('Please enter some markdown content to render.');
                     return;
                 }
+                
+                // Add current content to history if it has substantial content
+                if (markdownText.trim().length > 10) {
+                    const historyItem = {
+                        id: 'temp_' + Date.now(),
+                        title: this.extractTitle(markdownText) || 'Untitled',
+                        content: markdownText,
+                        viewedAt: new Date().toISOString()
+                    };
+                    this.savedSectionsManager?.addToHistory(historyItem);
+                }
+                
                 this.renderMarkdown(markdownText);
+            }
+            
+            extractTitle(content) {
+                // Try to extract title from first heading or first line
+                const lines = content.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed.startsWith('# ')) {
+                        return trimmed.substring(2).trim();
+                    }
+                    if (trimmed.startsWith('## ')) {
+                        return trimmed.substring(3).trim();
+                    }
+                    if (trimmed && !trimmed.startsWith('#') && trimmed.length < 100) {
+                        return trimmed;
+                    }
+                }
+                return null;
             }
             async handlePasteAndRender() {
                 if (!navigator.clipboard?.readText) {
