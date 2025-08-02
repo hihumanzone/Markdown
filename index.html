@@ -55,7 +55,7 @@
         }
 
         .main-content {
-            max-width: 960px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 3rem 1.5rem;
         }
@@ -207,15 +207,365 @@
             padding-bottom: 0;
             border-bottom: none;
         }
+
+        .workspace-panel {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            margin-top: 1.5rem;
+        }
+
+        .workspace-panel h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--surface-color);
+        }
+
+        .section-item:hover {
+            background-color: var(--bg-color);
+            border-color: var(--border-color);
+        }
+
+        .section-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .section-title {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 0.5rem;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 0.25rem;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .section-item:hover .section-actions {
+            opacity: 1;
+        }
+
+        .section-item.active .section-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .action-btn:hover {
+            background-color: var(--bg-color);
+            border-color: var(--primary-color);
+        }
+
+        .section-item:not(.active) .action-btn {
+            color: var(--text-muted-color);
+            border-color: var(--border-color);
+        }
+
+        .section-item:not(.active) .action-btn:hover {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+        }
+
+        .save-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: stretch;
+        }
+
+        .save-title-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .save-title-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--primary-focus-shadow);
+        }
+
+        .save-btn {
+            padding: 0.5rem 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        .save-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted-color);
+            font-size: 0.9rem;
+            padding: 1rem;
+            font-style: italic;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--surface-color);
+        }
+
+        .history-item:hover {
+            background-color: var(--bg-color);
+            border-color: var(--border-color);
+        }
+
+        .history-title {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 0.5rem;
+        }
+
+        .history-date {
+            font-size: 0.75rem;
+            color: var(--text-muted-color);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .modal-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-focus-shadow);
+        }
+
+        .modal-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-family: 'Fira Code', 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        .modal-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-focus-shadow);
+        }
+
+        .modal-button {
+            padding: 0.65rem 1.25rem;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .modal-button-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .modal-button-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .modal-button-secondary {
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        .modal-button-secondary:hover {
+            background-color: var(--bg-color);
+            border-color: var(--text-muted-color);
+        }
+
+        .import-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .import-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-color);
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-muted-color);
+            transition: all 0.2s ease;
+        }
+
+        .import-button:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background-color: var(--surface-color);
+        }
     </style>
 </head>
 <body>
     <div class="main-content">
-        <h1>Markdown & LaTeX Renderer</h1>
-        <div class="input-section">
-            <h2>Markdown Input</h2>
-            <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
-            <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
+        <div class="main-area">
+            <h1>Markdown & LaTeX Renderer</h1>
+            <div class="input-section">
+                <h2>Markdown Input</h2>
+                <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
+                <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
 # Hello World
 This is **bold** and _italic_.
 `inline code`
@@ -271,7 +621,101 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
         </div>
+        <div class="workspace-panel">
+            <div class="library-sections">
+                <h3>My Library</h3>
+                <button id="addSectionBtn" class="modal-button modal-button-primary" style="width: 100%; margin-bottom: 1rem;">Add to Library</button>
+                <div id="savedSectionsList" class="sections-list">
+                    <div class="empty-state">No saved sections yet</div>
+                </div>
+            </div>
+            <div class="recent-history" style="margin-top: 1.5rem;">
+                <h3>Recent History</h3>
+                <div id="historyList" class="history-list">
+                    <div class="empty-state">No recent history</div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Custom Modals -->
+    <!-- Add Section Modal -->
+    <div id="addSectionModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Add to Library</h3>
+                <button class="modal-close" data-close-modal="addSectionModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <input type="text" id="modalSectionTitle" class="modal-input" placeholder="Enter a title for your library item..." maxlength="100">
+                <textarea id="modalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..."></textarea>
+                
+                <div class="import-section">
+                    <input type="file" id="modalImportFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" />
+                    <button id="modalImportBtn" class="import-button">
+                        📁 Import Markdown File
+                        <br><small>File name will be used as title</small>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="addSectionModal">Cancel</button>
+                <button id="modalSaveBtn" class="modal-button modal-button-primary">Save to Library</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmModalTitle">Confirm Action</h3>
+                <button class="modal-close" data-close-modal="confirmModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="confirmModal">Cancel</button>
+                <button id="confirmModalAction" class="modal-button modal-button-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Modal -->
+    <div id="promptModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="promptModalTitle">Input Required</h3>
+                <button class="modal-close" data-close-modal="promptModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p id="promptModalMessage">Please enter a value:</p>
+                <input type="text" id="promptModalInput" class="modal-input">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="promptModal">Cancel</button>
+                <button id="promptModalAction" class="modal-button modal-button-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="alertModalTitle">Notice</h3>
+                <button class="modal-close" data-close-modal="alertModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p id="alertModalMessage">This is an alert message.</p>
+            </div>
+            <div class="modal-actions">
+                <button id="alertModalAction" class="modal-button modal-button-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         const CONFIG = {
@@ -303,6 +747,147 @@ Don't write something like $E=mc^2$ across multiple lines.
                 CONTROLS_COLLAPSED: 'fontControlsCollapsed'
             }
         };
+        
+        class CustomModal {
+            static init() {
+                document.querySelectorAll('[data-close-modal]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const modalId = e.target.getAttribute('data-close-modal');
+                        this.close(modalId);
+                    });
+                });
+
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) {
+                            this.close(overlay.id);
+                        }
+                    });
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeAll();
+                    }
+                });
+            }
+
+            static open(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    const firstInput = modal.querySelector('input, textarea');
+                    if (firstInput) {
+                        setTimeout(() => firstInput.focus(), 100);
+                    }
+                }
+            }
+
+            static close(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+
+            static closeAll() {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+
+            static alert(message, title = 'Notice') {
+                return new Promise((resolve) => {
+                    const titleEl = document.getElementById('alertModalTitle');
+                    const messageEl = document.getElementById('alertModalMessage');
+                    const actionBtn = document.getElementById('alertModalAction');
+
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+
+                    const handler = () => {
+                        actionBtn.removeEventListener('click', handler);
+                        this.close('alertModal');
+                        resolve();
+                    };
+
+                    actionBtn.addEventListener('click', handler);
+                    this.open('alertModal');
+                });
+            }
+
+            static confirm(message, title = 'Confirm Action') {
+                return new Promise((resolve) => {
+                    const titleEl = document.getElementById('confirmModalTitle');
+                    const messageEl = document.getElementById('confirmModalMessage');
+                    const actionBtn = document.getElementById('confirmModalAction');
+                    const cancelBtns = document.querySelectorAll('#confirmModal [data-close-modal], #confirmModal .modal-close');
+
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+
+                    const confirmHandler = () => {
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('confirmModal');
+                        resolve(true);
+                    };
+
+                    const cancelHandler = () => {
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('confirmModal');
+                        resolve(false);
+                    };
+
+                    actionBtn.addEventListener('click', confirmHandler);
+                    cancelBtns.forEach(btn => btn.addEventListener('click', cancelHandler));
+                    this.open('confirmModal');
+                });
+            }
+
+            static prompt(message, defaultValue = '', title = 'Input Required') {
+                return new Promise((resolve) => {
+                    const titleEl = document.getElementById('promptModalTitle');
+                    const messageEl = document.getElementById('promptModalMessage');
+                    const inputEl = document.getElementById('promptModalInput');
+                    const actionBtn = document.getElementById('promptModalAction');
+                    const cancelBtns = document.querySelectorAll('#promptModal [data-close-modal], #promptModal .modal-close');
+
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+                    inputEl.value = defaultValue;
+
+                    const confirmHandler = () => {
+                        const value = inputEl.value.trim();
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('promptModal');
+                        resolve(value || null);
+                    };
+
+                    const cancelHandler = () => {
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('promptModal');
+                        resolve(null);
+                    };
+
+                    actionBtn.addEventListener('click', confirmHandler);
+                    cancelBtns.forEach(btn => btn.addEventListener('click', cancelHandler));
+                    
+                    inputEl.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            confirmHandler();
+                        }
+                    });
+
+                    this.open('promptModal');
+                });
+            }
+        }
+        
         const Utils = {
             escapeHtml(text) {
                 const div = document.createElement('div');
@@ -1381,9 +1966,380 @@ Don't write something like $E=mc^2$ across multiple lines.
                 `;
             }
         }
+        
+        class SavedSectionsManager {
+            constructor(dom, app) {
+                this.dom = dom;
+                this.app = app;
+                this.STORAGE_KEYS = {
+                    SAVED_SECTIONS: 'markdownSavedSections',
+                    HISTORY: 'markdownHistory'
+                };
+                this.currentActiveSection = null;
+                this.init();
+            }
+            
+            init() {
+                this.bindEventListeners();
+                this.loadSavedSections();
+                this.loadHistory();
+                
+                CustomModal.init();
+            }
+            
+            bindEventListeners() {
+                document.getElementById('addSectionBtn')?.addEventListener('click', () => this.openAddSectionModal());
+                
+                document.getElementById('modalSaveBtn')?.addEventListener('click', () => this.saveFromModal());
+                
+                document.getElementById('modalImportBtn')?.addEventListener('click', () => {
+                    document.getElementById('modalImportFileInput')?.click();
+                });
+                
+                document.getElementById('modalImportFileInput')?.addEventListener('change', (e) => this.handleModalImportFile(e));
+                
+                if (this.dom.importFileInput) {
+                    this.dom.importFileInput.addEventListener('change', (e) => this.handleImportFile(e));
+                }
+                
+                document.getElementById('modalSectionTitle')?.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.saveFromModal();
+                    }
+                });
+            }
+            
+            openAddSectionModal() {
+                document.getElementById('modalSectionTitle').value = '';
+                document.getElementById('modalSectionContent').value = '';
+                
+                CustomModal.open('addSectionModal');
+            }
+            
+            async saveFromModal() {
+                const title = document.getElementById('modalSectionTitle')?.value?.trim();
+                const content = document.getElementById('modalSectionContent')?.value?.trim();
+                
+                if (!title) {
+                    await CustomModal.alert('Please enter a title for your library item.');
+                    return;
+                }
+                
+                if (!content) {
+                    await CustomModal.alert('Please enter some content to save.');
+                    return;
+                }
+                
+                const section = {
+                    id: Date.now().toString(),
+                    title: title,
+                    content: content,
+                    createdAt: new Date().toISOString(),
+                    lastModified: new Date().toISOString()
+                };
+                
+                this.addSavedSection(section);
+                CustomModal.close('addSectionModal');
+                await CustomModal.alert('Section saved to library successfully!');
+            }
+            
+            saveCurrentSection() {
+                this.openAddSectionModal();
+                const currentContent = this.dom.markdownInput?.value?.trim();
+                if (currentContent) {
+                    document.getElementById('modalSectionContent').value = currentContent;
+                }
+            }
+            
+            addSavedSection(section) {
+                const sections = this.getSavedSections();
+                sections.unshift(section);
+                this.setSavedSections(sections);
+                this.renderSavedSections();
+            }
+            
+            getSavedSections() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.SAVED_SECTIONS) || '[]');
+                } catch (e) {
+                    console.error('Error loading saved sections:', e);
+                    return [];
+                }
+            }
+            
+            setSavedSections(sections) {
+                try {
+                    localStorage.setItem(this.STORAGE_KEYS.SAVED_SECTIONS, JSON.stringify(sections));
+                } catch (e) {
+                    console.error('Error saving sections:', e);
+                    CustomModal.alert('Error saving to library. Local storage may be full.');
+                }
+            }
+            
+            loadSavedSections() {
+                this.renderSavedSections();
+            }
+            
+            renderSavedSections() {
+                const sections = this.getSavedSections();
+                const container = this.dom.savedSectionsList;
+                
+                if (!container) return;
+                
+                if (sections.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No items in library yet</div>';
+                    return;
+                }
+                
+                container.innerHTML = sections.map(section => `
+                    <div class="section-item" data-section-id="${section.id}">
+                        <div class="section-title" title="${this.escapeHtml(section.title)}">${this.escapeHtml(section.title)}</div>
+                        <div class="section-actions">
+                            <button class="action-btn rename-btn" title="Rename item">✎</button>
+                            <button class="action-btn export-btn" title="Export as .md file">↓</button>
+                            <button class="action-btn delete-btn" title="Delete item">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('.section-item').forEach(item => {
+                    const sectionId = item.dataset.sectionId;
+                    const section = sections.find(s => s.id === sectionId);
+                    
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('action-btn')) {
+                            this.loadSectionAndRender(section);
+                        }
+                    });
+                    
+                    const renameBtn = item.querySelector('.rename-btn');
+                    const exportBtn = item.querySelector('.export-btn');
+                    const deleteBtn = item.querySelector('.delete-btn');
+                    
+                    renameBtn?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.renameSection(section);
+                    });
+                    
+                    exportBtn?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.exportSection(section);
+                    });
+                    
+                    deleteBtn?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteSection(section);
+                    });
+                });
+            }
+            
+            async loadSectionAndRender(section) {
+                if (this.dom.markdownInput) {
+                    this.dom.markdownInput.value = section.content;
+                    this.dom.markdownInput.focus();
+                }
+                
+                this.addToHistory(section);
+                
+                this.app.handleRender();
+            }
+            
+            loadSection(section) {
+                this.loadSectionAndRender(section);
+            }
+            
+            updateActiveSection(sectionId) {
+                const allItems = this.dom.savedSectionsList?.querySelectorAll('.section-item');
+                allItems?.forEach(item => item.classList.remove('active'));
+            }
+            
+            async renameSection(section) {
+                const newTitle = await CustomModal.prompt('Enter new title:', section.title, 'Rename Library Item');
+                if (newTitle && newTitle !== section.title) {
+                    const sections = this.getSavedSections();
+                    const sectionIndex = sections.findIndex(s => s.id === section.id);
+                    if (sectionIndex !== -1) {
+                        sections[sectionIndex].title = newTitle;
+                        sections[sectionIndex].lastModified = new Date().toISOString();
+                        this.setSavedSections(sections);
+                        this.renderSavedSections();
+                    }
+                }
+            }
+            
+            exportSection(section) {
+                const blob = new Blob([section.content], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const timestamp = new Date(section.lastModified).toISOString().replace(/[:.]/g, '-').slice(0, -4);
+                const filename = `${section.title.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.md`;
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+            
+            async deleteSection(section) {
+                const confirmed = await CustomModal.confirm(`Are you sure you want to delete "${section.title}"?`, 'Delete Library Item');
+                if (confirmed) {
+                    const sections = this.getSavedSections();
+                    const filteredSections = sections.filter(s => s.id !== section.id);
+                    this.setSavedSections(filteredSections);
+                    this.renderSavedSections();
+                    
+                    if (this.currentActiveSection === section.id) {
+                        this.currentActiveSection = null;
+                    }
+                }
+            }
+            
+            addToHistory(section) {
+                const history = this.getHistory();
+                
+                const filtered = history.filter(item => item.id !== section.id);
+                
+                filtered.unshift({
+                    id: section.id,
+                    title: section.title,
+                    content: section.content,
+                    viewedAt: new Date().toISOString()
+                });
+                
+                const limited = filtered.slice(0, 5);
+                
+                this.setHistory(limited);
+                this.renderHistory();
+            }
+            
+            getHistory() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.HISTORY) || '[]');
+                } catch (e) {
+                    console.error('Error loading history:', e);
+                    return [];
+                }
+            }
+            
+            setHistory(history) {
+                try {
+                    localStorage.setItem(this.STORAGE_KEYS.HISTORY, JSON.stringify(history));
+                } catch (e) {
+                    console.error('Error saving history:', e);
+                }
+            }
+            
+            loadHistory() {
+                this.renderHistory();
+            }
+            
+            renderHistory() {
+                const history = this.getHistory();
+                const container = this.dom.historyList;
+                
+                if (!container) return;
+                
+                if (history.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No recent history</div>';
+                    return;
+                }
+                
+                container.innerHTML = history.map(item => {
+                    const date = new Date(item.viewedAt);
+                    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    return `
+                        <div class="history-item" data-history-id="${item.id}">
+                            <div class="history-title" title="${this.escapeHtml(item.title)}">${this.escapeHtml(item.title)}</div>
+                            <div class="history-date">${timeStr}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.querySelectorAll('.history-item').forEach(item => {
+                    const historyId = item.dataset.historyId;
+                    const historyItem = history.find(h => h.id === historyId);
+                    
+                    item.addEventListener('click', () => {
+                        if (this.dom.markdownInput) {
+                            this.dom.markdownInput.value = historyItem.content;
+                            this.dom.markdownInput.focus();
+                        }
+                        
+                        this.app.handleRender();
+                    });
+                });
+            }
+            
+            handleModalImportFile(e) {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                e.target.value = '';
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    const filename = file.name.replace(/\.[^/.]+$/, "");
+                    
+                    document.getElementById('modalSectionTitle').value = filename;
+                    document.getElementById('modalSectionContent').value = content;
+                };
+                
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                    CustomModal.alert("Error reading file. Please check the console for details.");
+                };
+                
+                reader.readAsText(file);
+            }
+            
+            async handleImportFile(e) {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                e.target.value = '';
+                
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const content = event.target.result;
+                    
+                    this.dom.markdownInput.value = content;
+                    this.dom.markdownInput.focus();
+                    
+                    const filename = file.name.replace(/\.[^/.]+$/, "");
+                    
+                    this.app.handleRender();
+                    
+                    setTimeout(async () => {
+                        const shouldSave = await CustomModal.confirm(`Would you like to save "${filename}" to your library?`, 'Save Imported File');
+                        if (shouldSave) {
+                            document.getElementById('modalSectionTitle').value = filename;
+                            document.getElementById('modalSectionContent').value = content;
+                            CustomModal.open('addSectionModal');
+                        }
+                    }, 100);
+                };
+                
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                    CustomModal.alert("Error reading file. Please check the console for details.");
+                };
+                
+                reader.readAsText(file);
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
         class MarkdownRendererApp {
             constructor() {
                 this.dom = {};
+                this.savedSectionsManager = null;
                 this.init();
             }
             init() {
@@ -1391,6 +2347,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.cacheDOMElements();
                     this.setupMarked();
                     this.bindEventListeners();
+                    this.savedSectionsManager = new SavedSectionsManager(this.dom, this);
                 });
             }
             cacheDOMElements() {
@@ -1400,7 +2357,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                     pasteAndRenderButton: document.getElementById('pasteAndRenderBtn'),
                     clearButton: document.getElementById('clearBtn'),
                     importBtn: document.getElementById('importBtn'),
-                    importFileInput: document.getElementById('importFileInput')
+                    importFileInput: document.getElementById('importFileInput'),
+                    savedSectionsList: document.getElementById('savedSectionsList'),
+                    historyList: document.getElementById('historyList')
                 };
             }
             setupMarked() {
@@ -1427,35 +2386,46 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                 });
                 this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
-                this.dom.importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
             }
-            handleImportFile(e) {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                e.target.value = '';
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.dom.markdownInput.value = event.target.result;
-                    this.dom.markdownInput.focus();
-                    this.handleRender();
-                };
-                reader.onerror = (error) => {
-                    console.error("Error reading file:", error);
-                    alert("Error reading file. Please check the console for details.");
-                };
-                reader.readAsText(file);
-            }
-            handleRender() {
+            async handleRender() {
                 const markdownText = this.dom.markdownInput.value;
                 if (!markdownText.trim()) {
-                    alert('Please enter some markdown content to render.');
+                    await CustomModal.alert('Please enter some markdown content to render.');
                     return;
                 }
+                
+                if (markdownText.trim().length > 10) {
+                    const historyItem = {
+                        id: 'temp_' + Date.now(),
+                        title: this.extractTitle(markdownText) || 'Untitled',
+                        content: markdownText,
+                        viewedAt: new Date().toISOString()
+                    };
+                    this.savedSectionsManager?.addToHistory(historyItem);
+                }
+                
                 this.renderMarkdown(markdownText);
+            }
+            
+            extractTitle(content) {
+                const lines = content.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed.startsWith('# ')) {
+                        return trimmed.substring(2).trim();
+                    }
+                    if (trimmed.startsWith('## ')) {
+                        return trimmed.substring(3).trim();
+                    }
+                    if (trimmed && !trimmed.startsWith('#') && trimmed.length < 100) {
+                        return trimmed;
+                    }
+                }
+                return null;
             }
             async handlePasteAndRender() {
                 if (!navigator.clipboard?.readText) {
-                    alert('Clipboard API not available. Please use a modern browser or check permissions.');
+                    await CustomModal.alert('Clipboard API not available. Please use a modern browser or check permissions.');
                     return;
                 }
                 try {
@@ -1464,17 +2434,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.handleRender();
                 } catch (err) {
                     console.error('Failed to read clipboard:', err);
-                    alert('Failed to read from clipboard. Please check permissions or paste manually.');
+                    await CustomModal.alert('Failed to read from clipboard. Please check permissions or paste manually.');
                 }
             }
-            handleClear() {
-                if (this.dom.markdownInput.value && !confirm('Are you sure you want to clear the input?')) {
-                    return;
+            async handleClear() {
+                if (this.dom.markdownInput.value) {
+                    const confirmed = await CustomModal.confirm('Are you sure you want to clear the input?', 'Clear Content');
+                    if (!confirmed) return;
                 }
                 this.dom.markdownInput.value = '';
                 this.dom.markdownInput.focus();
             }
-            renderMarkdown(markdownText) {
+            async renderMarkdown(markdownText) {
                 try {
                     const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
                     let html = marked.parse(tempText);
@@ -1489,10 +2460,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.openInNewTab(fullPageHtml);
                 } catch (error) {
                     console.error("Error during markdown rendering:", error);
-                    alert("An error occurred while rendering the markdown. Please check the console for details.");
+                    await CustomModal.alert("An error occurred while rendering the markdown. Please check the console for details.");
                 }
             }
-            openInNewTab(htmlContent) {
+            async openInNewTab(htmlContent) {
                 const newTab = window.open('', '_blank');
                 if (newTab) {
                     newTab.document.open();
@@ -1500,7 +2471,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     newTab.document.close();
                     newTab.focus();
                 } else {
-                    alert("Failed to open new tab. Please check your pop-up blocker settings.");
+                    await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");
                 }
             }
         }
