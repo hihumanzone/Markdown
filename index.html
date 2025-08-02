@@ -409,7 +409,6 @@
             color: var(--text-muted-color);
         }
 
-        /* Custom Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -769,7 +768,6 @@ Don't write something like $E=mc^2$ across multiple lines.
         
         class CustomModal {
             static init() {
-                // Add event listeners to close buttons
                 document.querySelectorAll('[data-close-modal]').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const modalId = e.target.getAttribute('data-close-modal');
@@ -777,7 +775,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     });
                 });
 
-                // Close modal when clicking overlay
                 document.querySelectorAll('.modal-overlay').forEach(overlay => {
                     overlay.addEventListener('click', (e) => {
                         if (e.target === overlay) {
@@ -786,7 +783,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     });
                 });
 
-                // Close modal on Escape key
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         this.closeAll();
@@ -798,7 +794,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.add('active');
-                    // Focus first input if available
                     const firstInput = modal.querySelector('input, textarea');
                     if (firstInput) {
                         setTimeout(() => firstInput.focus(), 100);
@@ -899,7 +894,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     actionBtn.addEventListener('click', confirmHandler);
                     cancelBtns.forEach(btn => btn.addEventListener('click', cancelHandler));
                     
-                    // Allow Enter key to confirm
                     inputEl.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
@@ -2008,31 +2002,24 @@ Don't write something like $E=mc^2$ across multiple lines.
                 this.loadSavedSections();
                 this.loadHistory();
                 
-                // Initialize custom modals
                 CustomModal.init();
             }
             
             bindEventListeners() {
-                // Add section button
                 document.getElementById('addSectionBtn')?.addEventListener('click', () => this.openAddSectionModal());
                 
-                // Modal save button
                 document.getElementById('modalSaveBtn')?.addEventListener('click', () => this.saveFromModal());
                 
-                // Modal import button
                 document.getElementById('modalImportBtn')?.addEventListener('click', () => {
                     document.getElementById('modalImportFileInput')?.click();
                 });
                 
-                // Modal import file input
                 document.getElementById('modalImportFileInput')?.addEventListener('change', (e) => this.handleModalImportFile(e));
                 
-                // Override the main import functionality to also save as section
                 if (this.dom.importFileInput) {
                     this.dom.importFileInput.addEventListener('change', (e) => this.handleImportFile(e));
                 }
                 
-                // Enter key in modal title should save
                 document.getElementById('modalSectionTitle')?.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         this.saveFromModal();
@@ -2041,7 +2028,6 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             
             openAddSectionModal() {
-                // Clear previous values
                 document.getElementById('modalSectionTitle').value = '';
                 document.getElementById('modalSectionContent').value = '';
                 
@@ -2076,9 +2062,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             
             saveCurrentSection() {
-                // Legacy method - redirect to modal
                 this.openAddSectionModal();
-                // Pre-fill with current content if available
                 const currentContent = this.dom.markdownInput?.value?.trim();
                 if (currentContent) {
                     document.getElementById('modalSectionContent').value = currentContent;
@@ -2087,7 +2071,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             
             addSavedSection(section) {
                 const sections = this.getSavedSections();
-                sections.unshift(section); // Add to beginning
+                sections.unshift(section);
                 this.setSavedSections(sections);
                 this.renderSavedSections();
             }
@@ -2136,7 +2120,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     </div>
                 `).join('');
                 
-                // Add event listeners to the rendered elements
                 container.querySelectorAll('.section-item').forEach(item => {
                     const sectionId = item.dataset.sectionId;
                     const section = sections.find(s => s.id === sectionId);
@@ -2174,23 +2157,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.dom.markdownInput.focus();
                 }
                 
-                // Add to history
                 this.addToHistory(section);
                 
-                // Automatically trigger render
                 this.app.handleRender();
             }
             
             loadSection(section) {
-                // Legacy method for compatibility
                 this.loadSectionAndRender(section);
             }
             
             updateActiveSection(sectionId) {
-                // Functionality disabled per user request - no persistent highlighting
-                // this.currentActiveSection = sectionId;
-                
-                // Remove active class from all items to prevent any lingering highlights
                 const allItems = this.dom.savedSectionsList?.querySelectorAll('.section-item');
                 allItems?.forEach(item => item.classList.remove('active'));
             }
@@ -2231,21 +2207,17 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.setSavedSections(filteredSections);
                     this.renderSavedSections();
                     
-                    // Clear active state if this section was active
                     if (this.currentActiveSection === section.id) {
                         this.currentActiveSection = null;
                     }
                 }
             }
             
-            // History management
             addToHistory(section) {
                 const history = this.getHistory();
                 
-                // Remove if already exists to avoid duplicates
                 const filtered = history.filter(item => item.id !== section.id);
                 
-                // Add to beginning
                 filtered.unshift({
                     id: section.id,
                     title: section.title,
@@ -2253,7 +2225,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     viewedAt: new Date().toISOString()
                 });
                 
-                // Keep only last 5 items
                 const limited = filtered.slice(0, 5);
                 
                 this.setHistory(limited);
@@ -2303,7 +2274,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     `;
                 }).join('');
                 
-                // Add event listeners
                 container.querySelectorAll('.history-item').forEach(item => {
                     const historyId = item.dataset.historyId;
                     const historyItem = history.find(h => h.id === historyId);
@@ -2314,13 +2284,11 @@ Don't write something like $E=mc^2$ across multiple lines.
                             this.dom.markdownInput.focus();
                         }
                         
-                        // Automatically trigger render
                         this.app.handleRender();
                     });
                 });
             }
             
-            // Enhanced import functionality for modal
             handleModalImportFile(e) {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -2330,9 +2298,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const content = event.target.result;
-                    const filename = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                    const filename = file.name.replace(/\.[^/.]+$/, "");
                     
-                    // Populate modal fields
                     document.getElementById('modalSectionTitle').value = filename;
                     document.getElementById('modalSectionContent').value = content;
                 };
@@ -2345,7 +2312,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 reader.readAsText(file);
             }
             
-            // Enhanced import functionality for main import
             async handleImportFile(e) {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -2356,21 +2322,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                 reader.onload = async (event) => {
                     const content = event.target.result;
                     
-                    // Load content into textarea
                     this.dom.markdownInput.value = content;
                     this.dom.markdownInput.focus();
                     
-                    // Auto-populate title from filename
-                    const filename = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                    const filename = file.name.replace(/\.[^/.]+$/, "");
                     
-                    // Render the content
                     this.app.handleRender();
                     
-                    // Ask user if they want to save as section
                     setTimeout(async () => {
                         const shouldSave = await CustomModal.confirm(`Would you like to save "${filename}" as a section?`, 'Save Imported File');
                         if (shouldSave) {
-                            // Pre-fill modal and open it
                             document.getElementById('modalSectionTitle').value = filename;
                             document.getElementById('modalSectionContent').value = content;
                             CustomModal.open('addSectionModal');
@@ -2443,7 +2404,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                 });
                 this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
-                // Note: importFileInput handler is now managed by SavedSectionsManager
             }
             async handleRender() {
                 const markdownText = this.dom.markdownInput.value;
@@ -2452,7 +2412,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     return;
                 }
                 
-                // Add current content to history if it has substantial content
                 if (markdownText.trim().length > 10) {
                     const historyItem = {
                         id: 'temp_' + Date.now(),
@@ -2467,7 +2426,6 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             
             extractTitle(content) {
-                // Try to extract title from first heading or first line
                 const lines = content.split('\n');
                 for (const line of lines) {
                     const trimmed = line.trim();
