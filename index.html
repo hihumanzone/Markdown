@@ -55,21 +55,9 @@
         }
 
         .main-content {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 3rem 1.5rem;
-            display: grid;
-            grid-template-columns: 2fr 300px;
-            gap: 2rem;
-            justify-content: center;
-            align-items: start;
-        }
-
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                max-width: 960px;
-            }
         }
 
         h1 {
@@ -228,12 +216,6 @@
             height: fit-content;
             box-shadow: 0 2px 4px var(--shadow-color);
             margin-top: 1.5rem;
-        }
-
-        @media (max-width: 1024px) {
-            .sidebar {
-                order: -1;
-            }
         }
 
         .sidebar h3 {
