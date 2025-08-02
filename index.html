@@ -252,6 +252,16 @@ $$
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
             </textarea>
+            <div id="historySection" style="margin-bottom: 1rem;">
+                <label for="historySelect" style="margin-bottom: 0.5rem;">Recent renders:</label>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <select id="historySelect" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--surface-color); color: var(--text-color); font-size: 0.9rem;">
+                        <option value="">No history yet</option>
+                    </select>
+                    <button id="loadHistoryBtn" class="button-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.9rem;" title="Load selected item from history">Load</button>
+                    <button id="clearHistoryBtn" class="button-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.9rem;" title="Clear all history">Clear History</button>
+                </div>
+            </div>
             <div class="button-group">
                 <button id="renderMarkdownBtn" class="button-primary" title="Render the markdown content">Render Markdown</button>
                 <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render">Paste & Render</button>
@@ -300,7 +310,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                 THEME: 'renderedOutputTheme',
                 FONT_SIZE: 'renderedOutputFontSizePercent',
                 VIEW_MODE: 'renderedOutputViewMode',
-                CONTROLS_COLLAPSED: 'fontControlsCollapsed'
+                CONTROLS_COLLAPSED: 'fontControlsCollapsed',
+                HISTORY: 'markdownRenderHistory'
+            },
+            HISTORY: {
+                MAX_ITEMS: 5,
+                PREVIEW_LENGTH: 50
             }
         };
         const Utils = {
@@ -1381,9 +1396,86 @@ Don't write something like $E=mc^2$ across multiple lines.
                 `;
             }
         }
+        class HistoryManager {
+            constructor() {
+                this.storageKey = CONFIG.LOCAL_STORAGE_KEYS.HISTORY;
+                this.maxItems = CONFIG.HISTORY.MAX_ITEMS;
+                this.previewLength = CONFIG.HISTORY.PREVIEW_LENGTH;
+            }
+
+            getHistory() {
+                try {
+                    const stored = localStorage.getItem(this.storageKey);
+                    return stored ? JSON.parse(stored) : [];
+                } catch (error) {
+                    console.error('Error loading history:', error);
+                    return [];
+                }
+            }
+
+            addToHistory(markdownText) {
+                if (!markdownText || !markdownText.trim()) return;
+                
+                const history = this.getHistory();
+                const now = new Date().toISOString();
+                
+                // Remove if already exists (to update timestamp and move to top)
+                const existingIndex = history.findIndex(item => item.content === markdownText);
+                if (existingIndex !== -1) {
+                    history.splice(existingIndex, 1);
+                }
+                
+                // Add to beginning
+                history.unshift({
+                    content: markdownText,
+                    timestamp: now,
+                    preview: this.generatePreview(markdownText)
+                });
+                
+                // Keep only max items
+                if (history.length > this.maxItems) {
+                    history.splice(this.maxItems);
+                }
+                
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(history));
+                } catch (error) {
+                    console.error('Error saving history:', error);
+                }
+            }
+
+            generatePreview(markdownText) {
+                // Remove markdown syntax for a cleaner preview
+                let preview = markdownText
+                    .replace(/^#+\s*/gm, '') // Remove headers
+                    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+                    .replace(/\*(.*?)\*/g, '$1') // Remove italic
+                    .replace(/`(.*?)`/g, '$1') // Remove inline code
+                    .replace(/```[\s\S]*?```/g, '[code block]') // Replace code blocks
+                    .replace(/^\s*[-*+]\s+/gm, '') // Remove list markers
+                    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+                    .replace(/\n+/g, ' ') // Replace newlines with spaces
+                    .trim();
+                
+                if (preview.length > this.previewLength) {
+                    preview = preview.substring(0, this.previewLength) + '...';
+                }
+                
+                return preview || 'Untitled';
+            }
+
+            clearHistory() {
+                try {
+                    localStorage.removeItem(this.storageKey);
+                } catch (error) {
+                    console.error('Error clearing history:', error);
+                }
+            }
+        }
         class MarkdownRendererApp {
             constructor() {
                 this.dom = {};
+                this.historyManager = new HistoryManager();
                 this.init();
             }
             init() {
@@ -1391,6 +1483,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.cacheDOMElements();
                     this.setupMarked();
                     this.bindEventListeners();
+                    this.updateHistoryUI();
                 });
             }
             cacheDOMElements() {
@@ -1400,7 +1493,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                     pasteAndRenderButton: document.getElementById('pasteAndRenderBtn'),
                     clearButton: document.getElementById('clearBtn'),
                     importBtn: document.getElementById('importBtn'),
-                    importFileInput: document.getElementById('importFileInput')
+                    importFileInput: document.getElementById('importFileInput'),
+                    historySelect: document.getElementById('historySelect'),
+                    loadHistoryBtn: document.getElementById('loadHistoryBtn'),
+                    clearHistoryBtn: document.getElementById('clearHistoryBtn')
                 };
             }
             setupMarked() {
@@ -1428,6 +1524,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                 });
                 this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
                 this.dom.importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
+                this.dom.loadHistoryBtn?.addEventListener('click', () => this.handleLoadHistory());
+                this.dom.clearHistoryBtn?.addEventListener('click', () => this.handleClearHistory());
             }
             handleImportFile(e) {
                 const file = e.target.files?.[0];
@@ -1452,6 +1550,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                     return;
                 }
                 this.renderMarkdown(markdownText);
+                // Save to history after successful render
+                this.historyManager.addToHistory(markdownText);
+                this.updateHistoryUI();
             }
             async handlePasteAndRender() {
                 if (!navigator.clipboard?.readText) {
@@ -1502,6 +1603,78 @@ Don't write something like $E=mc^2$ across multiple lines.
                 } else {
                     alert("Failed to open new tab. Please check your pop-up blocker settings.");
                 }
+            }
+
+            updateHistoryUI() {
+                if (!this.dom.historySelect) return;
+                
+                const history = this.historyManager.getHistory();
+                const select = this.dom.historySelect;
+                
+                // Clear existing options
+                select.innerHTML = '';
+                
+                if (history.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No history yet';
+                    option.disabled = true;
+                    select.appendChild(option);
+                    if (this.dom.loadHistoryBtn) this.dom.loadHistoryBtn.disabled = true;
+                } else {
+                    // Add placeholder option
+                    const placeholderOption = document.createElement('option');
+                    placeholderOption.value = '';
+                    placeholderOption.textContent = 'Select from history...';
+                    select.appendChild(placeholderOption);
+                    
+                    // Add history items
+                    history.forEach((item, index) => {
+                        const option = document.createElement('option');
+                        option.value = index.toString();
+                        const date = new Date(item.timestamp).toLocaleDateString();
+                        const time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        option.textContent = `${date} ${time} - ${item.preview}`;
+                        select.appendChild(option);
+                    });
+                    
+                    if (this.dom.loadHistoryBtn) this.dom.loadHistoryBtn.disabled = false;
+                }
+            }
+
+            handleLoadHistory() {
+                if (!this.dom.historySelect || !this.dom.markdownInput) return;
+                
+                const selectedIndex = this.dom.historySelect.value;
+                if (selectedIndex === '') {
+                    alert('Please select an item from history first.');
+                    return;
+                }
+                
+                const history = this.historyManager.getHistory();
+                const selectedItem = history[parseInt(selectedIndex, 10)];
+                
+                if (selectedItem) {
+                    if (this.dom.markdownInput.value.trim() && 
+                        !confirm('This will replace your current markdown. Continue?')) {
+                        return;
+                    }
+                    
+                    this.dom.markdownInput.value = selectedItem.content;
+                    this.dom.markdownInput.focus();
+                    
+                    // Reset selection
+                    this.dom.historySelect.value = '';
+                }
+            }
+
+            handleClearHistory() {
+                if (!confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+                    return;
+                }
+                
+                this.historyManager.clearHistory();
+                this.updateHistoryUI();
             }
         }
         
