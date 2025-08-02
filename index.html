@@ -61,7 +61,6 @@
             display: grid;
             grid-template-columns: 1fr 300px;
             gap: 2rem;
-            justify-content: center;
         }
 
         @media (max-width: 1024px) {
@@ -226,6 +225,7 @@
             padding: 1.5rem;
             height: fit-content;
             box-shadow: 0 2px 4px var(--shadow-color);
+            margin-top: 1.5rem;
         }
 
         @media (max-width: 1024px) {
@@ -293,16 +293,17 @@
 
         .action-btn {
             padding: 0.25rem;
-            border: none;
+            border: 1px solid var(--border-color);
             background: transparent;
             cursor: pointer;
             border-radius: 3px;
             font-size: 0.75rem;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
         .action-btn:hover {
             background-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--text-muted-color);
         }
 
         .section-item:not(.active) .action-btn {
@@ -312,6 +313,7 @@
         .section-item:not(.active) .action-btn:hover {
             background-color: var(--bg-color);
             color: var(--text-color);
+            border-color: var(--primary-color);
         }
 
         .save-controls {
@@ -2163,9 +2165,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.dom.markdownInput.focus();
                 }
                 
-                // Update active section visual state
-                this.updateActiveSection(section.id);
-                
                 // Add to history
                 this.addToHistory(section);
                 
@@ -2179,15 +2178,12 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             
             updateActiveSection(sectionId) {
-                this.currentActiveSection = sectionId;
+                // Functionality disabled per user request - no persistent highlighting
+                // this.currentActiveSection = sectionId;
                 
-                // Remove active class from all items
+                // Remove active class from all items to prevent any lingering highlights
                 const allItems = this.dom.savedSectionsList?.querySelectorAll('.section-item');
                 allItems?.forEach(item => item.classList.remove('active'));
-                
-                // Add active class to current item
-                const currentItem = this.dom.savedSectionsList?.querySelector(`[data-section-id="${sectionId}"]`);
-                currentItem?.classList.add('active');
             }
             
             async renameSection(section) {
@@ -2308,9 +2304,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                             this.dom.markdownInput.value = historyItem.content;
                             this.dom.markdownInput.focus();
                         }
-                        
-                        // Update active section if it's in saved sections
-                        this.updateActiveSection(historyId);
                         
                         // Automatically trigger render
                         this.app.handleRender();
