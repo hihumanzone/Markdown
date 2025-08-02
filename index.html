@@ -611,16 +611,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <button id="themeToggleBtn" class="button-secondary" title="Toggle theme (Ctrl/Cmd + T)">Dark Theme</button>
             </div>
         </div>
-        <div class="info">
-            <p><strong>How it works:</strong></p>
-            <ul>
-                <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
-                <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li><strong>Font size controls</strong>, theme toggle, save-as-PDF, export as .md, and export as high-quality PNG are available in the rendered output tab.</li>
-                <li><strong>Long press on list items</strong> to copy their content to clipboard.</li>
-                <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
-            </ul>
-        </div>
         <div class="workspace-panel">
             <div class="library-sections">
                 <h3>My Library</h3>
@@ -635,6 +625,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                     <div class="empty-state">No recent history</div>
                 </div>
             </div>
+        </div>
+        <div class="info">
+            <p><strong>How it works:</strong></p>
+            <ul>
+                <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
+                <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
+                <li><strong>Font size controls</strong>, theme toggle, save-as-PDF, export as .md, and export as high-quality PNG are available in the rendered output tab.</li>
+                <li><strong>Long press on list items</strong> to copy their content to clipboard.</li>
+                <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
+            </ul>
         </div>
     </div>
 
@@ -2141,7 +2141,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 
                 this.addToHistory(section);
                 
-                this.app.handleRender();
+                this.app.handleRender(true);  // Skip history update since we already added it above
             }
             
             loadSection(section) {
@@ -2387,14 +2387,14 @@ Don't write something like $E=mc^2$ across multiple lines.
                 });
                 this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
             }
-            async handleRender() {
+            async handleRender(skipHistoryUpdate = false) {
                 const markdownText = this.dom.markdownInput.value;
                 if (!markdownText.trim()) {
                     await CustomModal.alert('Please enter some markdown content to render.');
                     return;
                 }
                 
-                if (markdownText.trim().length > 10) {
+                if (!skipHistoryUpdate && markdownText.trim().length > 10) {
                     const historyItem = {
                         id: 'temp_' + Date.now(),
                         title: this.extractTitle(markdownText) || 'Untitled',
