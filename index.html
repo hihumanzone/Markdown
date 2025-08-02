@@ -61,6 +61,7 @@
             display: grid;
             grid-template-columns: 1fr 300px;
             gap: 2rem;
+            justify-content: center;
         }
 
         @media (max-width: 1024px) {
@@ -248,11 +249,11 @@
             align-items: center;
             padding: 0.5rem;
             margin: 0.25rem 0;
-            border: 1px solid transparent;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
-            background-color: transparent;
+            background-color: var(--surface-color);
         }
 
         .section-item:hover {
@@ -278,7 +279,7 @@
         .section-actions {
             display: flex;
             gap: 0.25rem;
-            opacity: 0;
+            opacity: 1;
             transition: opacity 0.2s ease;
         }
 
@@ -370,11 +371,11 @@
             align-items: center;
             padding: 0.5rem;
             margin: 0.25rem 0;
-            border: 1px solid transparent;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
-            background-color: transparent;
+            background-color: var(--surface-color);
         }
 
         .history-item:hover {
@@ -395,6 +396,173 @@
         .history-date {
             font-size: 0.75rem;
             color: var(--text-muted-color);
+        }
+
+        /* Custom Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .modal-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-focus-shadow);
+        }
+
+        .modal-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-family: 'Fira Code', 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        .modal-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-focus-shadow);
+        }
+
+        .modal-button {
+            padding: 0.65rem 1.25rem;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .modal-button-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .modal-button-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .modal-button-secondary {
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        .modal-button-secondary:hover {
+            background-color: var(--bg-color);
+            border-color: var(--text-muted-color);
+        }
+
+        .import-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .import-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-color);
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-muted-color);
+            transition: all 0.2s ease;
+        }
+
+        .import-button:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background-color: var(--surface-color);
         }
     </style>
 </head>
@@ -464,10 +632,7 @@ Don't write something like $E=mc^2$ across multiple lines.
         <div class="sidebar">
             <div class="saved-sections">
                 <h3>Saved Sections</h3>
-                <div class="save-controls">
-                    <input type="text" id="sectionTitle" class="save-title-input" placeholder="Section title...">
-                    <button id="saveBtn" class="save-btn">Save</button>
-                </div>
+                <button id="addSectionBtn" class="modal-button modal-button-primary" style="width: 100%; margin-bottom: 1rem;">Add New Section</button>
                 <div id="savedSectionsList" class="sections-list">
                     <div class="empty-state">No saved sections yet</div>
                 </div>
@@ -480,6 +645,85 @@ Don't write something like $E=mc^2$ across multiple lines.
             </div>
         </div>
     </div>
+
+    <!-- Custom Modals -->
+    <!-- Add Section Modal -->
+    <div id="addSectionModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Section</h3>
+                <button class="modal-close" data-close-modal="addSectionModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <input type="text" id="modalSectionTitle" class="modal-input" placeholder="Section title..." maxlength="100">
+                <textarea id="modalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..."></textarea>
+                
+                <div class="import-section">
+                    <input type="file" id="modalImportFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" />
+                    <button id="modalImportBtn" class="import-button">
+                        📁 Import Markdown File
+                        <br><small>File name will be used as title</small>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="addSectionModal">Cancel</button>
+                <button id="modalSaveBtn" class="modal-button modal-button-primary">Save Section</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmModalTitle">Confirm Action</h3>
+                <button class="modal-close" data-close-modal="confirmModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="confirmModal">Cancel</button>
+                <button id="confirmModalAction" class="modal-button modal-button-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Modal -->
+    <div id="promptModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="promptModalTitle">Input Required</h3>
+                <button class="modal-close" data-close-modal="promptModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p id="promptModalMessage">Please enter a value:</p>
+                <input type="text" id="promptModalInput" class="modal-input">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="promptModal">Cancel</button>
+                <button id="promptModalAction" class="modal-button modal-button-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="alertModalTitle">Notice</h3>
+                <button class="modal-close" data-close-modal="alertModal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p id="alertModalMessage">This is an alert message.</p>
+            </div>
+            <div class="modal-actions">
+                <button id="alertModalAction" class="modal-button modal-button-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         const CONFIG = {
@@ -511,6 +755,152 @@ Don't write something like $E=mc^2$ across multiple lines.
                 CONTROLS_COLLAPSED: 'fontControlsCollapsed'
             }
         };
+        
+        class CustomModal {
+            static init() {
+                // Add event listeners to close buttons
+                document.querySelectorAll('[data-close-modal]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const modalId = e.target.getAttribute('data-close-modal');
+                        this.close(modalId);
+                    });
+                });
+
+                // Close modal when clicking overlay
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) {
+                            this.close(overlay.id);
+                        }
+                    });
+                });
+
+                // Close modal on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeAll();
+                    }
+                });
+            }
+
+            static open(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    // Focus first input if available
+                    const firstInput = modal.querySelector('input, textarea');
+                    if (firstInput) {
+                        setTimeout(() => firstInput.focus(), 100);
+                    }
+                }
+            }
+
+            static close(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+
+            static closeAll() {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+
+            static alert(message, title = 'Notice') {
+                return new Promise((resolve) => {
+                    const titleEl = document.getElementById('alertModalTitle');
+                    const messageEl = document.getElementById('alertModalMessage');
+                    const actionBtn = document.getElementById('alertModalAction');
+
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+
+                    const handler = () => {
+                        actionBtn.removeEventListener('click', handler);
+                        this.close('alertModal');
+                        resolve();
+                    };
+
+                    actionBtn.addEventListener('click', handler);
+                    this.open('alertModal');
+                });
+            }
+
+            static confirm(message, title = 'Confirm Action') {
+                return new Promise((resolve) => {
+                    const titleEl = document.getElementById('confirmModalTitle');
+                    const messageEl = document.getElementById('confirmModalMessage');
+                    const actionBtn = document.getElementById('confirmModalAction');
+                    const cancelBtns = document.querySelectorAll('#confirmModal [data-close-modal], #confirmModal .modal-close');
+
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+
+                    const confirmHandler = () => {
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('confirmModal');
+                        resolve(true);
+                    };
+
+                    const cancelHandler = () => {
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('confirmModal');
+                        resolve(false);
+                    };
+
+                    actionBtn.addEventListener('click', confirmHandler);
+                    cancelBtns.forEach(btn => btn.addEventListener('click', cancelHandler));
+                    this.open('confirmModal');
+                });
+            }
+
+            static prompt(message, defaultValue = '', title = 'Input Required') {
+                return new Promise((resolve) => {
+                    const titleEl = document.getElementById('promptModalTitle');
+                    const messageEl = document.getElementById('promptModalMessage');
+                    const inputEl = document.getElementById('promptModalInput');
+                    const actionBtn = document.getElementById('promptModalAction');
+                    const cancelBtns = document.querySelectorAll('#promptModal [data-close-modal], #promptModal .modal-close');
+
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+                    inputEl.value = defaultValue;
+
+                    const confirmHandler = () => {
+                        const value = inputEl.value.trim();
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('promptModal');
+                        resolve(value || null);
+                    };
+
+                    const cancelHandler = () => {
+                        actionBtn.removeEventListener('click', confirmHandler);
+                        cancelBtns.forEach(btn => btn.removeEventListener('click', cancelHandler));
+                        this.close('promptModal');
+                        resolve(null);
+                    };
+
+                    actionBtn.addEventListener('click', confirmHandler);
+                    cancelBtns.forEach(btn => btn.addEventListener('click', cancelHandler));
+                    
+                    // Allow Enter key to confirm
+                    inputEl.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            confirmHandler();
+                        }
+                    });
+
+                    this.open('promptModal');
+                });
+            }
+        }
+        
         const Utils = {
             escapeHtml(text) {
                 const div = document.createElement('div');
@@ -1606,33 +1996,58 @@ Don't write something like $E=mc^2$ across multiple lines.
                 this.bindEventListeners();
                 this.loadSavedSections();
                 this.loadHistory();
+                
+                // Initialize custom modals
+                CustomModal.init();
             }
             
             bindEventListeners() {
-                this.dom.saveBtn?.addEventListener('click', () => this.saveCurrentSection());
-                this.dom.sectionTitle?.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.saveCurrentSection();
-                    }
+                // Add section button
+                document.getElementById('addSectionBtn')?.addEventListener('click', () => this.openAddSectionModal());
+                
+                // Modal save button
+                document.getElementById('modalSaveBtn')?.addEventListener('click', () => this.saveFromModal());
+                
+                // Modal import button
+                document.getElementById('modalImportBtn')?.addEventListener('click', () => {
+                    document.getElementById('modalImportFileInput')?.click();
                 });
                 
-                // Override the import functionality to also save as section
+                // Modal import file input
+                document.getElementById('modalImportFileInput')?.addEventListener('change', (e) => this.handleModalImportFile(e));
+                
+                // Override the main import functionality to also save as section
                 if (this.dom.importFileInput) {
                     this.dom.importFileInput.addEventListener('change', (e) => this.handleImportFile(e));
                 }
+                
+                // Enter key in modal title should save
+                document.getElementById('modalSectionTitle')?.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.saveFromModal();
+                    }
+                });
             }
             
-            saveCurrentSection() {
-                const title = this.dom.sectionTitle?.value?.trim();
-                const content = this.dom.markdownInput?.value?.trim();
+            openAddSectionModal() {
+                // Clear previous values
+                document.getElementById('modalSectionTitle').value = '';
+                document.getElementById('modalSectionContent').value = '';
+                
+                CustomModal.open('addSectionModal');
+            }
+            
+            async saveFromModal() {
+                const title = document.getElementById('modalSectionTitle')?.value?.trim();
+                const content = document.getElementById('modalSectionContent')?.value?.trim();
                 
                 if (!title) {
-                    alert('Please enter a title for the section.');
+                    await CustomModal.alert('Please enter a title for the section.');
                     return;
                 }
                 
                 if (!content) {
-                    alert('Please enter some content to save.');
+                    await CustomModal.alert('Please enter some content to save.');
                     return;
                 }
                 
@@ -1645,8 +2060,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                 };
                 
                 this.addSavedSection(section);
-                this.dom.sectionTitle.value = '';
-                alert('Section saved successfully!');
+                CustomModal.close('addSectionModal');
+                await CustomModal.alert('Section saved successfully!');
+            }
+            
+            saveCurrentSection() {
+                // Legacy method - redirect to modal
+                this.openAddSectionModal();
+                // Pre-fill with current content if available
+                const currentContent = this.dom.markdownInput?.value?.trim();
+                if (currentContent) {
+                    document.getElementById('modalSectionContent').value = currentContent;
+                }
             }
             
             addSavedSection(section) {
@@ -1670,7 +2095,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     localStorage.setItem(this.STORAGE_KEYS.SAVED_SECTIONS, JSON.stringify(sections));
                 } catch (e) {
                     console.error('Error saving sections:', e);
-                    alert('Error saving section. Local storage may be full.');
+                    CustomModal.alert('Error saving section. Local storage may be full.');
                 }
             }
             
@@ -1707,7 +2132,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     
                     item.addEventListener('click', (e) => {
                         if (!e.target.classList.contains('action-btn')) {
-                            this.loadSection(section);
+                            this.loadSectionAndRender(section);
                         }
                     });
                     
@@ -1732,7 +2157,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 });
             }
             
-            loadSection(section) {
+            async loadSectionAndRender(section) {
                 if (this.dom.markdownInput) {
                     this.dom.markdownInput.value = section.content;
                     this.dom.markdownInput.focus();
@@ -1743,6 +2168,14 @@ Don't write something like $E=mc^2$ across multiple lines.
                 
                 // Add to history
                 this.addToHistory(section);
+                
+                // Automatically trigger render
+                this.app.handleRender();
+            }
+            
+            loadSection(section) {
+                // Legacy method for compatibility
+                this.loadSectionAndRender(section);
             }
             
             updateActiveSection(sectionId) {
@@ -1757,13 +2190,13 @@ Don't write something like $E=mc^2$ across multiple lines.
                 currentItem?.classList.add('active');
             }
             
-            renameSection(section) {
-                const newTitle = prompt('Enter new title:', section.title);
-                if (newTitle && newTitle.trim() !== section.title) {
+            async renameSection(section) {
+                const newTitle = await CustomModal.prompt('Enter new title:', section.title, 'Rename Section');
+                if (newTitle && newTitle !== section.title) {
                     const sections = this.getSavedSections();
                     const sectionIndex = sections.findIndex(s => s.id === section.id);
                     if (sectionIndex !== -1) {
-                        sections[sectionIndex].title = newTitle.trim();
+                        sections[sectionIndex].title = newTitle;
                         sections[sectionIndex].lastModified = new Date().toISOString();
                         this.setSavedSections(sections);
                         this.renderSavedSections();
@@ -1785,8 +2218,9 @@ Don't write something like $E=mc^2$ across multiple lines.
                 URL.revokeObjectURL(url);
             }
             
-            deleteSection(section) {
-                if (confirm(`Are you sure you want to delete "${section.title}"?`)) {
+            async deleteSection(section) {
+                const confirmed = await CustomModal.confirm(`Are you sure you want to delete "${section.title}"?`, 'Delete Section');
+                if (confirmed) {
                     const sections = this.getSavedSections();
                     const filteredSections = sections.filter(s => s.id !== section.id);
                     this.setSavedSections(filteredSections);
@@ -1877,12 +2311,15 @@ Don't write something like $E=mc^2$ across multiple lines.
                         
                         // Update active section if it's in saved sections
                         this.updateActiveSection(historyId);
+                        
+                        // Automatically trigger render
+                        this.app.handleRender();
                     });
                 });
             }
             
-            // Enhanced import functionality
-            handleImportFile(e) {
+            // Enhanced import functionality for modal
+            handleModalImportFile(e) {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 
@@ -1891,6 +2328,31 @@ Don't write something like $E=mc^2$ across multiple lines.
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const content = event.target.result;
+                    const filename = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                    
+                    // Populate modal fields
+                    document.getElementById('modalSectionTitle').value = filename;
+                    document.getElementById('modalSectionContent').value = content;
+                };
+                
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                    CustomModal.alert("Error reading file. Please check the console for details.");
+                };
+                
+                reader.readAsText(file);
+            }
+            
+            // Enhanced import functionality for main import
+            async handleImportFile(e) {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                e.target.value = '';
+                
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const content = event.target.result;
                     
                     // Load content into textarea
                     this.dom.markdownInput.value = content;
@@ -1898,24 +2360,25 @@ Don't write something like $E=mc^2$ across multiple lines.
                     
                     // Auto-populate title from filename
                     const filename = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-                    if (this.dom.sectionTitle) {
-                        this.dom.sectionTitle.value = filename;
-                    }
-                    
-                    // Ask user if they want to save as section
-                    setTimeout(() => {
-                        if (confirm(`Would you like to save "${filename}" as a section?`)) {
-                            this.saveCurrentSection();
-                        }
-                    }, 100);
                     
                     // Render the content
                     this.app.handleRender();
+                    
+                    // Ask user if they want to save as section
+                    setTimeout(async () => {
+                        const shouldSave = await CustomModal.confirm(`Would you like to save "${filename}" as a section?`, 'Save Imported File');
+                        if (shouldSave) {
+                            // Pre-fill modal and open it
+                            document.getElementById('modalSectionTitle').value = filename;
+                            document.getElementById('modalSectionContent').value = content;
+                            CustomModal.open('addSectionModal');
+                        }
+                    }, 100);
                 };
                 
                 reader.onerror = (error) => {
                     console.error("Error reading file:", error);
-                    alert("Error reading file. Please check the console for details.");
+                    CustomModal.alert("Error reading file. Please check the console for details.");
                 };
                 
                 reader.readAsText(file);
@@ -1950,8 +2413,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     clearButton: document.getElementById('clearBtn'),
                     importBtn: document.getElementById('importBtn'),
                     importFileInput: document.getElementById('importFileInput'),
-                    sectionTitle: document.getElementById('sectionTitle'),
-                    saveBtn: document.getElementById('saveBtn'),
                     savedSectionsList: document.getElementById('savedSectionsList'),
                     historyList: document.getElementById('historyList')
                 };
@@ -1982,10 +2443,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                 this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
                 // Note: importFileInput handler is now managed by SavedSectionsManager
             }
-            handleRender() {
+            async handleRender() {
                 const markdownText = this.dom.markdownInput.value;
                 if (!markdownText.trim()) {
-                    alert('Please enter some markdown content to render.');
+                    await CustomModal.alert('Please enter some markdown content to render.');
                     return;
                 }
                 
@@ -2022,7 +2483,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             async handlePasteAndRender() {
                 if (!navigator.clipboard?.readText) {
-                    alert('Clipboard API not available. Please use a modern browser or check permissions.');
+                    await CustomModal.alert('Clipboard API not available. Please use a modern browser or check permissions.');
                     return;
                 }
                 try {
@@ -2031,17 +2492,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.handleRender();
                 } catch (err) {
                     console.error('Failed to read clipboard:', err);
-                    alert('Failed to read from clipboard. Please check permissions or paste manually.');
+                    await CustomModal.alert('Failed to read from clipboard. Please check permissions or paste manually.');
                 }
             }
-            handleClear() {
-                if (this.dom.markdownInput.value && !confirm('Are you sure you want to clear the input?')) {
-                    return;
+            async handleClear() {
+                if (this.dom.markdownInput.value) {
+                    const confirmed = await CustomModal.confirm('Are you sure you want to clear the input?', 'Clear Content');
+                    if (!confirmed) return;
                 }
                 this.dom.markdownInput.value = '';
                 this.dom.markdownInput.focus();
             }
-            renderMarkdown(markdownText) {
+            async renderMarkdown(markdownText) {
                 try {
                     const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
                     let html = marked.parse(tempText);
@@ -2056,10 +2518,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                     this.openInNewTab(fullPageHtml);
                 } catch (error) {
                     console.error("Error during markdown rendering:", error);
-                    alert("An error occurred while rendering the markdown. Please check the console for details.");
+                    await CustomModal.alert("An error occurred while rendering the markdown. Please check the console for details.");
                 }
             }
-            openInNewTab(htmlContent) {
+            async openInNewTab(htmlContent) {
                 const newTab = window.open('', '_blank');
                 if (newTab) {
                     newTab.document.open();
@@ -2067,7 +2529,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                     newTab.document.close();
                     newTab.focus();
                 } else {
-                    alert("Failed to open new tab. Please check your pop-up blocker settings.");
+                    await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");
                 }
             }
         }
