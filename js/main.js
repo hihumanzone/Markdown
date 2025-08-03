@@ -1,0 +1,2 @@
+new MarkdownRendererApp();
+new MainPageThemeController();
