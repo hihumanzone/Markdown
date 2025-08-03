@@ -28,17 +28,55 @@ class MarkdownRendererApp {
     }
     
     setupMarked() {
-        if (typeof marked === 'undefined') {
-            console.error("Marked.js is not loaded!");
-            if (this.dom.renderButton) this.dom.renderButton.disabled = true;
-            if (this.dom.pasteAndRenderButton) this.dom.pasteAndRenderButton.disabled = true;
-            return;
+        // Check immediately and also set up a retry mechanism
+        const checkAndSetupMarked = () => {
+            if (typeof marked === 'undefined') {
+                console.error("Marked.js is not loaded - will use fallback renderer");
+                // Enable buttons anyway since we have a fallback
+                if (this.dom.renderButton) {
+                    this.dom.renderButton.disabled = false;
+                    this.dom.renderButton.title = "Render the markdown content (using fallback renderer)";
+                }
+                if (this.dom.pasteAndRenderButton) {
+                    this.dom.pasteAndRenderButton.disabled = false;
+                    this.dom.pasteAndRenderButton.title = "Paste from clipboard and render (using fallback renderer)";
+                }
+                return false;
+            }
+            
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                smartypants: false,
+            });
+            
+            // Update button titles for full functionality
+            if (this.dom.renderButton) {
+                this.dom.renderButton.disabled = false;
+                this.dom.renderButton.title = "Render the markdown content";
+            }
+            if (this.dom.pasteAndRenderButton) {
+                this.dom.pasteAndRenderButton.disabled = false;
+                this.dom.pasteAndRenderButton.title = "Paste from clipboard and render";
+            }
+            return true;
+        };
+        
+        // Initial check
+        if (!checkAndSetupMarked()) {
+            // Retry a few times in case marked.js loads asynchronously
+            let retryCount = 0;
+            const maxRetries = 10;
+            const retryInterval = setInterval(() => {
+                retryCount++;
+                if (checkAndSetupMarked() || retryCount >= maxRetries) {
+                    clearInterval(retryInterval);
+                    if (retryCount >= maxRetries && typeof marked === 'undefined') {
+                        console.error("Failed to load Marked.js after multiple attempts - using fallback renderer");
+                    }
+                }
+            }, 500);
         }
-        marked.setOptions({
-            gfm: true,
-            breaks: true,
-            smartypants: false,
-        });
     }
     
     bindEventListeners() {
@@ -117,6 +155,24 @@ class MarkdownRendererApp {
     
     async renderMarkdown(markdownText) {
         try {
+            // Check if marked.js is available
+            if (typeof marked === 'undefined') {
+                console.error("Marked.js library is not loaded, using basic fallback");
+                await CustomModal.alert("The Markdown library failed to load due to network restrictions. Using basic fallback renderer with limited features. For full functionality, please refresh the page with a stable internet connection.");
+                
+                // Use basic fallback markdown parsing
+                const basicHtml = this.basicMarkdownToHtml(markdownText);
+                const listItems = ListItemParser.parse(markdownText);
+                const fullPageHtml = RenderedPageBuilder.build(
+                    basicHtml,
+                    markdownText,
+                    "Rendered Markdown & LaTeX (Basic Mode)",
+                    listItems
+                );
+                this.openInNewTab(fullPageHtml);
+                return;
+            }
+
             const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
             let html = marked.parse(tempText);
             html = MathProcessor.restoreMathExpressions(html, mathExpressions);
@@ -130,8 +186,43 @@ class MarkdownRendererApp {
             this.openInNewTab(fullPageHtml);
         } catch (error) {
             console.error("Error during markdown rendering:", error);
-            await CustomModal.alert("An error occurred while rendering the markdown. Please check the console for details.");
+            if (error.message && error.message.includes('marked')) {
+                await CustomModal.alert("The Markdown library failed to load properly. Please refresh the page and ensure you have an internet connection.");
+            } else {
+                await CustomModal.alert("An error occurred while rendering the markdown. Please check the console for details.");
+            }
         }
+    }
+    
+    // Basic fallback markdown parser for when marked.js fails to load
+    basicMarkdownToHtml(markdown) {
+        let html = markdown;
+        
+        // Headers
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        
+        // Bold and italic
+        html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+        html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+        
+        // Inline code
+        html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+        
+        // Links
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+        
+        // Line breaks
+        html = html.replace(/\n/g, '<br>');
+        
+        // Wrap in paragraph tags
+        html = '<p>' + html + '</p>';
+        
+        return html;
     }
     
     async openInNewTab(htmlContent) {

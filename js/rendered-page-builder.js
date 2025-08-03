@@ -6,36 +6,36 @@ class RenderedPageBuilder {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>\${title}</title>
-    <link rel="stylesheet" href="\${CONFIG.CDN.katexCSS}">
-    \${this.getStyles()}
+    <title>${title}</title>
+    <link rel="stylesheet" href="${CONFIG.CDN.katexCSS}">
+    ${this.getStyles()}
 </head>
 <body class="markdown-body">
-    \${this.getControls()}
-    <div id="content-container">\${content}</div>
+    ${this.getControls()}
+    <div id="content-container">${content}</div>
     <div id="raw-container" style="display: none;">
-        <pre id="raw-markdown">\${Utils.escapeHtml(rawMarkdown)}</pre>
+        <pre id="raw-markdown">${Utils.escapeHtml(rawMarkdown)}</pre>
     </div>
     <div id="copy-notification">Copied to clipboard!</div>
     <script>
         window.__APP_DATA__ = {
-            rawMarkdown: \${JSON.stringify(rawMarkdown)},
-            listItems: \${JSON.stringify(listItems)},
-            config: \${JSON.stringify(CONFIG)}
+            rawMarkdown: ${JSON.stringify(rawMarkdown)},
+            listItems: ${JSON.stringify(listItems)},
+            config: ${JSON.stringify(CONFIG)}
         };
     <\/script>
-    <script defer src="\${CONFIG.CDN.katexJS}"><\/script>
-    <script defer src="\${CONFIG.CDN.katexAutoRenderJS}"><\/script>
-    <script defer src="\${CONFIG.CDN.html2canvas}"><\/script>
+    <script defer src="${CONFIG.CDN.katexJS}"><\/script>
+    <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
+    <script defer src="${CONFIG.CDN.html2canvas}"><\/script>
     <script>
-        \${this.getClientScript()}
+        ${this.getClientScript()}
     <\/script>
 </body>
 </html>`;
     }
     
     static getStyles() {
-        return \`<style>
+        return `<style>
             body.markdown-body {
                 box-sizing: border-box;
                 min-width: 200px;
@@ -452,11 +452,11 @@ class RenderedPageBuilder {
                     content: none !important;
                 }
             }
-        </style>\`;
+        </style>`;
     }
     
     static getControls() {
-        return \`
+        return `
             <div id="font-controls" class="fc-panel">
                 <button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button">Toggle</button>
                 <button id="decreaseFontBtn" title="Decrease font size (Ctrl/Cmd + -)" class="fc-button">-</button>
@@ -470,11 +470,11 @@ class RenderedPageBuilder {
                 <button id="exportImageBtn" class="fc-button" title="Export rendered content as a high-quality PNG image">Export Image</button>
                 <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
             </div>
-        \`;
+        `;
     }
     
     static getClientScript() {
-        return \`
+        return `
             (function() {
                 'use strict';
                 const APP_DATA = window.__APP_DATA__;
@@ -965,6 +965,6 @@ class RenderedPageBuilder {
                 }
                 document.addEventListener('DOMContentLoaded', () => { window.markdownRendererUI = new UIController(); });
             })();
-        \`;
+        `;
     }
 }
