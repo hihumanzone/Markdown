@@ -2080,6 +2080,30 @@ Don't write something like $E=mc^2$ across multiple lines.
                 return newTitle;
             }
             
+            generateUniqueTitleForRename(originalTitle, excludeId) {
+                const sections = this.getSavedSections();
+                // Exclude the current section being renamed from the duplicate check
+                const existingTitles = sections
+                    .filter(section => section.id !== excludeId)
+                    .map(section => section.title);
+                
+                // If title doesn't exist among other sections, return as is
+                if (!existingTitles.includes(originalTitle)) {
+                    return originalTitle;
+                }
+                
+                // Find the next available numbered suffix
+                let counter = 2;
+                let newTitle = `${originalTitle} ${counter}`;
+                
+                while (existingTitles.includes(newTitle)) {
+                    counter++;
+                    newTitle = `${originalTitle} ${counter}`;
+                }
+                
+                return newTitle;
+            }
+            
             saveCurrentSection() {
                 this.openAddSectionModal();
                 const currentContent = this.dom.markdownInput?.value?.trim();
@@ -2193,10 +2217,13 @@ Don't write something like $E=mc^2$ across multiple lines.
             async renameSection(section) {
                 const newTitle = await CustomModal.prompt('Enter new title:', section.title, 'Rename Library Item');
                 if (newTitle && newTitle !== section.title) {
+                    // Generate unique title to prevent duplicates (excluding current section)
+                    const uniqueTitle = this.generateUniqueTitleForRename(newTitle, section.id);
+                    
                     const sections = this.getSavedSections();
                     const sectionIndex = sections.findIndex(s => s.id === section.id);
                     if (sectionIndex !== -1) {
-                        sections[sectionIndex].title = newTitle;
+                        sections[sectionIndex].title = uniqueTitle;
                         sections[sectionIndex].lastModified = new Date().toISOString();
                         this.setSavedSections(sections);
                         this.renderSavedSections();
