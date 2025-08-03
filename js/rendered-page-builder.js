@@ -526,8 +526,8 @@ class RenderedPageBuilder {
                         try {
                             renderMathInElement(document.getElementById('content-container'), {
                                 delimiters: [
-                                    {left: "$$", right: "$$", display: true}, {left: "\\\\\\\\[", right: "\\\\\\\\]", display: true},
-                                    {left: "$", right: "$", display: false, throwOnError: false}, {left: "\\\\\\\\(", right: "\\\\\\\\)", display: false}
+                                    {left: "$$", right: "$$", display: true}, {left: "\\\\[", right: "\\\\]", display: true},
+                                    {left: "$", right: "$", display: false, throwOnError: false}, {left: "\\\\(", right: "\\\\)", display: false}
                                 ],
                                 throwOnError: false,
                             });
