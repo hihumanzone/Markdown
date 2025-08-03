@@ -2,11 +2,8 @@ class SavedSectionsManager {
     constructor(dom, app) {
         this.dom = dom;
         this.app = app;
-        this.STORAGE_KEYS = {
-            SAVED_SECTIONS: 'markdownSavedSections',
-            HISTORY: 'markdownHistory'
-        };
-        this.MAX_HISTORY_ITEMS = 5;
+        this.sectionsManager = new SectionsManager();
+        this.historyManager = new HistoryManager();
         this.currentActiveSection = null;
         this.init();
     }
@@ -62,7 +59,7 @@ class SavedSectionsManager {
             return;
         }
         
-        const uniqueTitle = this.generateUniqueTitle(originalTitle);
+        const uniqueTitle = this.sectionsManager.generateUniqueTitle(originalTitle);
         
         const section = {
             id: Date.now().toString(),
@@ -72,59 +69,14 @@ class SavedSectionsManager {
             lastModified: new Date().toISOString()
         };
         
-        this.addSavedSection(section);
+        this.sectionsManager.addSection(section);
         CustomModal.close('addSectionModal');
+        this.renderSavedSections();
         await CustomModal.alert('Section saved to library successfully!');
     }
     
-    generateUniqueTitle(originalTitle, excludeId = null) {
-        const sections = this.getSavedSections();
-        const existingTitles = sections
-            .filter(section => excludeId === null || section.id !== excludeId)
-            .map(section => section.title);
-        
-        if (!existingTitles.includes(originalTitle)) {
-            return originalTitle;
-        }
-        
-        let counter = 2;
-        let newTitle = `${originalTitle} ${counter}`;
-        
-        while (existingTitles.includes(newTitle)) {
-            counter++;
-            newTitle = `${originalTitle} ${counter}`;
-        }
-        
-        return newTitle;
-    }
-    
-    addSavedSection(section) {
-        const sections = this.getSavedSections();
-        sections.unshift(section);
-        this.setSavedSections(sections);
-        this.renderSavedSections();
-    }
-    
-    getSavedSections() {
-        try {
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.SAVED_SECTIONS) || '[]');
-        } catch (e) {
-            console.error('Error loading saved sections:', e);
-            return [];
-        }
-    }
-    
-    setSavedSections(sections) {
-        try {
-            localStorage.setItem(this.STORAGE_KEYS.SAVED_SECTIONS, JSON.stringify(sections));
-        } catch (e) {
-            console.error('Error saving sections:', e);
-            CustomModal.alert('Error saving to library. Local storage may be full.');
-        }
-    }
-    
     renderSavedSections() {
-        const sections = this.getSavedSections();
+        const sections = this.sectionsManager.getSections();
         const container = this.dom.savedSectionsList;
         
         if (!container) return;
@@ -136,7 +88,7 @@ class SavedSectionsManager {
         
         container.innerHTML = sections.map(section => `
             <div class="section-item" data-section-id="${section.id}">
-                <div class="section-title" title="${this.escapeHtml(section.title)}">${this.escapeHtml(section.title)}</div>
+                <div class="section-title" title="${Utils.escapeHtml(section.title)}">${Utils.escapeHtml(section.title)}</div>
                 <div class="section-actions">
                     <button class="action-btn rename-btn" title="Rename item">✎</button>
                     <button class="action-btn export-btn" title="Export as .md file">↓</button>
@@ -166,7 +118,7 @@ class SavedSectionsManager {
             
             exportBtn?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.exportSection(section);
+                FileManager.exportSectionAsMarkdown(section);
             });
             
             deleteBtn?.addEventListener('click', (e) => {
@@ -182,7 +134,8 @@ class SavedSectionsManager {
             this.dom.markdownInput.focus();
         }
         
-        this.addToHistory(section);
+        this.historyManager.addToHistory(section);
+        this.renderHistory();
         
         this.app.handleRender(true);
     }
@@ -190,93 +143,36 @@ class SavedSectionsManager {
     async renameSection(section) {
         const newTitle = await CustomModal.prompt('Enter new title:', section.title, 'Rename Library Item');
         if (newTitle && newTitle !== section.title) {
-            const uniqueTitle = this.generateUniqueTitle(newTitle, section.id);
+            const uniqueTitle = this.sectionsManager.generateUniqueTitle(newTitle, section.id);
             
-            const sections = this.getSavedSections();
-            const sectionIndex = sections.findIndex(s => s.id === section.id);
-            if (sectionIndex !== -1) {
-                sections[sectionIndex].title = uniqueTitle;
-                sections[sectionIndex].lastModified = new Date().toISOString();
-                this.setSavedSections(sections);
+            const success = this.sectionsManager.updateSection(section.id, { title: uniqueTitle });
+            if (success) {
                 this.renderSavedSections();
             }
         }
     }
     
-    exportSection(section) {
-        const blob = new Blob([section.content], { type: 'text/markdown;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        const timestamp = new Date(section.lastModified).toISOString().replace(/[:.]/g, '-').slice(0, -4);
-        const filename = `${section.title.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.md`;
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
-    
     async deleteSection(section) {
         const confirmed = await CustomModal.confirm(`Are you sure you want to delete "${section.title}"?`, 'Delete Library Item');
         if (confirmed) {
-            const sections = this.getSavedSections();
-            const filteredSections = sections.filter(s => s.id !== section.id);
-            this.setSavedSections(filteredSections);
-            this.renderSavedSections();
-            
-            if (this.currentActiveSection === section.id) {
-                this.currentActiveSection = null;
+            const success = this.sectionsManager.deleteSection(section.id);
+            if (success) {
+                this.renderSavedSections();
+                
+                if (this.currentActiveSection === section.id) {
+                    this.currentActiveSection = null;
+                }
             }
         }
     }
     
     addToHistory(section) {
-        const history = this.getHistory();
-        const existingItem = history.find(item => item.content === section.content);
-        
-        let updatedHistory;
-        if (existingItem) {
-            updatedHistory = history.filter(item => item.content !== section.content);
-            updatedHistory.unshift({
-                id: existingItem.id,
-                title: existingItem.title,
-                content: existingItem.content,
-                viewedAt: new Date().toISOString()
-            });
-        } else {
-            updatedHistory = history.filter(item => item.id !== section.id);
-            updatedHistory.unshift({
-                id: section.id,
-                title: section.title,
-                content: section.content,
-                viewedAt: new Date().toISOString()
-            });
-        }
-        
-        this.setHistory(updatedHistory.slice(0, this.MAX_HISTORY_ITEMS));
+        this.historyManager.addToHistory(section);
         this.renderHistory();
     }
     
-    getHistory() {
-        try {
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.HISTORY) || '[]');
-        } catch (e) {
-            console.error('Error loading history:', e);
-            return [];
-        }
-    }
-    
-    setHistory(history) {
-        try {
-            localStorage.setItem(this.STORAGE_KEYS.HISTORY, JSON.stringify(history));
-        } catch (e) {
-            console.error('Error saving history:', e);
-        }
-    }
-    
     renderHistory() {
-        const history = this.getHistory();
+        const history = this.historyManager.getHistory();
         const container = this.dom.historyList;
         
         if (!container) return;
@@ -291,7 +187,7 @@ class SavedSectionsManager {
             const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             return `
                 <div class="history-item" data-history-id="${item.id}">
-                    <div class="history-title" title="${this.escapeHtml(item.title)}">${this.escapeHtml(item.title)}</div>
+                    <div class="history-title" title="${Utils.escapeHtml(item.title)}">${Utils.escapeHtml(item.title)}</div>
                     <div class="history-date">${timeStr}</div>
                     <div class="history-actions">
                         <button class="action-btn add-to-library-btn" title="Add to Library">+</button>
@@ -324,7 +220,7 @@ class SavedSectionsManager {
     }
     
     addHistoryItemToLibrary(historyItem) {
-        const sections = this.getSavedSections();
+        const sections = this.sectionsManager.getSections();
         const existingSection = sections.find(section => section.content === historyItem.content);
         
         if (existingSection) {
@@ -346,27 +242,21 @@ class SavedSectionsManager {
         CustomModal.open('addSectionModal');
     }
     
-    handleModalImportFile(e) {
+    async handleModalImportFile(e) {
         const file = e.target.files?.[0];
         if (!file) return;
         
         e.target.value = '';
         
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const content = event.target.result;
-            const filename = file.name.replace(/\.[^/.]+$/, "");
+        try {
+            const { content, filename } = await FileManager.readMarkdownFile(file);
             
             document.getElementById('modalSectionTitle').value = filename;
             document.getElementById('modalSectionContent').value = content;
-        };
-        
-        reader.onerror = (error) => {
+        } catch (error) {
             console.error("Error reading file:", error);
             CustomModal.alert("Error reading file. Please check the console for details.");
-        };
-        
-        reader.readAsText(file);
+        }
     }
     
     async handleImportFile(e) {
@@ -375,14 +265,11 @@ class SavedSectionsManager {
         
         e.target.value = '';
         
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const content = event.target.result;
+        try {
+            const { content, filename } = await FileManager.readMarkdownFile(file);
             
             this.dom.markdownInput.value = content;
             this.dom.markdownInput.focus();
-            
-            const filename = file.name.replace(/\.[^/.]+$/, "");
             
             if (content.trim().length > 10) {
                 const historyItem = {
@@ -404,19 +291,9 @@ class SavedSectionsManager {
                     CustomModal.open('addSectionModal');
                 }
             }, 100);
-        };
-        
-        reader.onerror = (error) => {
+        } catch (error) {
             console.error("Error reading file:", error);
             CustomModal.alert("Error reading file. Please check the console for details.");
-        };
-        
-        reader.readAsText(file);
-    }
-    
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        }
     }
 }
