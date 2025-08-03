@@ -2266,7 +2266,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                             this.dom.markdownInput.focus();
                         }
                         
-                        this.app.handleRender();
+                        this.app.handleRender(true);  // Skip history update to prevent duplicates
                     });
                 });
             }
@@ -2309,7 +2309,18 @@ Don't write something like $E=mc^2$ across multiple lines.
                     
                     const filename = file.name.replace(/\.[^/.]+$/, "");
                     
-                    this.app.handleRender();
+                    // Add to history manually with filename as title
+                    if (content.trim().length > 10) {
+                        const historyItem = {
+                            id: 'temp_' + Date.now(),
+                            title: filename,
+                            content: content,
+                            viewedAt: new Date().toISOString()
+                        };
+                        this.addToHistory(historyItem);
+                    }
+                    
+                    this.app.handleRender(true);  // Skip automatic history update since we already added it
                     
                     setTimeout(async () => {
                         const shouldSave = await CustomModal.confirm(`Would you like to save "${filename}" to your library?`, 'Save Imported File');
