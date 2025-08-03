@@ -1,0 +1,401 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+
+:root {
+    --primary-color-hsl: 220, 85%, 55%;
+    --primary-color: hsl(var(--primary-color-hsl));
+    --primary-hover: hsl(220, 85%, 50%);
+    --primary-focus-shadow: hsla(var(--primary-color-hsl), 0.25);
+
+    --bg-color: hsl(210, 40%, 98%);
+    --surface-color: #fff;
+    --text-color: hsl(214, 20%, 25%);
+    --text-muted-color: hsl(214, 15%, 55%);
+    --border-color: hsl(210, 30%, 88%);
+    --shadow-color: hsla(220, 40%, 15%, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.main-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text-color);
+    margin-top: 0;
+    margin-bottom: 3rem;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted-color);
+    font-size: 0.9rem;
+}
+
+textarea {
+    width: 100%;
+    min-height: 40vh;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    resize: vertical;
+    box-shadow: 0 1px 2px var(--shadow-color);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+textarea:focus,
+textarea:focus-visible {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--primary-focus-shadow), 0 1px 2px var(--shadow-color);
+}
+
+.button-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+button {
+    padding: 0.65rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+}
+
+button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--primary-focus-shadow);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.button-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.button-primary:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.button-secondary {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.button-secondary:hover:not(:disabled) {
+    border-color: hsl(210, 30%, 80%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.info {
+    font-size: 0.9rem;
+    color: var(--text-muted-color);
+    margin-top: 1.5rem;
+    padding: 1.5rem 2rem;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.info p:first-of-type {
+    margin-top: 0;
+}
+
+.info strong {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.info ul {
+    margin: 1rem 0 0;
+    padding-left: 1.25rem;
+}
+
+.info li {
+    margin: 0.5rem 0;
+    padding-left: 0.5rem;
+}
+
+.info li::marker {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.input-section {
+    margin-bottom: 2rem;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.workspace-panel {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: fit-content;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    margin-top: 3rem;
+}
+
+.workspace-panel h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: var(--surface-color);
+}
+
+.section-item:hover {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+}
+
+.section-item.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.section-title {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 0.5rem;
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.section-item:hover .section-actions {
+    opacity: 1;
+}
+
+.section-item.active .section-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.action-btn:hover {
+    background-color: var(--bg-color);
+    border-color: var(--primary-color);
+}
+
+.section-item:not(.active) .action-btn {
+    color: var(--text-muted-color);
+    border-color: var(--border-color);
+}
+
+.section-item:not(.active) .action-btn:hover {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--primary-color);
+}
+
+.save-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    align-items: stretch;
+}
+
+.save-title-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.save-title-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-focus-shadow);
+}
+
+.save-btn {
+    padding: 0.5rem 0.75rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.save-btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-muted-color);
+    font-size: 0.9rem;
+    padding: 1rem;
+    font-style: italic;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: var(--surface-color);
+}
+
+.history-item:hover {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+}
+
+.history-title {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 0.5rem;
+}
+
+.history-date {
+    font-size: 0.75rem;
+    color: var(--text-muted-color);
+}
+
+.history-actions {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.history-item:hover .history-actions {
+    opacity: 1;
+}
+
+.import-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.import-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--bg-color);
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-muted-color);
+    transition: all 0.2s ease;
+}
+
+.import-button:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: var(--surface-color);
+}
