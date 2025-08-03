@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Duplicate Titles Issue</title>
+</head>
+<body>
+<h1>Test Duplicate Titles Issue</h1>
+<div id="test-results"></div>
+
+<script>
+// Simulate the relevant classes and functions from the main app
+class TestSavedSectionsManager {
+    constructor() {
+        this.STORAGE_KEYS = {
+            HISTORY: 'markdownHistory'
+        };
+        this.MAX_HISTORY_ITEMS = 5;
+    }
+    
+    extractTitle(content) {
+        const lines = content.split('\n');
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('# ')) {
+                return trimmed.substring(2).trim();
+            }
+            if (trimmed.startsWith('## ')) {
+                return trimmed.substring(3).trim();
+            }
+            if (trimmed && !trimmed.startsWith('#') && trimmed.length < 100) {
+                return trimmed;
+            }
+        }
+        return null;
+    }
+    
+    addToHistory(section) {
+        const history = this.getHistory();
+        const existingItem = history.find(item => item.content === section.content);
+        
+        let updatedHistory;
+        if (existingItem) {
+            updatedHistory = history.filter(item => item.content !== section.content);
+            updatedHistory.unshift({
+                id: existingItem.id,
+                title: existingItem.title,
+                content: existingItem.content,
+                viewedAt: new Date().toISOString()
+            });
+        } else {
+            updatedHistory = history.filter(item => item.id !== section.id);
+            updatedHistory.unshift({
+                id: section.id,
+                title: section.title,
+                content: section.content,
+                viewedAt: new Date().toISOString()
+            });
+        }
+        
+        this.setHistory(updatedHistory.slice(0, this.MAX_HISTORY_ITEMS));
+        return updatedHistory;
+    }
+    
+    getHistory() {
+        try {
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.HISTORY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+    
+    setHistory(history) {
+        try {
+            localStorage.setItem(this.STORAGE_KEYS.HISTORY, JSON.stringify(history));
+        } catch (e) {
+            console.error('Error saving history:', e);
+        }
+    }
+    
+    clearHistory() {
+        localStorage.removeItem(this.STORAGE_KEYS.HISTORY);
+    }
+}
+
+// Test the issue
+function testDuplicateTitles() {
+    const manager = new TestSavedSectionsManager();
+    manager.clearHistory(); // Start with clean slate
+    
+    // Create two different pieces of content that start with the same text
+    const content1 = "This is my first document.\nThis document talks about cats and their behavior.";
+    const content2 = "This is my first document.\nThis document talks about dogs and their training.";
+    
+    const title1 = manager.extractTitle(content1);
+    const title2 = manager.extractTitle(content2);
+    
+    console.log("Title 1:", title1);
+    console.log("Title 2:", title2);
+    console.log("Titles are the same:", title1 === title2);
+    
+    // Add both to history
+    const item1 = {
+        id: 'test_1',
+        title: title1 || 'Untitled',
+        content: content1,
+        viewedAt: new Date().toISOString()
+    };
+    
+    const item2 = {
+        id: 'test_2',
+        title: title2 || 'Untitled',
+        content: content2,
+        viewedAt: new Date().toISOString()
+    };
+    
+    manager.addToHistory(item1);
+    manager.addToHistory(item2);
+    
+    const history = manager.getHistory();
+    console.log("Final history:", history);
+    
+    // Display results
+    const results = document.getElementById('test-results');
+    results.innerHTML = `
+        <h2>Test Results:</h2>
+        <p><strong>Content 1:</strong> ${content1}</p>
+        <p><strong>Title 1:</strong> ${title1}</p>
+        <p><strong>Content 2:</strong> ${content2}</p>
+        <p><strong>Title 2:</strong> ${title2}</p>
+        <p><strong>Titles are identical:</strong> ${title1 === title2}</p>
+        <p><strong>This demonstrates the issue!</strong> Two different pieces of content have the same title in history.</p>
+        <h3>Current History:</h3>
+        <ul>
+            ${history.map(item => `<li><strong>${item.title}</strong> - ${item.content.substring(0, 50)}...</li>`).join('')}
+        </ul>
+    `;
+}
+
+// Run test when page loads
+testDuplicateTitles();
+</script>
+</body>
+</html>
