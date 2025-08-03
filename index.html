@@ -1988,14 +1988,15 @@ Don't write something like $E=mc^2$ across multiple lines.
                     SAVED_SECTIONS: 'markdownSavedSections',
                     HISTORY: 'markdownHistory'
                 };
+                this.MAX_HISTORY_ITEMS = 5;
                 this.currentActiveSection = null;
                 this.init();
             }
             
             init() {
                 this.bindEventListeners();
-                this.loadSavedSections();
-                this.loadHistory();
+                this.renderSavedSections();
+                this.renderHistory();
                 
                 CustomModal.init();
             }
@@ -2059,40 +2060,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                 await CustomModal.alert('Section saved to library successfully!');
             }
             
-            generateUniqueTitle(originalTitle) {
+            generateUniqueTitle(originalTitle, excludeId = null) {
                 const sections = this.getSavedSections();
-                const existingTitles = sections.map(section => section.title);
-                
-                // If title doesn't exist, return as is
-                if (!existingTitles.includes(originalTitle)) {
-                    return originalTitle;
-                }
-                
-                // Find the next available numbered suffix
-                let counter = 2;
-                let newTitle = `${originalTitle} ${counter}`;
-                
-                while (existingTitles.includes(newTitle)) {
-                    counter++;
-                    newTitle = `${originalTitle} ${counter}`;
-                }
-                
-                return newTitle;
-            }
-            
-            generateUniqueTitleForRename(originalTitle, excludeId) {
-                const sections = this.getSavedSections();
-                // Exclude the current section being renamed from the duplicate check
                 const existingTitles = sections
-                    .filter(section => section.id !== excludeId)
+                    .filter(section => excludeId === null || section.id !== excludeId)
                     .map(section => section.title);
                 
-                // If title doesn't exist among other sections, return as is
                 if (!existingTitles.includes(originalTitle)) {
                     return originalTitle;
                 }
                 
-                // Find the next available numbered suffix
                 let counter = 2;
                 let newTitle = `${originalTitle} ${counter}`;
                 
@@ -2135,10 +2112,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     console.error('Error saving sections:', e);
                     CustomModal.alert('Error saving to library. Local storage may be full.');
                 }
-            }
-            
-            loadSavedSections() {
-                this.renderSavedSections();
             }
             
             renderSavedSections() {
@@ -2217,8 +2190,7 @@ Don't write something like $E=mc^2$ across multiple lines.
             async renameSection(section) {
                 const newTitle = await CustomModal.prompt('Enter new title:', section.title, 'Rename Library Item');
                 if (newTitle && newTitle !== section.title) {
-                    // Generate unique title to prevent duplicates (excluding current section)
-                    const uniqueTitle = this.generateUniqueTitleForRename(newTitle, section.id);
+                    const uniqueTitle = this.generateUniqueTitle(newTitle, section.id);
                     
                     const sections = this.getSavedSections();
                     const sectionIndex = sections.findIndex(s => s.id === section.id);
@@ -2261,37 +2233,30 @@ Don't write something like $E=mc^2$ across multiple lines.
             
             addToHistory(section) {
                 const history = this.getHistory();
-                
-                // Check if an item with identical content already exists
                 const existingItem = history.find(item => item.content === section.content);
                 
+                let updatedHistory;
                 if (existingItem) {
                     // Update existing item's viewedAt but preserve the original title
-                    const filtered = history.filter(item => item.content !== section.content);
-                    filtered.unshift({
+                    updatedHistory = history.filter(item => item.content !== section.content);
+                    updatedHistory.unshift({
                         id: existingItem.id,
-                        title: existingItem.title, // Preserve original title
+                        title: existingItem.title,
                         content: existingItem.content,
                         viewedAt: new Date().toISOString()
                     });
-                    
-                    const limited = filtered.slice(0, 5);
-                    this.setHistory(limited);
                 } else {
                     // Normal addition for new content
-                    const filtered = history.filter(item => item.id !== section.id);
-                    
-                    filtered.unshift({
+                    updatedHistory = history.filter(item => item.id !== section.id);
+                    updatedHistory.unshift({
                         id: section.id,
                         title: section.title,
                         content: section.content,
                         viewedAt: new Date().toISOString()
                     });
-                    
-                    const limited = filtered.slice(0, 5);
-                    this.setHistory(limited);
                 }
                 
+                this.setHistory(updatedHistory.slice(0, this.MAX_HISTORY_ITEMS));
                 this.renderHistory();
             }
             
@@ -2310,10 +2275,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 } catch (e) {
                     console.error('Error saving history:', e);
                 }
-            }
-            
-            loadHistory() {
-                this.renderHistory();
             }
             
             renderHistory() {
