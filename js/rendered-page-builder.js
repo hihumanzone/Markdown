@@ -27,9 +27,7 @@ class RenderedPageBuilder {
     <script defer src="${CONFIG.CDN.katexJS}"><\/script>
     <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
     <script defer src="${CONFIG.CDN.html2canvas}"><\/script>
-    <script>
-        ${this.getClientScript()}
-    <\/script>
+    ${this.getClientScriptIncludes()}
 </body>
 </html>`;
     }
@@ -473,498 +471,692 @@ class RenderedPageBuilder {
         `;
     }
     
-    static getClientScript() {
+    static getClientScriptIncludes() {
+        const scripts = [
+            this.getKatexRendererScript(),
+            this.getThemeControllerScript(),
+            this.getFontSizeControllerScript(),
+            this.getCollapsibleControllerScript(),
+            this.getViewToggleControllerScript(),
+            this.getFullscreenControllerScript(),
+            this.getSavePdfControllerScript(),
+            this.getExportMarkdownControllerScript(),
+            this.getExportImageControllerScript(),
+            this.getListItemControllerScript(),
+            this.getUIControllerScript(),
+            this.getClientMainScript()
+        ];
+        
+        return `<script>
+            ${scripts.join('\n\n')}
+        <\/script>`;
+    }
+    
+    static getKatexRendererScript() {
         return `
-            (function() {
-                'use strict';
-                const APP_DATA = window.__APP_DATA__;
-                const CONFIG = APP_DATA.config;
-                class UIController {
-                    constructor() {
-                        this.body = document.querySelector('body.markdown-body');
-                        this.initializeControls();
-                        this.addGlobalKeydownListener();
-                    }
-                    initializeControls() {
-                        this.katexRenderer = new KatexRenderer();
-                        this.themeController = new ThemeController(this.body);
-                        this.fontSizeController = new FontSizeController(this.body);
-                        this.collapsibleController = new CollapsibleController();
-                        this.viewToggleController = new ViewToggleController();
-                        this.fullscreenController = new FullscreenController();
-                        this.listItemController = new ListItemController();
-                        this.savePdfController = new SavePdfController();
-                        this.exportMarkdownController = new ExportMarkdownController();
-                        this.exportImageController = new ExportImageController();
-                    }
-                    addGlobalKeydownListener() {
-                        document.addEventListener('keydown', (e) => {
-                            if (e.ctrlKey || e.metaKey) {
-                                switch (e.key) {
-                                    case '-': e.preventDefault(); this.fontSizeController.adjust(-CONFIG.FONT_SIZE.STEP); break;
-                                    case '=':
-                                    case '+': e.preventDefault(); this.fontSizeController.adjust(CONFIG.FONT_SIZE.STEP); break;
-                                    case '0': e.preventDefault(); this.fontSizeController.reset(); break;
-                                    case 't': case 'T': e.preventDefault(); this.themeController.toggle(); break;
-                                    case 'r': case 'R': e.preventDefault(); this.viewToggleController.toggle(); break;
-                                    case 'p': case 'P': e.preventDefault(); this.savePdfController.saveAsPdf(); break;
-                                }
-                            } else if (e.key === 'F11') {
-                                e.preventDefault(); 
-                                this.fullscreenController.toggle();
-                            }
-                        });
-                    }
+class KatexRenderer {
+    constructor() { 
+        this.init(); 
+    }
+    
+    init() {
+        if (typeof renderMathInElement === 'function') { 
+            this.render(); 
+        } else { 
+            const interval = setInterval(() => { 
+                if (typeof renderMathInElement === 'function') { 
+                    clearInterval(interval); 
+                    this.render(); 
                 }
-                class KatexRenderer {
-                    constructor() { this.init(); }
-                    init() {
-                        if (typeof renderMathInElement === 'function') { this.render(); } 
-                        else { const i = setInterval(() => { if (typeof renderMathInElement === 'function') { clearInterval(i); this.render(); }}, 100); }
-                    }
-                    render() {
-                        try {
-                            renderMathInElement(document.getElementById('content-container'), {
-                                delimiters: [
-                                    {left: "$$", right: "$$", display: true}, {left: "\\\\[", right: "\\\\]", display: true},
-                                    {left: "$", right: "$", display: false, throwOnError: false}, {left: "\\\\(", right: "\\\\)", display: false}
-                                ],
-                                throwOnError: false,
-                            });
-                        } catch (e) { console.error("KaTeX rendering error:", e); }
-                    }
-                }
-                class ThemeController {
-                    constructor(body) {
-                        this.body = body; this.toggleBtn = document.getElementById('toggleThemeBtn');
-                        this.darkClass = 'dark-theme'; this.highContrastClass = 'high-contrast-theme';
-                        this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.THEME; this.init();
-                    }
-                    init() {
-                        if (!this.toggleBtn) return;
-                        this.toggleBtn.addEventListener('click', () => this.toggle());
-                        const p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                        this.applyTheme(localStorage.getItem(this.lsKey) || p);
-                        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                            if (!localStorage.getItem(this.lsKey)) { this.applyTheme(e.matches ? 'dark' : 'light'); }
-                        });
-                    }
-                    applyTheme(theme) {
-                        this.body.classList.remove(this.darkClass, this.highContrastClass);
-                        if (theme === 'dark') { this.body.classList.add(this.darkClass); this.toggleBtn.textContent = 'High Contrast'; } 
-                        else if (theme === 'high-contrast') { this.body.classList.add(this.highContrastClass); this.toggleBtn.textContent = 'Light Theme'; } 
-                        else { this.toggleBtn.textContent = 'Dark Theme'; }
-                        localStorage.setItem(this.lsKey, theme);
-                    }
-                    toggle() {
-                        const c = this.body.classList;
-                        const current = c.contains(this.highContrastClass) ? 'high-contrast' : (c.contains(this.darkClass) ? 'dark' : 'light');
-                        const next = current === 'light' ? 'dark' : (current === 'dark' ? 'high-contrast' : 'light');
-                        this.applyTheme(next);
-                    }
-                }
-                class FontSizeController {
-                    constructor(body) {
-                        this.body = body; this.increaseBtn = document.getElementById('increaseFontBtn');
-                        this.decreaseBtn = document.getElementById('decreaseFontBtn'); this.resetBtn = document.getElementById('resetFontBtn');
-                        this.display = document.getElementById('currentFontSizeDisplay'); this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.FONT_SIZE;
-                        this.currentPercent = parseInt(localStorage.getItem(this.lsKey) || CONFIG.FONT_SIZE.DEFAULT, 10);
-                        this.init();
-                    }
-                    init() {
-                        if (!this.increaseBtn || !this.decreaseBtn || !this.resetBtn || !this.display) return;
-                        this.increaseBtn.addEventListener('click', () => this.adjust(CONFIG.FONT_SIZE.STEP));
-                        this.decreaseBtn.addEventListener('click', () => this.adjust(-CONFIG.FONT_SIZE.STEP));
-                        this.resetBtn.addEventListener('click', () => this.reset());
-                        this.applyFontSize(this.currentPercent);
-                    }
-                    adjust(step) { this.applyFontSize(this.currentPercent + step); }
-                    reset() { this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT); }
-                    applyFontSize(p) {
-                        this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, p));
-                        this.body.style.fontSize = \`\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\`;
-                        this.display.textContent = \`\${this.currentPercent}%\`;
-                        localStorage.setItem(this.lsKey, this.currentPercent);
-                    }
-                }
-                class CollapsibleController {
-                    constructor() {
-                        this.toggleButton = document.getElementById('toggleCollapseBtn');
-                        this.controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
-                        this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED; this.init();
-                    }
-                    init() {
-                        if (!this.toggleButton) return;
-                        this.toggleButton.addEventListener('click', () => this.toggle());
-                        this.applyState(JSON.parse(localStorage.getItem(this.lsKey) || 'false'));
-                    }
-                    toggle() {
-                        const current = this.controlsToToggle[0].style.display === 'none';
-                        this.applyState(!current);
-                    }
-                    applyState(collapsed) {
-                        this.controlsToToggle.forEach(c => { c.style.display = collapsed ? 'none' : ''; });
-                        this.toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
-                        this.toggleButton.title = collapsed ? 'Expand Controls' : 'Collapse Controls';
-                        localStorage.setItem(this.lsKey, JSON.stringify(collapsed));
-                    }
-                }
-                class ViewToggleController {
-                    constructor() {
-                        this.toggleBtn = document.getElementById('toggleViewBtn');
-                        this.contentContainer = document.getElementById('content-container');
-                        this.rawContainer = document.getElementById('raw-container');
-                        this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.VIEW_MODE; this.init();
-                    }
-                    init() {
-                        if (!this.toggleBtn || !this.contentContainer || !this.rawContainer) return;
-                        this.toggleBtn.addEventListener('click', () => this.toggle());
-                        this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered');
-                    }
-                    toggle() {
-                        const current = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
-                        this.applyViewMode(current === 'rendered' ? 'raw' : 'rendered');
-                    }
-                    applyViewMode(mode) {
-                        if (mode === 'raw') {
-                            this.contentContainer.style.display = 'none'; this.rawContainer.style.display = 'block';
-                            this.toggleBtn.textContent = 'Rendered'; this.toggleBtn.title = 'Show Rendered View';
-                        } else {
-                            this.contentContainer.style.display = 'block'; this.rawContainer.style.display = 'none';
-                            this.toggleBtn.textContent = 'Raw'; this.toggleBtn.title = 'Show Raw Markdown';
-                        }
-                        localStorage.setItem(this.lsKey, mode);
-                    }
-                }
-                class FullscreenController {
-                    constructor() {
-                        this.toggleBtn = document.getElementById('toggleFullscreenBtn');
-                        this.lsKey = CONFIG.LOCAL_STORAGE_KEYS.FULLSCREEN || 'renderedOutputFullscreen';
-                        this.init();
-                    }
-                    init() {
-                        if (!this.toggleBtn) return;
-                        this.toggleBtn.addEventListener('click', () => this.toggle());
-                        
-                        document.addEventListener('fullscreenchange', () => this.updateButtonText());
-                        document.addEventListener('webkitfullscreenchange', () => this.updateButtonText());
-                        document.addEventListener('mozfullscreenchange', () => this.updateButtonText());
-                        document.addEventListener('msfullscreenchange', () => this.updateButtonText());
-                        
-                        this.updateButtonText();
-                    }
-                    toggle() {
-                        if (this.isFullscreen()) {
-                            this.exitFullscreen();
-                        } else {
-                            this.enterFullscreen();
-                        }
-                    }
-                    isFullscreen() {
-                        return !!(document.fullscreenElement || 
-                                 document.webkitFullscreenElement || 
-                                 document.mozFullScreenElement || 
-                                 document.msFullscreenElement);
-                    }
-                    enterFullscreen() {
-                        const elem = document.documentElement;
-                        if (elem.requestFullscreen) {
-                            elem.requestFullscreen();
-                        } else if (elem.webkitRequestFullscreen) {
-                            elem.webkitRequestFullscreen();
-                        } else if (elem.mozRequestFullScreen) {
-                            elem.mozRequestFullScreen();
-                        } else if (elem.msRequestFullscreen) {
-                            elem.msRequestFullscreen();
-                        }
-                    }
-                    exitFullscreen() {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                        } else if (document.webkitExitFullscreen) {
-                            document.webkitExitFullscreen();
-                        } else if (document.mozCancelFullScreen) {
-                            document.mozCancelFullScreen();
-                        } else if (document.msExitFullscreen) {
-                            document.msExitFullscreen();
-                        }
-                    }
-                    updateButtonText() {
-                        if (this.isFullscreen()) {
-                            this.toggleBtn.textContent = 'Exit Fullscreen';
-                            this.toggleBtn.title = 'Exit fullscreen mode (F11)';
-                        } else {
-                            this.toggleBtn.textContent = 'Fullscreen';
-                            this.toggleBtn.title = 'Enter fullscreen mode (F11)';
-                        }
-                    }
-                }
-                class SavePdfController {
-                     constructor() {
-                        this.btn = document.getElementById('saveAsPdfBtn');
-                        this.controlsPanel = document.getElementById('font-controls');
-                        this.rawContainer = document.getElementById('raw-container'); this.init();
-                    }
-                    init() { if (this.btn) { this.btn.addEventListener('click', () => this.saveAsPdf()); } }
-                    saveAsPdf() {
-                        if (this.rawContainer && this.rawContainer.style.display !== 'none') {
-                            alert('Switch to the rendered view before exporting to PDF.'); return;
-                        }
-                        this.controlsPanel.style.display = 'none';
-                        setTimeout(() => { window.print(); setTimeout(() => { this.controlsPanel.style.display = ''; }, 150); }, 30);
-                    }
-                }
-                class ExportImageController {
-                    constructor() {
-                        this.btn = document.getElementById('exportImageBtn');
-                        this.controlsPanel = document.getElementById('font-controls');
-                        this.notificationElement = document.getElementById('copy-notification');
-                        this.rawContainer = document.getElementById('raw-container');
-                        this.cachedKatexCSS = null;
-                        this.init();
-                    }
-                    init() {
-                        if (this.btn) {
-                            this.btn.addEventListener('click', () => this.exportAsImage());
-                        }
-                    }
-                    async fetchKatexCSS() {
-                        if (this.cachedKatexCSS) {
-                            return this.cachedKatexCSS;
-                        }
-                        try {
-                            const cssUrl = APP_DATA.config.CDN.katexCSS;
-                            const response = await fetch(cssUrl);
-                            if (!response.ok) {
-                                throw new Error(\`Failed to fetch CSS: \${response.statusText}\`);
-                            }
-                            const cssText = await response.text();
-                            this.cachedKatexCSS = cssText;
-                            return cssText;
-                        } catch (error) {
-                            console.error('Could not fetch KaTeX CSS for image export:', error);
-                            return '';
-                        }
-                    }
-                    async exportAsImage() {
-                        if (typeof html2canvas === 'undefined') {
-                            alert('Image export library (html2canvas) is not loaded yet. Please try again in a moment.');
-                            return;
-                        }
-                        if (this.rawContainer?.style.display !== 'none') {
-                            alert('Switch to the rendered view before exporting as an image.');
-                            return;
-                        }
-                
-                        const originalBtnText = this.btn.textContent;
-                        const originalControlsDisplay = this.controlsPanel.style.display;
-                        const originalScrollX = window.scrollX;
-                        const originalScrollY = window.scrollY;
-                
-                        this.btn.textContent = 'Generating...';
-                        this.btn.disabled = true;
-                        this.controlsPanel.style.display = 'none';
-                        if (this.notificationElement) this.notificationElement.style.display = 'none';
-                
-                        window.scrollTo(0, 0);
-                
-                        try {
-                            await new Promise(resolve => requestAnimationFrame(resolve));
-                
-                            const katexCSSText = await this.fetchKatexCSS();
-                            const canvas = await html2canvas(document.body, {
-                                scale: 2,
-                                useCORS: true,
-                                backgroundColor: window.getComputedStyle(document.body).backgroundColor,
-                                logging: false,
-                                windowWidth: document.documentElement.scrollWidth,
-                                windowHeight: document.documentElement.scrollHeight,
-                                onclone: (clonedDoc) => {
-                                    if (katexCSSText) {
-                                        const style = clonedDoc.createElement('style');
-                                        style.innerHTML = katexCSSText;
-                                        clonedDoc.head.appendChild(style);
-                                    }
-                                },
-                            });
-                
-                            const link = document.createElement('a');
-                            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                            link.download = \`markdown-export-\${timestamp}.png\`;
-                            link.href = canvas.toDataURL('image/png');
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        } catch (error) {
-                            console.error('Error exporting image:', error);
-                            alert('An error occurred while exporting the image. See console for details.');
-                        } finally {
-                            this.controlsPanel.style.display = originalControlsDisplay;
-                            this.btn.textContent = originalBtnText;
-                            this.btn.disabled = false;
-                            window.scrollTo(originalScrollX, originalScrollY);
-                        }
-                    }
-                }
-                class ListItemController {
-                    constructor() {
-                        this.contentContainer = document.getElementById('content-container');
-                        this.notificationElement = document.getElementById('copy-notification');
-                        this.longPressTimer = null;
-                        this.longPressElement = null;
-                        this.touchStartX = 0;
-                        this.touchStartY = 0;
-                
-                        this.boundHandleMove = this.handleMove.bind(this);
-                        this.boundHandleEnd = this.handleEnd.bind(this);
-                
-                        this.init();
-                    }
-                
-                    init() {
-                        if (!this.contentContainer || !this.notificationElement) return;
-                        const setup = () => {
-                            if (this.setupTimeout) clearTimeout(this.setupTimeout);
-                            this.setupTimeout = setTimeout(() => this.attachInitialListeners(), 300);
-                        };
-                        setTimeout(setup, 500);
-                        const observer = new MutationObserver(setup);
-                        observer.observe(this.contentContainer, { childList: true, subtree: true });
-                    }
-                
-                    attachInitialListeners() {
-                        const listItems = this.contentContainer.querySelectorAll('li');
-                        listItems.forEach((li, index) => {
-                            if (li.dataset.listCopyInitialized === 'true') return;
-                            li.dataset.listIndex = index;
-                            li.dataset.listCopyInitialized = 'true';
-                            
-                            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-                            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
-                        });
-                    }
-                
-                    handleStart(element, event) {
-                        this.handleEnd();
-                
-                        this.longPressElement = element;
-                
-                        if (event.type === 'touchstart' && event.touches.length > 0) {
-                            this.touchStartX = event.touches[0].clientX;
-                            this.touchStartY = event.touches[0].clientY;
-                
-                            element.addEventListener('touchmove', this.boundHandleMove, { passive: true });
-                            element.addEventListener('touchend', this.boundHandleEnd);
-                            element.addEventListener('touchcancel', this.boundHandleEnd);
-                        } else if (event.type === 'mousedown') {
-                            element.addEventListener('mouseup', this.boundHandleEnd);
-                            element.addEventListener('mouseleave', this.boundHandleEnd);
-                        }
-                
-                        element.classList.add('list-item-highlight');
-                        
-                        this.longPressTimer = setTimeout(async () => {
-                            if (this.longPressElement === element) {
-                                await this.copyListContent(element);
-                            }
-                        }, CONFIG.LONG_PRESS_DURATION);
-                    }
-                
-                    handleMove(event) {
-                        if (!this.longPressTimer) return;
-                
-                        if (event.touches.length > 0) {
-                            const touch = event.touches[0];
-                            const deltaX = Math.abs(touch.clientX - this.touchStartX);
-                            const deltaY = Math.abs(touch.clientY - this.touchStartY);
-                        
-                            if (deltaX > 10 || deltaY > 10) {
-                                this.handleEnd();
-                            }
-                        }
-                    }
-                
-                    handleEnd() {
-                        if (this.longPressTimer) {
-                            clearTimeout(this.longPressTimer);
-                            this.longPressTimer = null;
-                        }
-                
-                        if (this.longPressElement) {
-                            this.longPressElement.classList.remove('list-item-highlight');
-                            
-                            this.longPressElement.removeEventListener('touchmove', this.boundHandleMove);
-                            this.longPressElement.removeEventListener('touchend', this.boundHandleEnd);
-                            this.longPressElement.removeEventListener('touchcancel', this.boundHandleEnd);
-                            this.longPressElement.removeEventListener('mouseup', this.boundHandleEnd);
-                            this.longPressElement.removeEventListener('mouseleave', this.boundHandleEnd);
-                            
-                            this.longPressElement = null;
-                        }
-                    }
-                
-                    async copyListContent(element) {
-                        try {
-                            const listIndex = parseInt(element.dataset.listIndex, 10);
-                            if (isNaN(listIndex) || !APP_DATA.listItems || listIndex >= APP_DATA.listItems.length || !APP_DATA.listItems[listIndex]) {
-                                const textContent = (element.innerText || element.textContent || "").trim();
-                                if (textContent) {
-                                    await this._copyToClipboard(textContent);
-                                    this.showNotification('List item text copied!');
-                                } else {
-                                    throw new Error('List item content is empty.');
-                                }
-                                return;
-                            }
-                            const textToCopy = APP_DATA.listItems[listIndex].content;
-                            await this._copyToClipboard(textToCopy);
-                            this.showNotification('List content copied!');
-                        } catch (err) {
-                            console.error('Failed to copy list item:', err);
-                            this.showNotification('Failed to copy. See console.', true);
-                        }
-                    }
-                
-                    async _copyToClipboard(text) {
-                        if (navigator.clipboard?.writeText) { return navigator.clipboard.writeText(text); }
-                        const ta = document.createElement('textarea');
-                        ta.value = text;
-                        ta.style.position = 'fixed'; ta.style.opacity = '0';
-                        document.body.appendChild(ta);
-                        ta.select(); document.execCommand('copy');
-                        document.body.removeChild(ta);
-                    }
-                
-                    showNotification(message, isError = false) {
-                        if (!this.notificationElement) return;
-                        this.notificationElement.textContent = message;
-                        this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
-                        this.notificationElement.style.color = 'white';
-                        if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
-                            this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
-                            this.notificationElement.style.color = '#0d1117';
-                        }
-                        this.notificationElement.style.display = 'block';
-                        setTimeout(() => { this.notificationElement.style.display = 'none'; }, isError ? 3500 : 2000);
-                    }
-                }
+            }, 100); 
+        }
+    }
+    
+    render() {
+        try {
+            renderMathInElement(document.getElementById('content-container'), {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true}, 
+                    {left: "\\\\[", right: "\\\\]", display: true},
+                    {left: "$", right: "$", display: false, throwOnError: false}, 
+                    {left: "\\\\(", right: "\\\\)", display: false}
+                ],
+                throwOnError: false,
+            });
+        } catch (e) { 
+            console.error("KaTeX rendering error:", e); 
+        }
+    }
+}`;
+    }
+    
+    static getThemeControllerScript() {
+        return `
+class ThemeController {
+    constructor(body) {
+        this.body = body; 
+        this.toggleBtn = document.getElementById('toggleThemeBtn');
+        this.darkClass = 'dark-theme'; 
+        this.highContrastClass = 'high-contrast-theme';
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.THEME; 
+        this.init();
+    }
+    
+    init() {
+        if (!this.toggleBtn) return;
+        this.toggleBtn.addEventListener('click', () => this.toggle());
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        this.applyTheme(localStorage.getItem(this.lsKey) || prefersDark);
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem(this.lsKey)) { 
+                this.applyTheme(e.matches ? 'dark' : 'light'); 
+            }
+        });
+    }
+    
+    applyTheme(theme) {
+        this.body.classList.remove(this.darkClass, this.highContrastClass);
+        if (theme === 'dark') { 
+            this.body.classList.add(this.darkClass); 
+            this.toggleBtn.textContent = 'High Contrast'; 
+        } else if (theme === 'high-contrast') { 
+            this.body.classList.add(this.highContrastClass); 
+            this.toggleBtn.textContent = 'Light Theme'; 
+        } else { 
+            this.toggleBtn.textContent = 'Dark Theme'; 
+        }
+        localStorage.setItem(this.lsKey, theme);
+    }
+    
+    toggle() {
+        const classList = this.body.classList;
+        const current = classList.contains(this.highContrastClass) ? 'high-contrast' : 
+                       (classList.contains(this.darkClass) ? 'dark' : 'light');
+        const next = current === 'light' ? 'dark' : 
+                    (current === 'dark' ? 'high-contrast' : 'light');
+        this.applyTheme(next);
+    }
+}`;
+    }
+    
+    static getFontSizeControllerScript() {
+        return `
+class FontSizeController {
+    constructor(body) {
+        this.body = body; 
+        this.increaseBtn = document.getElementById('increaseFontBtn');
+        this.decreaseBtn = document.getElementById('decreaseFontBtn'); 
+        this.resetBtn = document.getElementById('resetFontBtn');
+        this.display = document.getElementById('currentFontSizeDisplay'); 
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.FONT_SIZE;
+        this.config = window.__APP_DATA__.config.FONT_SIZE;
+        this.currentPercent = parseInt(localStorage.getItem(this.lsKey) || this.config.DEFAULT, 10);
+        this.init();
+    }
+    
+    init() {
+        if (!this.increaseBtn || !this.decreaseBtn || !this.resetBtn || !this.display) return;
+        this.increaseBtn.addEventListener('click', () => this.adjust(this.config.STEP));
+        this.decreaseBtn.addEventListener('click', () => this.adjust(-this.config.STEP));
+        this.resetBtn.addEventListener('click', () => this.reset());
+        this.applyFontSize(this.currentPercent);
+    }
+    
+    adjust(step) { 
+        this.applyFontSize(this.currentPercent + step); 
+    }
+    
+    reset() { 
+        this.applyFontSize(this.config.DEFAULT); 
+    }
+    
+    applyFontSize(percent) {
+        this.currentPercent = Math.max(this.config.MIN, Math.min(this.config.MAX, percent));
+        this.body.style.fontSize = \`\${(this.config.BASE * this.currentPercent) / 100}px\`;
+        this.display.textContent = \`\${this.currentPercent}%\`;
+        localStorage.setItem(this.lsKey, this.currentPercent);
+    }
+}`;
+    }
+    
+    static getCollapsibleControllerScript() {
+        return `
+class CollapsibleController {
+    constructor() {
+        this.toggleButton = document.getElementById('toggleCollapseBtn');
+        this.controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED; 
+        this.init();
+    }
+    
+    init() {
+        if (!this.toggleButton) return;
+        this.toggleButton.addEventListener('click', () => this.toggle());
+        this.applyState(JSON.parse(localStorage.getItem(this.lsKey) || 'false'));
+    }
+    
+    toggle() {
+        const current = this.controlsToToggle[0].style.display === 'none';
+        this.applyState(!current);
+    }
+    
+    applyState(collapsed) {
+        this.controlsToToggle.forEach(control => { 
+            control.style.display = collapsed ? 'none' : ''; 
+        });
+        this.toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
+        this.toggleButton.title = collapsed ? 'Expand Controls' : 'Collapse Controls';
+        localStorage.setItem(this.lsKey, JSON.stringify(collapsed));
+    }
+}`;
+    }
+    
+    static getViewToggleControllerScript() {
+        return `
+class ViewToggleController {
+    constructor() {
+        this.toggleBtn = document.getElementById('toggleViewBtn');
+        this.contentContainer = document.getElementById('content-container');
+        this.rawContainer = document.getElementById('raw-container');
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.VIEW_MODE; 
+        this.init();
+    }
+    
+    init() {
+        if (!this.toggleBtn || !this.contentContainer || !this.rawContainer) return;
+        this.toggleBtn.addEventListener('click', () => this.toggle());
+        this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered');
+    }
+    
+    toggle() {
+        const current = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
+        this.applyViewMode(current === 'rendered' ? 'raw' : 'rendered');
+    }
+    
+    applyViewMode(mode) {
+        if (mode === 'raw') {
+            this.contentContainer.style.display = 'none'; 
+            this.rawContainer.style.display = 'block';
+            this.toggleBtn.textContent = 'Rendered'; 
+            this.toggleBtn.title = 'Show Rendered View';
+        } else {
+            this.contentContainer.style.display = 'block'; 
+            this.rawContainer.style.display = 'none';
+            this.toggleBtn.textContent = 'Raw'; 
+            this.toggleBtn.title = 'Show Raw Markdown';
+        }
+        localStorage.setItem(this.lsKey, mode);
+    }
+}`;
+    }
+    
+    static getFullscreenControllerScript() {
+        return `
+class FullscreenController {
+    constructor() {
+        this.toggleBtn = document.getElementById('toggleFullscreenBtn');
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.FULLSCREEN || 'renderedOutputFullscreen';
+        this.init();
+    }
+    
+    init() {
+        if (!this.toggleBtn) return;
+        this.toggleBtn.addEventListener('click', () => this.toggle());
+        
+        document.addEventListener('fullscreenchange', () => this.updateButtonText());
+        document.addEventListener('webkitfullscreenchange', () => this.updateButtonText());
+        document.addEventListener('mozfullscreenchange', () => this.updateButtonText());
+        document.addEventListener('msfullscreenchange', () => this.updateButtonText());
+        
+        this.updateButtonText();
+    }
+    
+    toggle() {
+        if (this.isFullscreen()) {
+            this.exitFullscreen();
+        } else {
+            this.enterFullscreen();
+        }
+    }
+    
+    isFullscreen() {
+        return !!(document.fullscreenElement || 
+                 document.webkitFullscreenElement || 
+                 document.mozFullScreenElement || 
+                 document.msFullscreenElement);
+    }
+    
+    enterFullscreen() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }
+    
+    exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+    
+    updateButtonText() {
+        if (this.isFullscreen()) {
+            this.toggleBtn.textContent = 'Exit Fullscreen';
+            this.toggleBtn.title = 'Exit fullscreen mode (F11)';
+        } else {
+            this.toggleBtn.textContent = 'Fullscreen';
+            this.toggleBtn.title = 'Enter fullscreen mode (F11)';
+        }
+    }
+}`;
+    }
+    
+    static getSavePdfControllerScript() {
+        return `
+class SavePdfController {
+     constructor() {
+        this.btn = document.getElementById('saveAsPdfBtn');
+        this.controlsPanel = document.getElementById('font-controls');
+        this.rawContainer = document.getElementById('raw-container'); 
+        this.init();
+    }
+    
+    init() { 
+        if (this.btn) { 
+            this.btn.addEventListener('click', () => this.saveAsPdf()); 
+        } 
+    }
+    
+    saveAsPdf() {
+        if (this.rawContainer && this.rawContainer.style.display !== 'none') {
+            alert('Switch to the rendered view before exporting to PDF.'); 
+            return;
+        }
+        this.controlsPanel.style.display = 'none';
+        setTimeout(() => { 
+            window.print(); 
+            setTimeout(() => { 
+                this.controlsPanel.style.display = ''; 
+            }, 150); 
+        }, 30);
+    }
+}`;
+    }
+    
+    static getExportMarkdownControllerScript() {
+        return `
+class ExportMarkdownController {
+    constructor() { 
+        this.btn = document.getElementById('exportMarkdownBtn'); 
+        this.init(); 
+    }
+    
+    init() { 
+        if (this.btn) {
+            this.btn.addEventListener('click', () => this.exportMarkdown()); 
+        }
+    }
+    
+    exportMarkdown() {
+        const rawMarkdown = window.__APP_DATA__.rawMarkdown;
+        const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        link.href = url; 
+        link.download = \`markdown-export-\${timestamp}.md\`;
+        document.body.appendChild(link); 
+        link.click();
+        document.body.removeChild(link); 
+        URL.revokeObjectURL(url);
+    }
+}`;
+    }
+    
+    static getExportImageControllerScript() {
+        return `
+class ExportImageController {
+    constructor() {
+        this.btn = document.getElementById('exportImageBtn');
+        this.controlsPanel = document.getElementById('font-controls');
+        this.notificationElement = document.getElementById('copy-notification');
+        this.rawContainer = document.getElementById('raw-container');
+        this.cachedKatexCSS = null;
+        this.init();
+    }
+    
+    init() {
+        if (this.btn) {
+            this.btn.addEventListener('click', () => this.exportAsImage());
+        }
+    }
+    
+    async fetchKatexCSS() {
+        if (this.cachedKatexCSS) {
+            return this.cachedKatexCSS;
+        }
+        try {
+            const cssUrl = window.__APP_DATA__.config.CDN.katexCSS;
+            const response = await fetch(cssUrl);
+            if (!response.ok) {
+                throw new Error(\`Failed to fetch CSS: \${response.statusText}\`);
+            }
+            const cssText = await response.text();
+            this.cachedKatexCSS = cssText;
+            return cssText;
+        } catch (error) {
+            console.error('Could not fetch KaTeX CSS for image export:', error);
+            return '';
+        }
+    }
+    
+    async exportAsImage() {
+        if (typeof html2canvas === 'undefined') {
+            alert('Image export library (html2canvas) is not loaded yet. Please try again in a moment.');
+            return;
+        }
+        if (this.rawContainer?.style.display !== 'none') {
+            alert('Switch to the rendered view before exporting as an image.');
+            return;
+        }
 
-                class ExportMarkdownController {
-                    constructor() { this.btn = document.getElementById('exportMarkdownBtn'); this.init(); }
-                    init() { if (this.btn) this.btn.addEventListener('click', () => this.exportMarkdown()); }
-                    exportMarkdown() {
-                        const rawMarkdown = APP_DATA.rawMarkdown;
-                        const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                        link.href = url; link.download = \`markdown-export-\${timestamp}.md\`;
-                        document.body.appendChild(link); link.click();
-                        document.body.removeChild(link); URL.revokeObjectURL(url);
+        const originalBtnText = this.btn.textContent;
+        const originalControlsDisplay = this.controlsPanel.style.display;
+        const originalScrollX = window.scrollX;
+        const originalScrollY = window.scrollY;
+
+        this.btn.textContent = 'Generating...';
+        this.btn.disabled = true;
+        this.controlsPanel.style.display = 'none';
+        if (this.notificationElement) this.notificationElement.style.display = 'none';
+
+        window.scrollTo(0, 0);
+
+        try {
+            await new Promise(resolve => requestAnimationFrame(resolve));
+
+            const katexCSSText = await this.fetchKatexCSS();
+            const canvas = await html2canvas(document.body, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+                logging: false,
+                windowWidth: document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight,
+                onclone: (clonedDoc) => {
+                    if (katexCSSText) {
+                        const style = clonedDoc.createElement('style');
+                        style.innerHTML = katexCSSText;
+                        clonedDoc.head.appendChild(style);
                     }
+                },
+            });
+
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+            link.download = \`markdown-export-\${timestamp}.png\`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Error exporting image:', error);
+            alert('An error occurred while exporting the image. See console for details.');
+        } finally {
+            this.controlsPanel.style.display = originalControlsDisplay;
+            this.btn.textContent = originalBtnText;
+            this.btn.disabled = false;
+            window.scrollTo(originalScrollX, originalScrollY);
+        }
+    }
+}`;
+    }
+    
+    static getListItemControllerScript() {
+        return `
+class ListItemController {
+    constructor() {
+        this.contentContainer = document.getElementById('content-container');
+        this.notificationElement = document.getElementById('copy-notification');
+        this.longPressTimer = null;
+        this.longPressElement = null;
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+
+        this.boundHandleMove = this.handleMove.bind(this);
+        this.boundHandleEnd = this.handleEnd.bind(this);
+
+        this.init();
+    }
+
+    init() {
+        if (!this.contentContainer || !this.notificationElement) return;
+        const setup = () => {
+            if (this.setupTimeout) clearTimeout(this.setupTimeout);
+            this.setupTimeout = setTimeout(() => this.attachInitialListeners(), 300);
+        };
+        setTimeout(setup, 500);
+        const observer = new MutationObserver(setup);
+        observer.observe(this.contentContainer, { childList: true, subtree: true });
+    }
+
+    attachInitialListeners() {
+        const listItems = this.contentContainer.querySelectorAll('li');
+        listItems.forEach((li, index) => {
+            if (li.dataset.listCopyInitialized === 'true') return;
+            li.dataset.listIndex = index;
+            li.dataset.listCopyInitialized = 'true';
+            
+            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
+            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+        });
+    }
+
+    handleStart(element, event) {
+        this.handleEnd();
+
+        this.longPressElement = element;
+
+        if (event.type === 'touchstart' && event.touches.length > 0) {
+            this.touchStartX = event.touches[0].clientX;
+            this.touchStartY = event.touches[0].clientY;
+
+            element.addEventListener('touchmove', this.boundHandleMove, { passive: true });
+            element.addEventListener('touchend', this.boundHandleEnd);
+            element.addEventListener('touchcancel', this.boundHandleEnd);
+        } else if (event.type === 'mousedown') {
+            element.addEventListener('mouseup', this.boundHandleEnd);
+            element.addEventListener('mouseleave', this.boundHandleEnd);
+        }
+
+        element.classList.add('list-item-highlight');
+        
+        this.longPressTimer = setTimeout(async () => {
+            if (this.longPressElement === element) {
+                await this.copyListContent(element);
+            }
+        }, window.__APP_DATA__.config.LONG_PRESS_DURATION);
+    }
+
+    handleMove(event) {
+        if (!this.longPressTimer) return;
+
+        if (event.touches.length > 0) {
+            const touch = event.touches[0];
+            const deltaX = Math.abs(touch.clientX - this.touchStartX);
+            const deltaY = Math.abs(touch.clientY - this.touchStartY);
+        
+            if (deltaX > 10 || deltaY > 10) {
+                this.handleEnd();
+            }
+        }
+    }
+
+    handleEnd() {
+        if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+        }
+
+        if (this.longPressElement) {
+            this.longPressElement.classList.remove('list-item-highlight');
+            
+            this.longPressElement.removeEventListener('touchmove', this.boundHandleMove);
+            this.longPressElement.removeEventListener('touchend', this.boundHandleEnd);
+            this.longPressElement.removeEventListener('touchcancel', this.boundHandleEnd);
+            this.longPressElement.removeEventListener('mouseup', this.boundHandleEnd);
+            this.longPressElement.removeEventListener('mouseleave', this.boundHandleEnd);
+            
+            this.longPressElement = null;
+        }
+    }
+
+    async copyListContent(element) {
+        try {
+            const listIndex = parseInt(element.dataset.listIndex, 10);
+            if (isNaN(listIndex) || !window.__APP_DATA__.listItems || listIndex >= window.__APP_DATA__.listItems.length || !window.__APP_DATA__.listItems[listIndex]) {
+                const textContent = (element.innerText || element.textContent || "").trim();
+                if (textContent) {
+                    await this._copyToClipboard(textContent);
+                    this.showNotification('List item text copied!');
+                } else {
+                    throw new Error('List item content is empty.');
                 }
-                document.addEventListener('DOMContentLoaded', () => { window.markdownRendererUI = new UIController(); });
-            })();
-        `;
+                return;
+            }
+            const textToCopy = window.__APP_DATA__.listItems[listIndex].content;
+            await this._copyToClipboard(textToCopy);
+            this.showNotification('List content copied!');
+        } catch (err) {
+            console.error('Failed to copy list item:', err);
+            this.showNotification('Failed to copy. See console.', true);
+        }
+    }
+
+    async _copyToClipboard(text) {
+        if (navigator.clipboard?.writeText) { 
+            return navigator.clipboard.writeText(text); 
+        }
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed'; 
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select(); 
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+    }
+
+    showNotification(message, isError = false) {
+        if (!this.notificationElement) return;
+        this.notificationElement.textContent = message;
+        this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
+        this.notificationElement.style.color = 'white';
+        if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
+            this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+            this.notificationElement.style.color = '#0d1117';
+        }
+        this.notificationElement.style.display = 'block';
+        setTimeout(() => { 
+            this.notificationElement.style.display = 'none'; 
+        }, isError ? 3500 : 2000);
+    }
+}`;
+    }
+    
+    static getUIControllerScript() {
+        return `
+class UIController {
+    constructor() {
+        this.body = document.querySelector('body.markdown-body');
+        this.initializeControls();
+        this.addGlobalKeydownListener();
+    }
+    
+    initializeControls() {
+        this.katexRenderer = new KatexRenderer();
+        this.themeController = new ThemeController(this.body);
+        this.fontSizeController = new FontSizeController(this.body);
+        this.collapsibleController = new CollapsibleController();
+        this.viewToggleController = new ViewToggleController();
+        this.fullscreenController = new FullscreenController();
+        this.listItemController = new ListItemController();
+        this.savePdfController = new SavePdfController();
+        this.exportMarkdownController = new ExportMarkdownController();
+        this.exportImageController = new ExportImageController();
+    }
+    
+    addGlobalKeydownListener() {
+        const config = window.__APP_DATA__.config;
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case '-': 
+                        e.preventDefault(); 
+                        this.fontSizeController.adjust(-config.FONT_SIZE.STEP); 
+                        break;
+                    case '=':
+                    case '+': 
+                        e.preventDefault(); 
+                        this.fontSizeController.adjust(config.FONT_SIZE.STEP); 
+                        break;
+                    case '0': 
+                        e.preventDefault(); 
+                        this.fontSizeController.reset(); 
+                        break;
+                    case 't': 
+                    case 'T': 
+                        e.preventDefault(); 
+                        this.themeController.toggle(); 
+                        break;
+                    case 'r': 
+                    case 'R': 
+                        e.preventDefault(); 
+                        this.viewToggleController.toggle(); 
+                        break;
+                    case 'p': 
+                    case 'P': 
+                        e.preventDefault(); 
+                        this.savePdfController.saveAsPdf(); 
+                        break;
+                }
+            } else if (e.key === 'F11') {
+                e.preventDefault(); 
+                this.fullscreenController.toggle();
+            }
+        });
+    }
+}`;
+    }
+    
+    static getClientMainScript() {
+        return `
+(function() {
+    'use strict';
+    
+    function initializeUI() {
+        window.markdownRendererUI = new UIController();
+    }
+    
+    // Initialize immediately if DOM is already ready, otherwise wait for DOMContentLoaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeUI);
+    } else {
+        initializeUI();
+    }
+})();`;
     }
 }
