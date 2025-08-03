@@ -2231,7 +2231,6 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             
             generateUniqueHistoryTitle(baseTitle, content, history) {
-                // Find all existing items with the same base title
                 const conflictingItems = history.filter(item => 
                     item.title === baseTitle || 
                     item.title.startsWith(baseTitle + ' (') ||
@@ -2242,18 +2241,14 @@ Don't write something like $E=mc^2$ across multiple lines.
                     return baseTitle;
                 }
                 
-                // For each conflicting item, try to create unique titles based on differing content
                 for (const conflictingItem of conflictingItems) {
                     if (conflictingItem.content === content) {
-                        // Same content, keep the existing title
                         return conflictingItem.title;
                     }
                     
-                    // Find the first significant difference in content
                     const uniqueSuffix = this.findContentDifference(content, conflictingItem.content);
                     if (uniqueSuffix) {
                         const newTitle = `${baseTitle} (${uniqueSuffix})`;
-                        // Make sure this new title doesn't conflict with existing ones
                         const titleExists = history.some(item => item.title === newTitle);
                         if (!titleExists) {
                             return newTitle;
@@ -2261,7 +2256,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                 }
                 
-                // Fallback: use a numbered suffix if we can't find meaningful differences
                 let counter = 2;
                 let candidateTitle = `${baseTitle} (${counter})`;
                 while (history.some(item => item.title === candidateTitle)) {
@@ -2273,24 +2267,19 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             
             findContentDifference(content1, content2) {
-                // Normalize content by removing extra whitespace and splitting into meaningful chunks
                 const normalize = (text) => text.trim().replace(/\s+/g, ' ');
                 const normalized1 = normalize(content1);
                 const normalized2 = normalize(content2);
                 
-                // Find the first significant word or phrase where they differ
                 const words1 = normalized1.split(' ');
                 const words2 = normalized2.split(' ');
                 
-                // Find the first differing word
                 for (let i = 0; i < Math.max(words1.length, words2.length); i++) {
                     const word1 = words1[i] || '';
                     const word2 = words2[i] || '';
                     
                     if (word1 !== word2) {
-                        // Found a difference, extract a meaningful snippet
                         if (word1 && word1.length > 2) {
-                            // Take this word and maybe the next one for context
                             const snippet = words1.slice(i, Math.min(i + 2, words1.length)).join(' ');
                             if (snippet.length > 2 && snippet.length <= 30) {
                                 return snippet;
@@ -2300,7 +2289,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     }
                 }
                 
-                // Fallback: try to find unique content from the beginning
                 const lines1 = content1.split('\n').filter(line => line.trim());
                 const lines2 = content2.split('\n').filter(line => line.trim());
                 
@@ -2309,7 +2297,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                     const line2 = lines2[i] || '';
                     
                     if (line1 !== line2 && line1.length > 0) {
-                        // Extract a meaningful part of this line
                         const words = line1.trim().split(' ');
                         if (words.length > 0) {
                             const snippet = words.slice(0, Math.min(3, words.length)).join(' ');
@@ -2329,7 +2316,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                 
                 let updatedHistory;
                 if (existingItem) {
-                    // Same content exists, just update the timestamp and move to top
                     updatedHistory = history.filter(item => item.content !== section.content);
                     updatedHistory.unshift({
                         id: existingItem.id,
@@ -2338,7 +2324,6 @@ Don't write something like $E=mc^2$ across multiple lines.
                         viewedAt: new Date().toISOString()
                     });
                 } else {
-                    // New content, generate a unique title
                     const uniqueTitle = this.generateUniqueHistoryTitle(section.title, section.content, history);
                     updatedHistory = history.filter(item => item.id !== section.id);
                     updatedHistory.unshift({
