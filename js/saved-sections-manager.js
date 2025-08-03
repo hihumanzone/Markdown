@@ -145,7 +145,6 @@ class SavedSectionsManager {
             </div>
         `).join('');
         
-        // Add event listeners for each section
         container.querySelectorAll('.section-item').forEach(item => {
             const sectionId = item.dataset.sectionId;
             const section = sections.find(s => s.id === sectionId);
@@ -301,7 +300,6 @@ class SavedSectionsManager {
             `;
         }).join('');
         
-        // Add event listeners for history items
         container.querySelectorAll('.history-item').forEach(item => {
             const historyId = item.dataset.historyId;
             const historyItem = history.find(h => h.id === historyId);

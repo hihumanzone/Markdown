@@ -28,11 +28,9 @@ class MarkdownRendererApp {
     }
     
     setupMarked() {
-        // Check immediately and also set up a retry mechanism
         const checkAndSetupMarked = () => {
             if (typeof marked === 'undefined') {
                 console.error("Marked.js is not loaded - will use fallback renderer");
-                // Enable buttons anyway since we have a fallback
                 if (this.dom.renderButton) {
                     this.dom.renderButton.disabled = false;
                     this.dom.renderButton.title = "Render the markdown content (using fallback renderer)";
@@ -50,7 +48,6 @@ class MarkdownRendererApp {
                 smartypants: false,
             });
             
-            // Update button titles for full functionality
             if (this.dom.renderButton) {
                 this.dom.renderButton.disabled = false;
                 this.dom.renderButton.title = "Render the markdown content";
@@ -62,9 +59,7 @@ class MarkdownRendererApp {
             return true;
         };
         
-        // Initial check
         if (!checkAndSetupMarked()) {
-            // Retry a few times in case marked.js loads asynchronously
             let retryCount = 0;
             const maxRetries = 10;
             const retryInterval = setInterval(() => {
@@ -155,12 +150,10 @@ class MarkdownRendererApp {
     
     async renderMarkdown(markdownText) {
         try {
-            // Check if marked.js is available
             if (typeof marked === 'undefined') {
                 console.error("Marked.js library is not loaded, using basic fallback");
                 await CustomModal.alert("The Markdown library failed to load due to network restrictions. Using basic fallback renderer with limited features. For full functionality, please refresh the page with a stable internet connection.");
                 
-                // Use basic fallback markdown parsing
                 const basicHtml = this.basicMarkdownToHtml(markdownText);
                 const listItems = ListItemParser.parse(markdownText);
                 const fullPageHtml = RenderedPageBuilder.build(
@@ -194,32 +187,25 @@ class MarkdownRendererApp {
         }
     }
     
-    // Basic fallback markdown parser for when marked.js fails to load
     basicMarkdownToHtml(markdown) {
         let html = markdown;
         
-        // Headers
         html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
         html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
         html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
         
-        // Bold and italic
         html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
         html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
         html = html.replace(/_(.*?)_/g, '<em>$1</em>');
         
-        // Inline code
         html = html.replace(/`(.*?)`/g, '<code>$1</code>');
         
-        // Links
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
         
-        // Line breaks
         html = html.replace(/\n/g, '<br>');
         
-        // Wrap in paragraph tags
         html = '<p>' + html + '</p>';
         
         return html;
@@ -227,25 +213,18 @@ class MarkdownRendererApp {
     
     async openInNewTab(htmlContent) {
         try {
-            // Create a blob with the HTML content
             const blob = new Blob([htmlContent], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
             
-            // Open the blob URL in a new tab
             const newTab = window.open(blobUrl, '_blank');
             if (newTab) {
                 newTab.focus();
-                
-                // Don't revoke the blob URL immediately to allow for page refreshes
-                // The browser will clean up blob URLs when the page is closed
             } else {
-                // Clean up immediately if tab failed to open
                 URL.revokeObjectURL(blobUrl);
                 await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");
             }
         } catch (error) {
             console.error("Error creating blob URL:", error);
-            // Fallback to the original method if blob creation fails
             const newTab = window.open('', '_blank');
             if (newTab) {
                 newTab.document.open();
