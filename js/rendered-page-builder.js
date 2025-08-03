@@ -582,8 +582,8 @@ class RenderedPageBuilder {
                     reset() { this.applyFontSize(CONFIG.FONT_SIZE.DEFAULT); }
                     applyFontSize(p) {
                         this.currentPercent = Math.max(CONFIG.FONT_SIZE.MIN, Math.min(CONFIG.FONT_SIZE.MAX, p));
-                        this.body.style.fontSize = \\\`\\\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\\\`;
-                        this.display.textContent = \\\`\\\${this.currentPercent}%\\\`;
+                        this.body.style.fontSize = \`\${(CONFIG.FONT_SIZE.BASE * this.currentPercent) / 100}px\`;
+                        this.display.textContent = \`\${this.currentPercent}%\`;
                         localStorage.setItem(this.lsKey, this.currentPercent);
                     }
                 }
@@ -736,7 +736,7 @@ class RenderedPageBuilder {
                             const cssUrl = APP_DATA.config.CDN.katexCSS;
                             const response = await fetch(cssUrl);
                             if (!response.ok) {
-                                throw new Error(\\\`Failed to fetch CSS: \\\${response.statusText}\\\`);
+                                throw new Error(\`Failed to fetch CSS: \${response.statusText}\`);
                             }
                             const cssText = await response.text();
                             this.cachedKatexCSS = cssText;
@@ -790,7 +790,7 @@ class RenderedPageBuilder {
                 
                             const link = document.createElement('a');
                             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                            link.download = \\\`markdown-export-\\\${timestamp}.png\\\`;
+                            link.download = \`markdown-export-\${timestamp}.png\`;
                             link.href = canvas.toDataURL('image/png');
                             document.body.appendChild(link);
                             link.click();
@@ -958,7 +958,7 @@ class RenderedPageBuilder {
                         const url = URL.createObjectURL(blob);
                         const link = document.createElement('a');
                         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-                        link.href = url; link.download = \\\`markdown-export-\\\${timestamp}.md\\\`;
+                        link.href = url; link.download = \`markdown-export-\${timestamp}.md\`;
                         document.body.appendChild(link); link.click();
                         document.body.removeChild(link); URL.revokeObjectURL(url);
                     }
