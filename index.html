@@ -281,10 +281,11 @@
             padding: 0;
             border: 1px solid var(--border-color);
             background: var(--surface-color);
+            color: var(--text-color);
             cursor: pointer;
             border-radius: 3px;
             font-size: 0.75rem;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2029,10 +2030,10 @@ Don't write something like $E=mc^2$ across multiple lines.
             }
             
             async saveFromModal() {
-                const title = document.getElementById('modalSectionTitle')?.value?.trim();
+                const originalTitle = document.getElementById('modalSectionTitle')?.value?.trim();
                 const content = document.getElementById('modalSectionContent')?.value?.trim();
                 
-                if (!title) {
+                if (!originalTitle) {
                     await CustomModal.alert('Please enter a title for your library item.');
                     return;
                 }
@@ -2042,9 +2043,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                     return;
                 }
                 
+                // Generate unique title to prevent duplicates
+                const uniqueTitle = this.generateUniqueTitle(originalTitle);
+                
                 const section = {
                     id: Date.now().toString(),
-                    title: title,
+                    title: uniqueTitle,
                     content: content,
                     createdAt: new Date().toISOString(),
                     lastModified: new Date().toISOString()
@@ -2053,6 +2057,27 @@ Don't write something like $E=mc^2$ across multiple lines.
                 this.addSavedSection(section);
                 CustomModal.close('addSectionModal');
                 await CustomModal.alert('Section saved to library successfully!');
+            }
+            
+            generateUniqueTitle(originalTitle) {
+                const sections = this.getSavedSections();
+                const existingTitles = sections.map(section => section.title);
+                
+                // If title doesn't exist, return as is
+                if (!existingTitles.includes(originalTitle)) {
+                    return originalTitle;
+                }
+                
+                // Find the next available numbered suffix
+                let counter = 2;
+                let newTitle = `${originalTitle} ${counter}`;
+                
+                while (existingTitles.includes(newTitle)) {
+                    counter++;
+                    newTitle = `${originalTitle} ${counter}`;
+                }
+                
+                return newTitle;
             }
             
             saveCurrentSection() {
