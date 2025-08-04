@@ -19,13 +19,18 @@ class HistoryManager {
             });
         } else {
             updatedHistory = history.filter(item => item.id !== section.id);
+            
+            const uniqueTitle = this.generateUniqueTitle(section.title, section.content, updatedHistory);
+            
             updatedHistory.unshift({
                 id: section.id,
-                title: section.title,
+                title: uniqueTitle,
                 content: section.content,
                 viewedAt: new Date().toISOString()
             });
         }
+        
+        updatedHistory = this.resolveTitleConflicts(updatedHistory);
         
         this.setHistory(updatedHistory.slice(0, this.MAX_HISTORY_ITEMS));
     }
@@ -49,5 +54,124 @@ class HistoryManager {
     
     clearHistory() {
         localStorage.removeItem(this.STORAGE_KEY);
+    }
+    
+    generateUniqueTitle(originalTitle, content, existingHistory) {
+        const conflictingItems = existingHistory.filter(item => 
+            item.title === originalTitle || item.title.startsWith(originalTitle + ' (')
+        );
+        
+        if (conflictingItems.length === 0) {
+            return originalTitle;
+        }
+        
+        const suffix = this.generateContentBasedSuffix(content, conflictingItems);
+        return `${originalTitle} (${suffix})`;
+    }
+    
+    resolveTitleConflicts(history) {
+        const updatedHistory = [...history];
+        const titleGroups = {};
+        
+        updatedHistory.forEach((item, index) => {
+            const baseTitle = this.extractBaseTitle(item.title);
+            if (!titleGroups[baseTitle]) {
+                titleGroups[baseTitle] = [];
+            }
+            titleGroups[baseTitle].push({ item, index });
+        });
+        
+        Object.values(titleGroups).forEach(group => {
+            if (group.length > 1) {
+                group.sort((a, b) => new Date(b.item.viewedAt) - new Date(a.item.viewedAt));
+                
+                group.forEach((entry, i) => {
+                    if (i === 0) {
+                        updatedHistory[entry.index].title = this.extractBaseTitle(entry.item.title);
+                    } else {
+                        const otherItems = group.slice(0, i).map(e => e.item);
+                        const suffix = this.generateContentBasedSuffix(entry.item.content, otherItems);
+                        updatedHistory[entry.index].title = `${this.extractBaseTitle(entry.item.title)} (${suffix})`;
+                    }
+                });
+            }
+        });
+        
+        return updatedHistory;
+    }
+    
+    extractBaseTitle(title) {
+        const match = title.match(/^(.+?)\s*\(/);
+        return match ? match[1].trim() : title;
+    }
+    
+    generateContentBasedSuffix(content, conflictingItems) {
+        
+        const headers = this.extractHeaders(content);
+        if (headers.length > 1) {
+            const distinctiveHeader = headers.find(header => 
+                !conflictingItems.some(item => this.extractHeaders(item.content).includes(header))
+            );
+            if (distinctiveHeader) {
+                return this.truncateText(distinctiveHeader, 25);
+            }
+        }
+        
+        const contentLines = this.extractContentLines(content);
+        const distinctiveLine = contentLines.find(line =>
+            !conflictingItems.some(item => this.extractContentLines(item.content).includes(line))
+        );
+        if (distinctiveLine) {
+            return this.truncateText(distinctiveLine, 25);
+        }
+        
+        const keywords = this.extractKeywords(content);
+        const distinctiveKeyword = keywords.find(keyword =>
+            !conflictingItems.some(item => this.extractKeywords(item.content).includes(keyword))
+        );
+        if (distinctiveKeyword) {
+            return this.truncateText(distinctiveKeyword, 25);
+        }
+        
+        const contentLength = content.trim().length;
+        return `${contentLength} chars`;
+    }
+    
+    extractHeaders(content) {
+        const headers = [];
+        const lines = content.split('\n');
+        for (const line of lines) {
+            const trimmed = line.trim();
+            const match = trimmed.match(/^#{1,6}\s+(.+)$/);
+            if (match) {
+                headers.push(match[1].trim());
+            }
+        }
+        return headers;
+    }
+    
+    extractContentLines(content) {
+        const lines = content.split('\n');
+        const contentLines = [];
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith('```') && trimmed.length > 5) {
+                contentLines.push(trimmed);
+            }
+        }
+        return contentLines.slice(0, 5);
+    }
+    
+    extractKeywords(content) {
+        const words = content.match(/\b[A-Z][a-zA-Z]+\b|\b[a-z]+(?:[A-Z][a-z]*)+\b|\b\w+\.\w+\b/g) || [];
+        const keywords = [...new Set(words)]
+            .filter(word => word.length > 3 && word.length < 20)
+            .slice(0, 10);
+        return keywords;
+    }
+    
+    truncateText(text, maxLength) {
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength - 3) + '...';
     }
 }
