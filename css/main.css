@@ -430,8 +430,7 @@ button:disabled {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-color);
-    background-color: var(--primary-color);
-    color: white;
+    background-color: transparent;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
 }
@@ -491,7 +490,7 @@ button:disabled {
 .code-block-code {
     font-family: inherit;
     font-size: 0.875rem;
-    line-height: 1.5;
+    line-height: 1.2;
     color: var(--text-color);
     background: none;
     padding: 0;
@@ -505,21 +504,41 @@ button:disabled {
     margin: 0;
 }
 
-.line-number {
-    display: inline-block;
-    width: 3em;
-    text-align: right;
-    color: var(--text-muted-color);
-    user-select: none;
-    margin-right: 1em;
-    padding-right: 0.5em;
-    border-right: 1px solid var(--border-color);
+/* Prism.js line numbers integration */
+.code-block-pre.line-numbers {
+    position: relative;
+    padding-left: 3.8em;
+    counter-reset: linenumber;
 }
 
-.line-content {
-    display: inline-block;
-    padding-left: 0.5em;
-    color: var(--text-color);
+.code-block-pre.line-numbers > code {
+    position: relative;
+    white-space: inherit;
+}
+
+.code-block-pre.line-numbers .line-numbers-rows {
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: -3.8em;
+    width: 3em;
+    letter-spacing: -1px;
+    border-right: 1px solid var(--border-color);
+    user-select: none;
+    counter-reset: linenumber;
+}
+
+.code-block-pre.line-numbers .line-numbers-rows > span {
+    pointer-events: none;
+    display: block;
+    counter-increment: linenumber;
+    color: var(--text-muted-color);
+    text-align: right;
+    padding-right: 0.8em;
+}
+
+.code-block-pre.line-numbers .line-numbers-rows > span:before {
+    content: counter(linenumber);
 }
 
 .code-block-preview {
@@ -534,6 +553,19 @@ button:disabled {
     min-height: 200px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
+}
+
+/* Prism.js theme integration */
+.code-block-pre code[class*="language-"],
+.code-block-pre pre[class*="language-"] {
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+    line-height: 1.2;
+    font-size: 0.875rem;
+}
+
+/* Override Prism's line-height */
+.code-block-pre .token {
+    line-height: inherit;
 }
 
 /* Copy notification */

@@ -106,14 +106,6 @@ class CodeBlockProcessor {
         // Decode HTML entities in code
         const decodedCode = this.decodeHtml(code);
         
-        // Generate line numbers
-        const lines = decodedCode.split('\n');
-        const numberedLines = lines.map((line, index) => {
-            const lineNumber = (index + 1).toString().padStart(2, ' ');
-            const escapedLine = this.escapeHtml(line || ' '); // Ensure empty lines have content
-            return `<span class="code-line"><span class="line-number">${lineNumber}</span><span class="line-content">${escapedLine}</span></span>`;
-        }).join('\n');
-        
         // Determine language display name
         const languageDisplay = this.getLanguageDisplayName(language);
         
@@ -121,6 +113,12 @@ class CodeBlockProcessor {
         const supportsPreview = this.supportsPreview(language);
         const previewButton = supportsPreview ? 
             `<button class="code-action-btn code-preview-btn" title="Preview ${languageDisplay}" data-action="preview">Preview</button>` : '';
+        
+        // Map common language aliases to Prism-compatible names
+        const prismLanguage = this.getPrismLanguage(language);
+        
+        // Escape the code for HTML display
+        const escapedCode = this.escapeHtml(decodedCode);
         
         return `
             <div class="code-block-container" data-language="${language}" data-block-index="${blockIndex}">
@@ -135,7 +133,7 @@ class CodeBlockProcessor {
                     </div>
                 </div>
                 <div class="code-block-content collapsed">
-                    <pre class="code-block-pre language-${language}"><code class="code-block-code">${numberedLines}</code></pre>
+                    <pre class="code-block-pre line-numbers language-${prismLanguage}"><code class="code-block-code language-${prismLanguage}">${escapedCode}</code></pre>
                     ${supportsPreview ? `<div class="code-block-preview" style="display: none;"></div>` : ''}
                 </div>
             </div>
@@ -209,5 +207,25 @@ class CodeBlockProcessor {
     static supportsPreview(language) {
         const previewLanguages = ['html', 'svg', 'mermaid'];
         return previewLanguages.includes(language.toLowerCase());
+    }
+    
+    static getPrismLanguage(language) {
+        // Map common language aliases to Prism-compatible names
+        const prismLanguageMap = {
+            'js': 'javascript',
+            'ts': 'typescript',
+            'py': 'python',
+            'c++': 'cpp',
+            'c#': 'csharp',
+            'sh': 'bash',
+            'shell': 'bash',
+            'yml': 'yaml',
+            'md': 'markdown',
+            'txt': 'text',
+            'text': 'text'
+        };
+        
+        const normalized = language.toLowerCase();
+        return prismLanguageMap[normalized] || normalized;
     }
 }

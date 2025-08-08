@@ -6,6 +6,8 @@ class CodeBlockController {
     init() {
         this.attachEventListeners();
         this.initializeCodeBlocks();
+        this.initializeSyntaxHighlighting();
+        this.initializeMermaid();
     }
     
     attachEventListeners() {
@@ -73,9 +75,8 @@ class CodeBlockController {
         const codeElement = codeBlock.querySelector('.code-block-code');
         if (!codeElement) return;
         
-        // Extract text content from code lines, excluding line numbers
-        const lines = codeElement.querySelectorAll('.line-content');
-        const codeText = Array.from(lines).map(line => line.textContent).join('\n');
+        // Extract plain text content from the code element
+        const codeText = codeElement.textContent || codeElement.innerText || '';
         
         try {
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -135,9 +136,8 @@ class CodeBlockController {
         
         if (!codeElement || !previewDiv) return;
         
-        // Extract the raw code
-        const lines = codeElement.querySelectorAll('.line-content');
-        const code = Array.from(lines).map(line => line.textContent).join('\n');
+        // Extract the raw code text
+        const code = codeElement.textContent || codeElement.innerText || '';
         
         switch (language.toLowerCase()) {
             case 'html':
@@ -204,15 +204,50 @@ class CodeBlockController {
     }
     
     renderMermaidPreview(previewDiv, code) {
-        // For Mermaid, we'll show a placeholder since we don't have the Mermaid library
-        // In a full implementation, you would include Mermaid.js
-        previewDiv.innerHTML = `
-            <div style="padding: 1rem; background: #f5f5f5; border-radius: 4px; text-align: center;">
-                <p><strong>Mermaid Diagram Preview</strong></p>
-                <p>Mermaid rendering would appear here with the full Mermaid.js library.</p>
-                <pre style="text-align: left; background: white; padding: 1rem; border-radius: 4px; margin-top: 1rem;">${this.escapeHtml(code)}</pre>
-            </div>
-        `;
+        try {
+            // Create a unique ID for this mermaid diagram
+            const diagramId = 'mermaid-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            
+            // Create container for the mermaid diagram
+            previewDiv.innerHTML = `
+                <div style="padding: 1rem; background: white; border-radius: 4px; text-align: center;">
+                    <div id="${diagramId}" class="mermaid-diagram">${this.escapeHtml(code)}</div>
+                </div>
+            `;
+            
+            // Initialize mermaid if available
+            if (typeof mermaid !== 'undefined') {
+                mermaid.initialize({ 
+                    startOnLoad: false,
+                    theme: 'default',
+                    securityLevel: 'loose'
+                });
+                
+                // Render the specific diagram
+                const diagramElement = document.getElementById(diagramId);
+                if (diagramElement) {
+                    mermaid.init(undefined, diagramElement);
+                }
+            } else {
+                // Fallback if Mermaid is not loaded
+                previewDiv.innerHTML = `
+                    <div style="padding: 1rem; background: #f5f5f5; border-radius: 4px; text-align: center;">
+                        <p><strong>Mermaid Library Not Loaded</strong></p>
+                        <p>Please ensure Mermaid.js is properly included.</p>
+                        <pre style="text-align: left; background: white; padding: 1rem; border-radius: 4px; margin-top: 1rem;">${this.escapeHtml(code)}</pre>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error rendering Mermaid diagram:', error);
+            previewDiv.innerHTML = `
+                <div style="padding: 1rem; background: #ffe6e6; border-radius: 4px; text-align: center;">
+                    <p style="color: #d32f2f;"><strong>Error rendering Mermaid diagram</strong></p>
+                    <p style="color: #666; font-size: 0.875rem;">${error.message || 'Unknown error'}</p>
+                    <pre style="text-align: left; background: white; padding: 1rem; border-radius: 4px; margin-top: 1rem;">${this.escapeHtml(code)}</pre>
+                </div>
+            `;
+        }
     }
     
     getLanguageDisplayName(language) {
@@ -268,5 +303,42 @@ class CodeBlockController {
                 }
             }, 300);
         }, isError ? 3000 : 2000);
+    }
+    
+    initializeSyntaxHighlighting() {
+        // Initialize Prism.js for syntax highlighting
+        if (typeof Prism !== 'undefined') {
+            // Set up autoloader path
+            if (Prism.plugins && Prism.plugins.autoloader) {
+                Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/';
+            }
+            
+            // Highlight all code blocks
+            Prism.highlightAll();
+        }
+    }
+    
+    initializeMermaid() {
+        // Initialize Mermaid for diagram rendering
+        if (typeof mermaid !== 'undefined') {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'default',
+                securityLevel: 'loose',
+                fontFamily: '"Fira Code", "Consolas", "Monaco", monospace'
+            });
+        }
+    }
+    
+    // Method to trigger syntax highlighting for dynamically added code blocks
+    highlightNewCodeBlocks() {
+        if (typeof Prism !== 'undefined') {
+            // Find and highlight newly added code blocks
+            const codeBlocks = document.querySelectorAll('.code-block-code:not(.highlighted)');
+            codeBlocks.forEach(block => {
+                block.classList.add('highlighted');
+                Prism.highlightElement(block);
+            });
+        }
     }
 }
