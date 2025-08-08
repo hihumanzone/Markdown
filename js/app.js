@@ -154,7 +154,8 @@ class MarkdownRendererApp {
                 console.error("Marked.js library is not loaded, using basic fallback");
                 await CustomModal.alert("The Markdown library failed to load due to network restrictions. Using basic fallback renderer with limited features. For full functionality, please refresh the page with a stable internet connection.");
                 
-                const basicHtml = this.basicMarkdownToHtml(markdownText);
+                let basicHtml = this.basicMarkdownToHtml(markdownText);
+                basicHtml = CodeBlockProcessor.processCodeBlocks(basicHtml);
                 const listItems = ListItemParser.parse(markdownText);
                 const fullPageHtml = RenderedPageBuilder.build(
                     basicHtml,
@@ -169,6 +170,7 @@ class MarkdownRendererApp {
             const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
             let html = marked.parse(tempText);
             html = MathProcessor.restoreMathExpressions(html, mathExpressions);
+            html = CodeBlockProcessor.processCodeBlocks(html);
             const listItems = ListItemParser.parse(markdownText);
             const fullPageHtml = RenderedPageBuilder.build(
                 html,
@@ -190,6 +192,12 @@ class MarkdownRendererApp {
     basicMarkdownToHtml(markdown) {
         let html = markdown;
         
+        // Handle code blocks first (before line breaks)
+        html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, language, code) => {
+            const lang = language || 'text';
+            return `<pre><code class="language-${lang}">${this.escapeHtml(code.trim())}</code></pre>`;
+        });
+        
         html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
         html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
         html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
@@ -209,6 +217,17 @@ class MarkdownRendererApp {
         html = '<p>' + html + '</p>';
         
         return html;
+    }
+    
+    escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
     }
     
     async openInNewTab(htmlContent) {

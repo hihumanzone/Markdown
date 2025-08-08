@@ -450,6 +450,268 @@ class RenderedPageBuilder {
                     content: none !important;
                 }
             }
+            
+            /* Enhanced Code Block Styles */
+            .code-block-container {
+                background-color: #ffffff;
+                border: 1px solid #e1e4e8;
+                border-radius: 8px;
+                margin: 1rem 0;
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(220, 40, 15, 0.08);
+                font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            }
+
+            .code-block-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                background-color: #f6f8fa;
+                border-bottom: 1px solid #e1e4e8;
+            }
+
+            .code-block-info {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .code-language {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: #ffffff;
+                background-color: #0366d6;
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+            }
+
+            .code-block-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .code-action-btn {
+                padding: 0.4rem 0.8rem;
+                border: 1px solid #e1e4e8;
+                background-color: #ffffff;
+                color: #24292e;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.75rem;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                line-height: 1;
+            }
+
+            .code-action-btn:hover {
+                background-color: #f6f8fa;
+                border-color: #0366d6;
+            }
+
+            .code-toggle-btn {
+                width: 28px;
+                padding: 0.4rem;
+                text-align: center;
+                font-weight: bold;
+            }
+
+            .code-block-content {
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+
+            .code-block-content.collapsed {
+                max-height: 0;
+            }
+
+            .code-block-content:not(.collapsed) {
+                max-height: none;
+            }
+
+            .code-block-pre {
+                margin: 0;
+                padding: 1rem;
+                background-color: #ffffff;
+                overflow-x: auto;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .code-block-code {
+                font-family: inherit;
+                font-size: 0.875rem;
+                line-height: 1.5;
+                color: #24292e;
+                background: none;
+                padding: 0;
+                border: none;
+                display: block;
+            }
+
+            .code-line {
+                display: block;
+                padding: 0;
+                margin: 0;
+            }
+
+            .line-number {
+                display: inline-block;
+                width: 3em;
+                text-align: right;
+                color: #6a737d;
+                user-select: none;
+                margin-right: 1em;
+                padding-right: 0.5em;
+                border-right: 1px solid #e1e4e8;
+            }
+
+            .line-content {
+                display: inline-block;
+                padding-left: 0.5em;
+                color: #24292e;
+            }
+
+            .code-block-preview {
+                padding: 1rem;
+                border-top: 1px solid #e1e4e8;
+                background-color: #f6f8fa;
+                min-height: 100px;
+            }
+
+            .code-block-preview iframe {
+                width: 100%;
+                min-height: 200px;
+                border: 1px solid #e1e4e8;
+                border-radius: 4px;
+            }
+
+            /* Copy notification */
+            .code-copy-notification {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #0366d6;
+                color: white;
+                padding: 0.75rem 1rem;
+                border-radius: 6px;
+                z-index: 2000;
+                font-size: 0.875rem;
+                box-shadow: 0 4px 12px rgba(220, 40, 15, 0.08);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .code-copy-notification.show {
+                opacity: 1;
+            }
+            
+            /* Dark theme code block styles */
+            body.markdown-body.dark-theme .code-block-container {
+                background-color: #0d1117;
+                border-color: #30363d;
+            }
+            
+            body.markdown-body.dark-theme .code-block-header {
+                background-color: #161b22;
+                border-bottom-color: #30363d;
+            }
+            
+            body.markdown-body.dark-theme .code-language {
+                background-color: #58a6ff;
+                color: #ffffff;
+            }
+            
+            body.markdown-body.dark-theme .code-action-btn {
+                background-color: #21262d;
+                color: #c9d1d9;
+                border-color: #30363d;
+            }
+            
+            body.markdown-body.dark-theme .code-action-btn:hover {
+                background-color: #30363d;
+                border-color: #58a6ff;
+            }
+            
+            body.markdown-body.dark-theme .code-block-pre {
+                background-color: #0d1117;
+            }
+            
+            body.markdown-body.dark-theme .code-block-code {
+                color: #c9d1d9;
+            }
+            
+            body.markdown-body.dark-theme .line-number {
+                color: #8b949e;
+                border-right-color: #30363d;
+            }
+            
+            body.markdown-body.dark-theme .line-content {
+                color: #c9d1d9;
+            }
+            
+            body.markdown-body.dark-theme .code-block-preview {
+                background-color: #161b22;
+                border-top-color: #30363d;
+            }
+            
+            body.markdown-body.dark-theme .code-copy-notification {
+                background: #58a6ff;
+            }
+            
+            /* High contrast theme code block styles */
+            body.markdown-body.high-contrast-theme .code-block-container {
+                background-color: #000000;
+                border-color: #ffffff;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-block-header {
+                background-color: #111111;
+                border-bottom-color: #ffffff;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-language {
+                background-color: #0088ff;
+                color: #ffffff;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-action-btn {
+                background-color: #111111;
+                color: #ffffff;
+                border-color: #555555;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-action-btn:hover {
+                background-color: #222222;
+                border-color: #0088ff;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-block-pre {
+                background-color: #000000;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-block-code {
+                color: #ffffff;
+            }
+            
+            body.markdown-body.high-contrast-theme .line-number {
+                color: #bbbbbb;
+                border-right-color: #555555;
+            }
+            
+            body.markdown-body.high-contrast-theme .line-content {
+                color: #ffffff;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-block-preview {
+                background-color: #111111;
+                border-top-color: #555555;
+            }
+            
+            body.markdown-body.high-contrast-theme .code-copy-notification {
+                background: #0088ff;
+            }
         </style>`;
     }
     
@@ -483,6 +745,7 @@ class RenderedPageBuilder {
             this.getExportMarkdownControllerScript(),
             this.getExportImageControllerScript(),
             this.getListItemControllerScript(),
+            this.getCodeBlockControllerScript(),
             this.getUIControllerScript(),
             this.getClientMainScript()
         ];
@@ -1077,6 +1340,282 @@ class ListItemController {
 }`;
     }
     
+    static getCodeBlockControllerScript() {
+        return `
+class CodeBlockController {
+    constructor() {
+        this.init();
+    }
+    
+    init() {
+        this.attachEventListeners();
+        this.initializeCodeBlocks();
+    }
+    
+    attachEventListeners() {
+        // Use event delegation for dynamically created code blocks
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.code-action-btn')) {
+                e.preventDefault();
+                this.handleCodeAction(e.target);
+            }
+        });
+    }
+    
+    initializeCodeBlocks() {
+        // Set all code blocks to collapsed by default
+        const codeBlocks = document.querySelectorAll('.code-block-container');
+        codeBlocks.forEach(block => {
+            const content = block.querySelector('.code-block-content');
+            const toggleBtn = block.querySelector('.code-toggle-btn');
+            
+            if (content && toggleBtn) {
+                content.classList.add('collapsed');
+                toggleBtn.textContent = '+';
+                toggleBtn.title = 'Expand code';
+            }
+        });
+    }
+    
+    handleCodeAction(button) {
+        const action = button.getAttribute('data-action');
+        const codeBlock = button.closest('.code-block-container');
+        
+        switch (action) {
+            case 'toggle':
+                this.toggleCodeBlock(codeBlock);
+                break;
+            case 'copy':
+                this.copyCodeBlock(codeBlock);
+                break;
+            case 'preview':
+                this.togglePreview(codeBlock);
+                break;
+        }
+    }
+    
+    toggleCodeBlock(codeBlock) {
+        const content = codeBlock.querySelector('.code-block-content');
+        const toggleBtn = codeBlock.querySelector('.code-toggle-btn');
+        
+        if (!content || !toggleBtn) return;
+        
+        const isCollapsed = content.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            content.classList.remove('collapsed');
+            toggleBtn.textContent = '−';
+            toggleBtn.title = 'Collapse code';
+        } else {
+            content.classList.add('collapsed');
+            toggleBtn.textContent = '+';
+            toggleBtn.title = 'Expand code';
+        }
+    }
+    
+    async copyCodeBlock(codeBlock) {
+        const codeElement = codeBlock.querySelector('.code-block-code');
+        if (!codeElement) return;
+        
+        // Extract text content from code lines, excluding line numbers
+        const lines = codeElement.querySelectorAll('.line-content');
+        const codeText = Array.from(lines).map(line => line.textContent).join('\\n');
+        
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(codeText);
+            } else {
+                // Fallback for older browsers
+                this.fallbackCopyText(codeText);
+            }
+            
+            this.showCopyNotification('Code copied to clipboard!');
+        } catch (error) {
+            console.error('Failed to copy code:', error);
+            this.showCopyNotification('Failed to copy code', true);
+        }
+    }
+    
+    fallbackCopyText(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+    }
+    
+    togglePreview(codeBlock) {
+        const language = codeBlock.getAttribute('data-language');
+        const previewDiv = codeBlock.querySelector('.code-block-preview');
+        const previewBtn = codeBlock.querySelector('.code-preview-btn');
+        const codeDiv = codeBlock.querySelector('.code-block-pre');
+        
+        if (!previewDiv || !previewBtn || !codeDiv) return;
+        
+        const isPreviewVisible = previewDiv.style.display !== 'none';
+        
+        if (isPreviewVisible) {
+            // Switch back to code view
+            previewDiv.style.display = 'none';
+            codeDiv.style.display = 'block';
+            previewBtn.textContent = 'Preview';
+            previewBtn.title = \`Preview \${this.getLanguageDisplayName(language)}\`;
+        } else {
+            // Switch to preview
+            this.renderPreview(codeBlock, language);
+            previewDiv.style.display = 'block';
+            codeDiv.style.display = 'none';
+            previewBtn.textContent = 'Code';
+            previewBtn.title = 'Show code';
+        }
+    }
+    
+    renderPreview(codeBlock, language) {
+        const codeElement = codeBlock.querySelector('.code-block-code');
+        const previewDiv = codeBlock.querySelector('.code-block-preview');
+        
+        if (!codeElement || !previewDiv) return;
+        
+        // Extract the raw code
+        const lines = codeElement.querySelectorAll('.line-content');
+        const code = Array.from(lines).map(line => line.textContent).join('\\n');
+        
+        switch (language.toLowerCase()) {
+            case 'html':
+                this.renderHtmlPreview(previewDiv, code);
+                break;
+            case 'svg':
+                this.renderSvgPreview(previewDiv, code);
+                break;
+            case 'mermaid':
+                this.renderMermaidPreview(previewDiv, code);
+                break;
+            default:
+                previewDiv.innerHTML = '<p>Preview not available for this language.</p>';
+        }
+    }
+    
+    renderHtmlPreview(previewDiv, code) {
+        // Create an iframe for safe HTML rendering
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.minHeight = '200px';
+        iframe.style.border = '1px solid #ddd';
+        iframe.style.borderRadius = '4px';
+        
+        previewDiv.innerHTML = '';
+        previewDiv.appendChild(iframe);
+        
+        // Write the HTML content to the iframe
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(\`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { margin: 16px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+                </style>
+            </head>
+            <body>
+                \${code}
+            </body>
+            </html>
+        \`);
+        iframeDoc.close();
+    }
+    
+    renderSvgPreview(previewDiv, code) {
+        try {
+            // Wrap SVG if it doesn't have the svg tag
+            let svgCode = code.trim();
+            if (!svgCode.startsWith('<svg')) {
+                svgCode = \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">\${svgCode}</svg>\`;
+            }
+            
+            previewDiv.innerHTML = \`
+                <div style="text-align: center; padding: 1rem; background: white; border-radius: 4px;">
+                    \${svgCode}
+                </div>
+            \`;
+        } catch (error) {
+            previewDiv.innerHTML = '<p style="color: red;">Error rendering SVG preview</p>';
+        }
+    }
+    
+    renderMermaidPreview(previewDiv, code) {
+        // For Mermaid, we'll show a placeholder since we don't have the Mermaid library
+        // In a full implementation, you would include Mermaid.js
+        previewDiv.innerHTML = \`
+            <div style="padding: 1rem; background: #f5f5f5; border-radius: 4px; text-align: center;">
+                <p><strong>Mermaid Diagram Preview</strong></p>
+                <p>Mermaid rendering would appear here with the full Mermaid.js library.</p>
+                <pre style="text-align: left; background: white; padding: 1rem; border-radius: 4px; margin-top: 1rem;">\${this.escapeHtml(code)}</pre>
+            </div>
+        \`;
+    }
+    
+    getLanguageDisplayName(language) {
+        const languageMap = {
+            'javascript': 'JavaScript',
+            'js': 'JavaScript',
+            'html': 'HTML',
+            'css': 'CSS',
+            'python': 'Python',
+            'java': 'Java',
+            'mermaid': 'Mermaid',
+            'svg': 'SVG'
+        };
+        
+        return languageMap[language.toLowerCase()] || language.charAt(0).toUpperCase() + language.slice(1);
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    showCopyNotification(message, isError = false) {
+        // Remove any existing notification
+        const existingNotification = document.querySelector('.code-copy-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'code-copy-notification';
+        notification.textContent = message;
+        
+        if (isError) {
+            notification.style.backgroundColor = '#d32f2f';
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Show notification
+        requestAnimationFrame(() => {
+            notification.classList.add('show');
+        });
+        
+        // Hide notification after delay
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, isError ? 3000 : 2000);
+    }
+}`;
+    }
+    
     static getUIControllerScript() {
         return `
 class UIController {
@@ -1097,6 +1636,7 @@ class UIController {
         this.savePdfController = new SavePdfController();
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
+        this.codeBlockController = new CodeBlockController();
     }
     
     addGlobalKeydownListener() {
