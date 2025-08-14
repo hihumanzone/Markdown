@@ -132,6 +132,11 @@ class SavedSectionsManager {
         if (this.dom.markdownInput) {
             this.dom.markdownInput.value = section.content;
             this.dom.markdownInput.focus();
+            
+            // Save the loaded content as current content for persistence
+            if (this.app.currentContentManager) {
+                this.app.currentContentManager.saveCurrentContent(section.content);
+            }
         }
         
         this.historyManager.addToHistory(section);
@@ -205,6 +210,11 @@ class SavedSectionsManager {
                     if (this.dom.markdownInput) {
                         this.dom.markdownInput.value = historyItem.content;
                         this.dom.markdownInput.focus();
+                        
+                        // Save the loaded content as current content for persistence
+                        if (this.app.currentContentManager) {
+                            this.app.currentContentManager.saveCurrentContent(historyItem.content);
+                        }
                     }
                     
                     this.app.handleRender(true);
@@ -270,6 +280,11 @@ class SavedSectionsManager {
             
             this.dom.markdownInput.value = content;
             this.dom.markdownInput.focus();
+            
+            // Save the imported content as current content for persistence
+            if (this.app.currentContentManager) {
+                this.app.currentContentManager.saveCurrentContent(content);
+            }
             
             if (content.trim().length > 10) {
                 const historyItem = {

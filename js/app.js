@@ -2,6 +2,7 @@ class MarkdownRendererApp {
     constructor() {
         this.dom = {};
         this.savedSectionsManager = null;
+        this.currentContentManager = new CurrentContentManager();
         this.init();
     }
     
@@ -11,6 +12,7 @@ class MarkdownRendererApp {
             this.setupMarked();
             this.bindEventListeners();
             this.savedSectionsManager = new SavedSectionsManager(this.dom, this);
+            this.initCurrentContentManager();
         });
     }
     
@@ -87,6 +89,16 @@ class MarkdownRendererApp {
         this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
     }
     
+    initCurrentContentManager() {
+        if (this.dom.markdownInput) {
+            // Restore saved content if available
+            this.currentContentManager.restoreContent(this.dom.markdownInput);
+            
+            // Set up auto-save for future changes
+            this.currentContentManager.setupAutoSave(this.dom.markdownInput);
+        }
+    }
+    
     async handleRender(skipHistoryUpdate = false) {
         const markdownText = this.dom.markdownInput.value;
         if (!markdownText.trim()) {
@@ -132,6 +144,10 @@ class MarkdownRendererApp {
         try {
             const text = await navigator.clipboard.readText();
             this.dom.markdownInput.value = text;
+            
+            // Save the pasted content as current content for persistence
+            this.currentContentManager.saveCurrentContent(text);
+            
             this.handleRender();
         } catch (err) {
             console.error('Failed to read clipboard:', err);
@@ -146,6 +162,9 @@ class MarkdownRendererApp {
         }
         this.dom.markdownInput.value = '';
         this.dom.markdownInput.focus();
+        
+        // Clear the saved current content when user explicitly clears
+        this.currentContentManager.clearCurrentContent();
     }
     
     async renderMarkdown(markdownText) {
