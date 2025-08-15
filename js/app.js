@@ -3,6 +3,7 @@ class MarkdownRendererApp {
         this.dom = {};
         this.savedSectionsManager = null;
         this.currentContentManager = new CurrentContentManager();
+        this.fallbackWarningLogged = false;
         this.init();
     }
     
@@ -32,7 +33,10 @@ class MarkdownRendererApp {
     setupMarked() {
         const checkAndSetupMarked = () => {
             if (typeof marked === 'undefined') {
-                console.error("Marked.js is not loaded - will use fallback renderer");
+                if (!this.fallbackWarningLogged) {
+                    console.error("Marked.js is not loaded - will use fallback renderer");
+                    this.fallbackWarningLogged = true;
+                }
                 if (this.dom.renderButton) {
                     this.dom.renderButton.disabled = false;
                     this.dom.renderButton.title = "Render the markdown content (using fallback renderer)";
@@ -68,8 +72,9 @@ class MarkdownRendererApp {
                 retryCount++;
                 if (checkAndSetupMarked() || retryCount >= maxRetries) {
                     clearInterval(retryInterval);
-                    if (retryCount >= maxRetries && typeof marked === 'undefined') {
+                    if (retryCount >= maxRetries && typeof marked === 'undefined' && !this.fallbackWarningLogged) {
                         console.error("Failed to load Marked.js after multiple attempts - using fallback renderer");
+                        this.fallbackWarningLogged = true;
                     }
                 }
             }, 500);
@@ -172,8 +177,11 @@ class MarkdownRendererApp {
     async renderMarkdown(markdownText) {
         try {
             if (typeof marked === 'undefined') {
-                console.error("Marked.js library is not loaded, using basic fallback");
-                await CustomModal.alert("The Markdown library failed to load due to network restrictions. Using basic fallback renderer with limited features. For full functionality, please refresh the page with a stable internet connection.");
+                if (!this.fallbackWarningLogged) {
+                    console.error("Marked.js library is not loaded, using basic fallback");
+                    await CustomModal.alert("The Markdown library failed to load due to network restrictions. Using basic fallback renderer with limited features. For full functionality, please refresh the page with a stable internet connection.");
+                    this.fallbackWarningLogged = true;
+                }
                 
                 const basicHtml = this.basicMarkdownToHtml(markdownText);
                 const listItems = ListItemParser.parse(markdownText);
@@ -211,25 +219,125 @@ class MarkdownRendererApp {
     basicMarkdownToHtml(markdown) {
         let html = markdown;
         
-        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        // Escape HTML to prevent XSS
+        html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         
+        // Handle code blocks (must be done before other processing)
+        html = html.replace(/```[\s\S]*?```/g, (match) => {
+            const codeContent = match.replace(/```/g, '').trim();
+            return `<pre><code>${codeContent}</code></pre>`;
+        });
+        
+        // Handle headers (h1-h6)
+        html = html.replace(/^#{6}\s+(.*$)/gim, '<h6>$1</h6>');
+        html = html.replace(/^#{5}\s+(.*$)/gim, '<h5>$1</h5>');
+        html = html.replace(/^#{4}\s+(.*$)/gim, '<h4>$1</h4>');
+        html = html.replace(/^#{3}\s+(.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^#{2}\s+(.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^#{1}\s+(.*$)/gim, '<h1>$1</h1>');
+        
+        // Handle horizontal rules
+        html = html.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '<hr>');
+        
+        // Handle text formatting (bold, italic, strikethrough)
         html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
         html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
         html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+        html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
         
-        html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+        // Handle inline code (after text formatting to avoid conflicts)
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
         
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+        // Handle images (must come before links to avoid conflicts)
+        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">');
         
-        html = html.replace(/\n/g, '<br>');
+        // Handle links
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         
-        html = '<p>' + html + '</p>';
+        // Split into lines for better processing of block elements
+        const lines = html.split('\n');
+        const processedLines = [];
+        let inBlockquote = false;
+        let blockquoteContent = [];
+        let inList = false;
+        let listItems = [];
+        let listType = null; // 'ul' or 'ol'
         
-        return html;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmedLine = line.trim();
+            
+            // Handle blockquotes
+            if (trimmedLine.startsWith('&gt;')) {
+                if (!inBlockquote) {
+                    inBlockquote = true;
+                    blockquoteContent = [];
+                }
+                blockquoteContent.push(trimmedLine.substring(4).trim());
+                continue;
+            } else if (inBlockquote) {
+                processedLines.push(`<blockquote>${blockquoteContent.join('<br>')}</blockquote>`);
+                inBlockquote = false;
+                blockquoteContent = [];
+            }
+            
+            // Handle lists
+            const ulMatch = trimmedLine.match(/^[-*+]\s+(.*)$/);
+            const olMatch = trimmedLine.match(/^\d+\.\s+(.*)$/);
+            
+            if (ulMatch || olMatch) {
+                const currentListType = ulMatch ? 'ul' : 'ol';
+                if (!inList || listType !== currentListType) {
+                    if (inList) {
+                        // Close previous list
+                        processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+                    }
+                    inList = true;
+                    listType = currentListType;
+                    listItems = [];
+                }
+                const content = ulMatch ? ulMatch[1] : olMatch[1];
+                listItems.push(`<li>${content}</li>`);
+                continue;
+            } else if (inList) {
+                processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+                inList = false;
+                listItems = [];
+                listType = null;
+            }
+            
+            processedLines.push(line);
+        }
+        
+        // Handle remaining open blocks
+        if (inBlockquote) {
+            processedLines.push(`<blockquote>${blockquoteContent.join('<br>')}</blockquote>`);
+        }
+        if (inList) {
+            processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+        }
+        
+        html = processedLines.join('\n');
+        
+        // Handle line breaks and paragraphs
+        // Split by double newlines for paragraphs
+        const paragraphs = html.split(/\n\s*\n/);
+        const processedParagraphs = paragraphs.map(para => {
+            para = para.trim();
+            if (!para) return '';
+            
+            // Don't wrap certain block elements in paragraphs
+            if (para.match(/^<(h[1-6]|hr|blockquote|ul|ol|li|pre|div)/)) {
+                return para.replace(/\n/g, '<br>');
+            }
+            
+            // Wrap other content in paragraphs
+            return '<p>' + para.replace(/\n/g, '<br>') + '</p>';
+        }).filter(para => para);
+        
+        return processedParagraphs.join('\n');
     }
     
     async openInNewTab(htmlContent) {
