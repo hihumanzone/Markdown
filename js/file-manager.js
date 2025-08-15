@@ -3,8 +3,7 @@ class FileManager {
         const blob = new Blob([section.content], { type: 'text/markdown;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        const timestamp = new Date(section.lastModified).toISOString().replace(/[:.]/g, '-').slice(0, -4);
-        const filename = `${section.title.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.md`;
+        const filename = `${section.title.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
         link.href = url;
         link.download = filename;
         document.body.appendChild(link);
