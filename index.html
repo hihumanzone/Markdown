@@ -20,7 +20,7 @@
             <div class="input-section">
                 <h2>Markdown Input</h2>
                 <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
-                <textarea id="markdownInput" placeholder="Type or paste Markdown here...">
+                <textarea id="markdownInput" aria-label="Markdown input area" placeholder="Type or paste Markdown here..." role="textbox" aria-multiline="true">
 # Hello World
 This is **bold** and _italic_.
 `inline code`
@@ -57,27 +57,27 @@ $$
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
                 </textarea>
-                <div class="button-group">
-                    <button id="renderMarkdownBtn" class="button-primary" title="Render the markdown content">Render Markdown</button>
-                    <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render">Paste & Render</button>
-                    <button id="clearBtn" class="button-secondary" title="Clear the input">Clear</button>
-                    <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" />
-                    <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file">Import File</button>
-                    <button id="themeToggleBtn" class="button-secondary" title="Toggle theme (Ctrl/Cmd + T)">Dark Theme</button>
+                <div class="button-group" role="toolbar" aria-label="Markdown actions">
+                    <button id="renderMarkdownBtn" class="button-primary" title="Render the markdown content" aria-label="Render Markdown">Render Markdown</button>
+                    <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render" aria-label="Paste and Render">Paste & Render</button>
+                    <button id="clearBtn" class="button-secondary" title="Clear the input" aria-label="Clear Input">Clear</button>
+                    <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" aria-label="Import file input" />
+                    <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file" aria-label="Import File">Import File</button>
+                    <button id="themeToggleBtn" class="button-secondary" title="Toggle theme (Ctrl/Cmd + T)" aria-label="Toggle Theme">Dark Theme</button>
                 </div>
             </div>
         </div>
-        <div class="workspace-panel">
+        <div class="workspace-panel" role="complementary" aria-label="Library and history panel">
             <div class="library-sections">
-                <h3>My Library</h3>
-                <button id="addSectionBtn" class="modal-button modal-button-primary" style="width: 100%; margin-bottom: 1rem;">Add to Library</button>
-                <div id="savedSectionsList" class="sections-list">
+                <h3 id="libraryHeading">My Library</h3>
+                <button id="addSectionBtn" class="modal-button modal-button-primary" style="width: 100%; margin-bottom: 1rem;" aria-label="Add new item to library">Add to Library</button>
+                <div id="savedSectionsList" class="sections-list" role="list" aria-labelledby="libraryHeading">
                     <div class="empty-state">No saved sections yet</div>
                 </div>
             </div>
             <div class="recent-history" style="margin-top: 1.5rem;">
-                <h3>Recent History</h3>
-                <div id="historyList" class="history-list">
+                <h3 id="historyHeading">Recent History</h3>
+                <div id="historyList" class="history-list" role="list" aria-labelledby="historyHeading">
                     <div class="empty-state">No recent history</div>
                 </div>
             </div>
@@ -91,30 +91,44 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <li><strong>Long press on list items</strong> to copy their content to clipboard.</li>
                 <li>Output opens in a new tab (ensure pop-ups are allowed).</li>
             </ul>
+            
+            <p><strong>Keyboard Navigation:</strong></p>
+            <ul>
+                <li><kbd>Ctrl/Cmd + T</kbd> - Toggle theme</li>
+                <li><kbd>Ctrl/Cmd + R</kbd> - Toggle between rendered and raw view</li>
+                <li><kbd>Ctrl/Cmd + P</kbd> - Save as PDF</li>
+                <li><kbd>Ctrl/Cmd + +</kbd> - Increase font size</li>
+                <li><kbd>Ctrl/Cmd + -</kbd> - Decrease font size</li>
+                <li><kbd>Ctrl/Cmd + 0</kbd> - Reset font size</li>
+                <li><kbd>F11</kbd> - Toggle fullscreen</li>
+                <li><kbd>Tab</kbd> - Navigate between interactive elements</li>
+                <li><kbd>Enter</kbd> - Activate buttons and save modal content</li>
+                <li><kbd>Escape</kbd> - Close active modals</li>
+            </ul>
         </div>
     </div>
 
     <!-- Custom Modals -->
     <!-- Add Section Modal -->
-    <div id="addSectionModal" class="modal-overlay">
+    <div id="addSectionModal" class="modal-overlay" role="dialog" aria-labelledby="addSectionModalTitle" aria-modal="true">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 class="modal-title">Add to Library</h3>
-                <button class="modal-close" data-close-modal="addSectionModal">&times;</button>
+                <h3 class="modal-title" id="addSectionModalTitle">Add to Library</h3>
+                <button class="modal-close" data-close-modal="addSectionModal" aria-label="Close modal">&times;</button>
             </div>
             <div class="modal-content">
-                <input type="text" id="modalSectionTitle" class="modal-input" placeholder="Enter a title for your library item..." maxlength="100">
-                <textarea id="modalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..."></textarea>
+                <input type="text" id="modalSectionTitle" class="modal-input" placeholder="Enter a title for your library item..." maxlength="100" aria-label="Library item title">
+                <textarea id="modalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..." aria-label="Library item content"></textarea>
                 
                 <div class="import-section">
-                    <input type="file" id="modalImportFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" />
-                    <button id="modalImportBtn" class="import-button">
+                    <input type="file" id="modalImportFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" aria-label="Import markdown file" />
+                    <button id="modalImportBtn" class="import-button" aria-label="Import markdown file">
                         📁 Import Markdown File
                         <br><small>File name will be used as title</small>
                     </button>
                 </div>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" role="group" aria-label="Modal actions">
                 <button class="modal-button modal-button-secondary" data-close-modal="addSectionModal">Cancel</button>
                 <button id="modalSaveBtn" class="modal-button modal-button-primary">Save to Library</button>
             </div>
@@ -122,16 +136,16 @@ Don't write something like $E=mc^2$ across multiple lines.
     </div>
 
     <!-- Confirm Modal -->
-    <div id="confirmModal" class="modal-overlay">
+    <div id="confirmModal" class="modal-overlay" role="dialog" aria-labelledby="confirmModalTitle" aria-modal="true">
         <div class="modal-container">
             <div class="modal-header">
                 <h3 class="modal-title" id="confirmModalTitle">Confirm Action</h3>
-                <button class="modal-close" data-close-modal="confirmModal">&times;</button>
+                <button class="modal-close" data-close-modal="confirmModal" aria-label="Close modal">&times;</button>
             </div>
             <div class="modal-content">
                 <p id="confirmModalMessage">Are you sure you want to proceed?</p>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" role="group" aria-label="Confirmation actions">
                 <button class="modal-button modal-button-secondary" data-close-modal="confirmModal">Cancel</button>
                 <button id="confirmModalAction" class="modal-button modal-button-primary">Confirm</button>
             </div>
@@ -139,17 +153,17 @@ Don't write something like $E=mc^2$ across multiple lines.
     </div>
 
     <!-- Prompt Modal -->
-    <div id="promptModal" class="modal-overlay">
+    <div id="promptModal" class="modal-overlay" role="dialog" aria-labelledby="promptModalTitle" aria-modal="true">
         <div class="modal-container">
             <div class="modal-header">
                 <h3 class="modal-title" id="promptModalTitle">Input Required</h3>
-                <button class="modal-close" data-close-modal="promptModal">&times;</button>
+                <button class="modal-close" data-close-modal="promptModal" aria-label="Close modal">&times;</button>
             </div>
             <div class="modal-content">
                 <p id="promptModalMessage">Please enter a value:</p>
-                <input type="text" id="promptModalInput" class="modal-input">
+                <input type="text" id="promptModalInput" class="modal-input" aria-label="Input value">
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" role="group" aria-label="Prompt actions">
                 <button class="modal-button modal-button-secondary" data-close-modal="promptModal">Cancel</button>
                 <button id="promptModalAction" class="modal-button modal-button-primary">OK</button>
             </div>
@@ -157,33 +171,33 @@ Don't write something like $E=mc^2$ across multiple lines.
     </div>
 
     <!-- Alert Modal -->
-    <div id="alertModal" class="modal-overlay">
+    <div id="alertModal" class="modal-overlay" role="dialog" aria-labelledby="alertModalTitle" aria-modal="true">
         <div class="modal-container">
             <div class="modal-header">
                 <h3 class="modal-title" id="alertModalTitle">Notice</h3>
-                <button class="modal-close" data-close-modal="alertModal">&times;</button>
+                <button class="modal-close" data-close-modal="alertModal" aria-label="Close modal">&times;</button>
             </div>
             <div class="modal-content">
                 <p id="alertModalMessage">This is an alert message.</p>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" role="group" aria-label="Alert actions">
                 <button id="alertModalAction" class="modal-button modal-button-primary">OK</button>
             </div>
         </div>
     </div>
 
     <!-- Edit Section Modal -->
-    <div id="editSectionModal" class="modal-overlay">
+    <div id="editSectionModal" class="modal-overlay" role="dialog" aria-labelledby="editSectionModalTitle" aria-modal="true">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 class="modal-title">Edit Library Item</h3>
-                <button class="modal-close" data-close-modal="editSectionModal">&times;</button>
+                <h3 class="modal-title" id="editSectionModalTitle">Edit Library Item</h3>
+                <button class="modal-close" data-close-modal="editSectionModal" aria-label="Close modal">&times;</button>
             </div>
             <div class="modal-content">
-                <input type="text" id="editModalSectionTitle" class="modal-input" placeholder="Enter a title for your library item..." maxlength="100">
-                <textarea id="editModalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..."></textarea>
+                <input type="text" id="editModalSectionTitle" class="modal-input" placeholder="Enter a title for your library item..." maxlength="100" aria-label="Edit library item title">
+                <textarea id="editModalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..." aria-label="Edit library item content"></textarea>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" role="group" aria-label="Modal actions">
                 <button class="modal-button modal-button-secondary" data-close-modal="editSectionModal">Cancel</button>
                 <button id="editModalSaveBtn" class="modal-button modal-button-primary">Save Changes</button>
             </div>
@@ -192,6 +206,7 @@ Don't write something like $E=mc^2$ across multiple lines.
 
     <!-- External Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
     
     <!-- Application JavaScript -->
     <script src="js/config.js"></script>

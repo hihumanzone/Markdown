@@ -26,5 +26,14 @@ const CONFIG = {
         FONT_SIZE: 'renderedOutputFontSizePercent',
         VIEW_MODE: 'renderedOutputViewMode',
         CONTROLS_COLLAPSED: 'fontControlsCollapsed'
+    },
+    VALIDATION: {
+        TITLE_MAX_LENGTH: 100,
+        CONTENT_MAX_LENGTH: 100000,
+        FILENAME_MAX_LENGTH: 255
+    },
+    SUPPORTED_FILE_TYPES: {
+        EXTENSIONS: ['.md', '.markdown', '.txt'],
+        MIME_TYPES: ['text/markdown', 'text/plain', 'application/octet-stream']
     }
 };

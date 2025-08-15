@@ -38,12 +38,29 @@ class SavedSectionsManager {
             }
         });
         
-        // Edit modal event listeners
+        document.getElementById('modalSectionContent')?.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.saveFromModal();
+                }
+            }
+        });
+        
         document.getElementById('editModalSaveBtn')?.addEventListener('click', () => this.saveFromEditModal());
         
         document.getElementById('editModalSectionTitle')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.saveFromEditModal();
+            }
+        });
+        
+        document.getElementById('editModalSectionContent')?.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.saveFromEditModal();
+                }
             }
         });
     }
@@ -96,14 +113,18 @@ class SavedSectionsManager {
     }
     
     async validateSectionInput(title, content) {
-        if (!title) {
-            await CustomModal.alert('Please enter a title for your library item.');
+        const titleValidation = Utils.validateInputLength(title, CONFIG.VALIDATION.TITLE_MAX_LENGTH, 'Title');
+        if (!titleValidation.valid) {
+            await CustomModal.alert(titleValidation.message);
             return false;
         }
-        if (!content) {
-            await CustomModal.alert('Please enter some content to save.');
+        
+        const contentValidation = Utils.validateInputLength(content, CONFIG.VALIDATION.CONTENT_MAX_LENGTH, 'Content');
+        if (!contentValidation.valid) {
+            await CustomModal.alert(contentValidation.message);
             return false;
         }
+        
         return true;
     }
     
@@ -117,56 +138,132 @@ class SavedSectionsManager {
         };
     }
     
+    clearContainer(container) {
+        if (!container) return false;
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+        return true;
+    }
+    
+    createEmptyState(message) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = message;
+        return emptyState;
+    }
+    
+    setupListItemAttributes(element, id, label, dataAttr = 'data-section-id', itemType = 'listitem') {
+        element.setAttribute(dataAttr, id);
+        element.setAttribute('role', itemType);
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('aria-label', label);
+    }
+    
+    addKeyboardActivation(element, callback) {
+        element.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!e.target.classList.contains('action-btn')) {
+                    callback(e);
+                }
+            }
+        });
+    }
+    
+    async validateAndProcessFile(file) {
+        const fileValidation = FileManager.validateFile(file);
+        if (!fileValidation.valid) {
+            await CustomModal.alert(fileValidation.message);
+            return null;
+        }
+        
+        try {
+            const { content, filename } = await FileManager.readMarkdownFile(file);
+            const sanitizedContent = Utils.sanitizeMarkdown(content);
+            return { content: sanitizedContent, filename };
+        } catch (error) {
+            console.error("Error reading file:", error);
+            await CustomModal.alert("Error reading file. Please check the console for details.");
+            return null;
+        }
+    }
+    
     renderSavedSections() {
         const sections = this.sectionsManager.getSections();
         const container = this.dom.savedSectionsList;
         
-        if (!container) return;
+        if (!this.clearContainer(container)) return;
         
         if (sections.length === 0) {
-            container.innerHTML = '<div class="empty-state">No items in library yet</div>';
+            container.appendChild(this.createEmptyState('No items in library yet'));
             return;
         }
         
-        container.innerHTML = sections.map(section => `
-            <div class="section-item" data-section-id="${section.id}">
-                <div class="section-title" title="${Utils.escapeHtml(section.title)}">${Utils.escapeHtml(section.title)}</div>
-                <div class="section-actions">
-                    <button class="action-btn rename-btn" title="Edit item">✎</button>
-                    <button class="action-btn export-btn" title="Export as .md file">↓</button>
-                    <button class="action-btn delete-btn" title="Delete item">✕</button>
-                </div>
-            </div>
-        `).join('');
+        sections.forEach(section => {
+            const sectionItem = document.createElement('div');
+            sectionItem.className = 'section-item';
+            this.setupListItemAttributes(sectionItem, section.id, `Library item: ${section.title}`);
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'section-title';
+            titleDiv.title = section.title;
+            titleDiv.textContent = section.title;
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'section-actions';
+            
+            const renameBtn = this.createActionButton('✎', 'Edit item', 'rename-btn');
+            const exportBtn = this.createActionButton('↓', 'Export as .md file', 'export-btn');
+            const deleteBtn = this.createActionButton('✕', 'Delete item', 'delete-btn');
+            
+            actionsDiv.appendChild(renameBtn);
+            actionsDiv.appendChild(exportBtn);
+            actionsDiv.appendChild(deleteBtn);
+            
+            sectionItem.appendChild(titleDiv);
+            sectionItem.appendChild(actionsDiv);
+            container.appendChild(sectionItem);
+            
+            this.addSectionEventListeners(sectionItem, section);
+        });
+    }
+    
+    createActionButton(text, title, className) {
+        const button = document.createElement('button');
+        button.className = `action-btn ${className}`;
+        button.title = title;
+        button.setAttribute('aria-label', title);
+        button.textContent = text;
+        return button;
+    }
+    
+    addSectionEventListeners(sectionItem, section) {
+        sectionItem.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('action-btn')) {
+                this.loadSectionAndRender(section);
+            }
+        });
         
-        container.querySelectorAll('.section-item').forEach(item => {
-            const sectionId = item.dataset.sectionId;
-            const section = sections.find(s => s.id === sectionId);
-            
-            item.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('action-btn')) {
-                    this.loadSectionAndRender(section);
-                }
-            });
-            
-            const renameBtn = item.querySelector('.rename-btn');
-            const exportBtn = item.querySelector('.export-btn');
-            const deleteBtn = item.querySelector('.delete-btn');
-            
-            renameBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.renameSection(section);
-            });
-            
-            exportBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                FileManager.exportSectionAsMarkdown(section);
-            });
-            
-            deleteBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.deleteSection(section);
-            });
+        this.addKeyboardActivation(sectionItem, () => this.loadSectionAndRender(section));
+        
+        const renameBtn = sectionItem.querySelector('.rename-btn');
+        const exportBtn = sectionItem.querySelector('.export-btn');
+        const deleteBtn = sectionItem.querySelector('.delete-btn');
+        
+        renameBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.renameSection(section);
+        });
+        
+        exportBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            FileManager.exportSectionAsMarkdown(section);
+        });
+        
+        deleteBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.deleteSection(section);
         });
     }
     
@@ -224,43 +321,67 @@ class SavedSectionsManager {
         const history = this.historyManager.getHistory();
         const container = this.dom.historyList;
         
-        if (!container) return;
+        if (!this.clearContainer(container)) return;
         
         if (history.length === 0) {
-            container.innerHTML = '<div class="empty-state">No recent history</div>';
+            container.appendChild(this.createEmptyState('No recent history'));
             return;
         }
         
-        container.innerHTML = history.map(item => {
+        history.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            this.setupListItemAttributes(historyItem, item.id, `History item: ${item.title}`, 'data-history-id');
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'history-title';
+            titleDiv.title = item.title;
+            titleDiv.textContent = item.title;
+            
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'history-date';
             const date = new Date(item.viewedAt);
             const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            return `
-                <div class="history-item" data-history-id="${item.id}">
-                    <div class="history-title" title="${Utils.escapeHtml(item.title)}">${Utils.escapeHtml(item.title)}</div>
-                    <div class="history-date">${timeStr}</div>
-                    <div class="history-actions">
-                        <button class="action-btn add-to-library-btn" title="Add to Library">+</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        container.querySelectorAll('.history-item').forEach(item => {
-            const historyId = item.dataset.historyId;
-            const historyItem = history.find(h => h.id === historyId);
+            dateDiv.textContent = timeStr;
             
-            item.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('action-btn')) {
-                    this.loadContentToTextarea(historyItem.content);
-                    this.app.handleRender(true);
-                }
-            });
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'history-actions';
+            
+            const addToLibraryBtn = document.createElement('button');
+            addToLibraryBtn.className = 'action-btn add-to-library-btn';
+            addToLibraryBtn.title = 'Add to Library';
+            addToLibraryBtn.setAttribute('aria-label', 'Add to Library');
+            addToLibraryBtn.textContent = '+';
+            
+            actionsDiv.appendChild(addToLibraryBtn);
+            
+            historyItem.appendChild(titleDiv);
+            historyItem.appendChild(dateDiv);
+            historyItem.appendChild(actionsDiv);
+            container.appendChild(historyItem);
+            
+            this.addHistoryEventListeners(historyItem, item);
+        });
+    }
+    
+    addHistoryEventListeners(historyItem, item) {
+        const loadHandler = () => {
+            this.loadContentToTextarea(item.content);
+            this.app.handleRender(true);
+        };
+        
+        historyItem.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('action-btn')) {
+                loadHandler();
+            }
+        });
+        
+        this.addKeyboardActivation(historyItem, loadHandler);
 
-            const addToLibraryBtn = item.querySelector('.add-to-library-btn');
-            addToLibraryBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.addHistoryItemToLibrary(historyItem);
-            });
+        const addToLibraryBtn = historyItem.querySelector('.add-to-library-btn');
+        addToLibraryBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.addHistoryItemToLibrary(item);
         });
     }
     
@@ -297,15 +418,11 @@ class SavedSectionsManager {
         
         e.target.value = '';
         
-        try {
-            const { content, filename } = await FileManager.readMarkdownFile(file);
-            
-            document.getElementById('modalSectionTitle').value = filename;
-            document.getElementById('modalSectionContent').value = content;
-        } catch (error) {
-            console.error("Error reading file:", error);
-            CustomModal.alert("Error reading file. Please check the console for details.");
-        }
+        const result = await this.validateAndProcessFile(file);
+        if (!result) return;
+        
+        document.getElementById('modalSectionTitle').value = result.filename;
+        document.getElementById('modalSectionContent').value = result.content;
     }
     
     async handleImportFile(e) {
@@ -314,35 +431,31 @@ class SavedSectionsManager {
         
         e.target.value = '';
         
-        try {
-            const { content, filename } = await FileManager.readMarkdownFile(file);
-            
-            this.loadContentToTextarea(content);
-            
-            if (content.trim().length > 10) {
-                const historyItem = {
-                    id: 'temp_' + Date.now(),
-                    title: filename,
-                    content: content,
-                    viewedAt: new Date().toISOString(),
-                    titleAutoGenerated: false
-                };
-                this.addToHistory(historyItem);
-            }
-            
-            this.app.handleRender(true);
-            
-            setTimeout(async () => {
-                const shouldSave = await CustomModal.confirm(`Would you like to save "${filename}" to your library?`, 'Save Imported File');
-                if (shouldSave) {
-                    document.getElementById('modalSectionTitle').value = filename;
-                    document.getElementById('modalSectionContent').value = content;
-                    CustomModal.open('addSectionModal');
-                }
-            }, 100);
-        } catch (error) {
-            console.error("Error reading file:", error);
-            CustomModal.alert("Error reading file. Please check the console for details.");
+        const result = await this.validateAndProcessFile(file);
+        if (!result) return;
+        
+        this.loadContentToTextarea(result.content);
+        
+        if (result.content.trim().length > 10) {
+            const historyItem = {
+                id: 'temp_' + Date.now(),
+                title: result.filename,
+                content: result.content,
+                viewedAt: new Date().toISOString(),
+                titleAutoGenerated: false
+            };
+            this.addToHistory(historyItem);
         }
+        
+        this.app.handleRender(true);
+        
+        setTimeout(async () => {
+            const shouldSave = await CustomModal.confirm(`Would you like to save "${result.filename}" to your library?`, 'Save Imported File');
+            if (shouldSave) {
+                document.getElementById('modalSectionTitle').value = result.filename;
+                document.getElementById('modalSectionContent').value = result.content;
+                CustomModal.open('addSectionModal');
+            }
+        }, 100);
     }
 }

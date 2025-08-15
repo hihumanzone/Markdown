@@ -32,14 +32,34 @@ class FileManager {
     }
     
     static isValidMarkdownFile(file) {
-        const validExtensions = ['.md', '.markdown', '.txt'];
-        const validTypes = ['text/markdown', 'text/plain'];
+        const validExtensions = CONFIG.SUPPORTED_FILE_TYPES.EXTENSIONS;
+        const validTypes = CONFIG.SUPPORTED_FILE_TYPES.MIME_TYPES;
         
         const hasValidExtension = validExtensions.some(ext => 
             file.name.toLowerCase().endsWith(ext)
         );
         const hasValidType = validTypes.includes(file.type) || file.type === '';
         
-        return hasValidExtension || hasValidType;
+        return hasValidExtension && (hasValidType || file.type === '');
+    }
+    
+    static validateFile(file) {
+        if (!file) {
+            return { valid: false, message: 'No file selected.' };
+        }
+        
+        if (file.size > 10 * 1024 * 1024) {
+            return { valid: false, message: 'File size must be less than 10MB.' };
+        }
+        
+        if (!this.isValidMarkdownFile(file)) {
+            const supportedExts = CONFIG.SUPPORTED_FILE_TYPES.EXTENSIONS.join(', ');
+            return { 
+                valid: false, 
+                message: `Only the following file types are supported: ${supportedExts}` 
+            };
+        }
+        
+        return { valid: true };
     }
 }
