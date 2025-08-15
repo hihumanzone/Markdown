@@ -60,6 +60,8 @@ class FallbackRenderer {
     }
     
     static processBlockElements(html) {
+        html = this.preprocessLists(html);
+        
         const lines = html.split('\n');
         const processedLines = [];
         let inBlockquote = false;
@@ -93,6 +95,52 @@ class FallbackRenderer {
         return this.processParagraphs(processedLines.join('\n'));
     }
     
+    static preprocessLists(html) {
+        const listItems = ListItemParser.parse(html);
+        if (listItems.length === 0) return html;
+        
+        const lines = html.split('\n');
+        const resultLines = [];
+        let currentListItemIndex = 0;
+        let skipMode = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const unorderedMatch = line.match(ListItemParser.LIST_MARKER_REGEX.UNORDERED);
+            const orderedMatch = line.match(ListItemParser.LIST_MARKER_REGEX.ORDERED);
+            
+            if (unorderedMatch || orderedMatch) {
+                const match = unorderedMatch || orderedMatch;
+                
+                if (currentListItemIndex < listItems.length) {
+                    const listItem = listItems[currentListItemIndex];
+                    const content = listItem.content.replace(/\n/g, '<br>');
+                    const prefix = ' '.repeat(listItem.indent);
+                    const marker = listItem.isOrdered ? '1.' : '-';
+                    resultLines.push(`${prefix}${marker} ${content}`);
+                    currentListItemIndex++;
+                    skipMode = true;
+                } else {
+                    resultLines.push(line);
+                }
+            } else if (skipMode) {
+                const trimmed = line.trim();
+                const leadingSpaces = line.length - line.trimLeft().length;
+                
+                if (trimmed === '' || leadingSpaces > 0) {
+                    continue;
+                } else {
+                    skipMode = false;
+                    resultLines.push(line);
+                }
+            } else {
+                resultLines.push(line);
+            }
+        }
+        
+        return resultLines.join('\n');
+    }
+    
     static processBlockquote(trimmedLine, inBlockquote, blockquoteContent, processedLines) {
         if (trimmedLine.startsWith('&gt;')) {
             if (!inBlockquote) return true;
@@ -110,26 +158,33 @@ class FallbackRenderer {
         const olMatch = trimmedLine.match(/^\d+\.\s+(.*)$/);
         
         if (ulMatch || olMatch) {
+            const match = ulMatch || olMatch;
             const currentListType = ulMatch ? 'ul' : 'ol';
+            const content = match[1];
+            
             if (!inList || listType !== currentListType) {
                 if (inList) {
-                    processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+                    this.finalizePendingList(listType, listItems, processedLines);
                 }
                 return {
                     processed: true,
                     inList: true,
                     listType: currentListType,
-                    listItems: [`<li>${ulMatch ? ulMatch[1] : olMatch[1]}</li>`]
+                    listItems: [`<li>${content}</li>`]
                 };
             }
-            listItems.push(`<li>${ulMatch ? ulMatch[1] : olMatch[1]}</li>`);
+            listItems.push(`<li>${content}</li>`);
             return { processed: true, inList, listItems, listType };
         } else if (inList) {
-            processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+            this.finalizePendingList(listType, listItems, processedLines);
             return { processed: false, inList: false, listItems: [], listType: null };
         }
         
         return { processed: false, inList, listItems, listType };
+    }
+    
+    static finalizePendingList(listType, listItems, processedLines) {
+        processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
     }
     
     static finalizePendingBlocks(inBlockquote, blockquoteContent, inList, listItems, listType, processedLines) {
@@ -137,7 +192,7 @@ class FallbackRenderer {
             processedLines.push(`<blockquote>${blockquoteContent.join('<br>')}</blockquote>`);
         }
         if (inList) {
-            processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+            this.finalizePendingList(listType, listItems, processedLines);
         }
     }
     

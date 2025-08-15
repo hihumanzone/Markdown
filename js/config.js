@@ -20,6 +20,7 @@ const CONFIG = {
         DEFAULT: 100
     },
     LONG_PRESS_DURATION: 500,
+    ENABLE_LIST_LONG_PRESS_COPY: true,
     LOCAL_STORAGE_KEYS: {
         THEME: 'renderedOutputTheme',
         FONT_SIZE: 'renderedOutputFontSizePercent',
