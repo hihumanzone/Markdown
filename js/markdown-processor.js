@@ -1,11 +1,20 @@
 class ListItemParser {
+    static get LIST_MARKER_REGEX() {
+        return {
+            UNORDERED: /^(\s*)[-*+]\s+(.*)$/,
+            ORDERED: /^(\s*)\d+\.\s+(.*)$/,
+            ANY_UNORDERED: /^\s*[-*+]\s+/,
+            ANY_ORDERED: /^\s*\d+\.\s+/
+        };
+    }
+
     static parse(markdownText) {
         const listItems = [];
         const lines = markdownText.split('\n');
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            const unorderedMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
-            const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
+            const unorderedMatch = line.match(this.LIST_MARKER_REGEX.UNORDERED);
+            const orderedMatch = line.match(this.LIST_MARKER_REGEX.ORDERED);
             if (unorderedMatch || orderedMatch) {
                 const match = unorderedMatch || orderedMatch;
                 const contentOnFirstLine = match[2];
@@ -20,20 +29,17 @@ class ListItemParser {
                     const nextLine = lines[j];
                     const nextTrimmed = nextLine.trim();
 
-                    // If we encounter a new list item, break
-                    if (nextLine.match(/^\s*[-*+]\s+/) ||
-                        nextLine.match(/^\s*\d+\.\s+/)) {
+                    if (nextLine.match(this.LIST_MARKER_REGEX.ANY_UNORDERED) ||
+                        nextLine.match(this.LIST_MARKER_REGEX.ANY_ORDERED)) {
                         break;
                     }
 
-                    // If line is empty, include it and continue to check next lines
                     if (nextTrimmed === '') {
                         fullContent += '\n';
                         j++;
                         continue;
                     }
 
-                    // Check if this non-empty line belongs to the list item based on indentation
                     const leadingWhitespaceLength = (nextLine.match(/^\s*/) || [''])[0].length;
                     if (leadingWhitespaceLength >= baseIndentation) {
                         fullContent += '\n' + nextLine.substring(baseIndentation);

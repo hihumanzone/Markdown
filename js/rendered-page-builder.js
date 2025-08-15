@@ -954,7 +954,6 @@ class ListItemController {
     }
 
     attachInitialListeners() {
-        // Check if long-press copy functionality is enabled
         if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) {
             return;
         }
@@ -1032,22 +1031,30 @@ class ListItemController {
     async copyListContent(element) {
         try {
             const listIndex = parseInt(element.dataset.listIndex, 10);
-            if (isNaN(listIndex) || !window.__APP_DATA__.listItems || listIndex >= window.__APP_DATA__.listItems.length || !window.__APP_DATA__.listItems[listIndex]) {
-                const textContent = (element.innerText || element.textContent || "").trim();
-                if (textContent) {
-                    await this._copyToClipboard(textContent);
-                    this.showNotification('List item text copied!');
-                } else {
-                    throw new Error('List item content is empty.');
-                }
+            const listData = window.__APP_DATA__.listItems;
+            const isValidIndex = !isNaN(listIndex) && listData && listIndex < listData.length && listData[listIndex];
+            
+            if (!isValidIndex) {
+                await this.copyElementText(element);
                 return;
             }
-            const textToCopy = window.__APP_DATA__.listItems[listIndex].content;
+            
+            const textToCopy = listData[listIndex].content;
             await this._copyToClipboard(textToCopy);
             this.showNotification('List content copied!');
         } catch (err) {
             console.error('Failed to copy list item:', err);
             this.showNotification('Failed to copy. See console.', true);
+        }
+    }
+
+    async copyElementText(element) {
+        const textContent = (element.innerText || element.textContent || "").trim();
+        if (textContent) {
+            await this._copyToClipboard(textContent);
+            this.showNotification('List item text copied!');
+        } else {
+            throw new Error('List item content is empty.');
         }
     }
 
@@ -1156,7 +1163,6 @@ class UIController {
         window.markdownRendererUI = new UIController();
     }
     
-    // Initialize immediately if DOM is already ready, otherwise wait for DOMContentLoaded
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeUI);
     } else {
