@@ -47,7 +47,6 @@ class SavedSectionsManager {
             }
         });
         
-        // Edit modal event listeners
         document.getElementById('editModalSaveBtn')?.addEventListener('click', () => this.saveFromEditModal());
         
         document.getElementById('editModalSectionTitle')?.addEventListener('keypress', (e) => {
@@ -114,14 +113,12 @@ class SavedSectionsManager {
     }
     
     async validateSectionInput(title, content) {
-        // Validate title
         const titleValidation = Utils.validateInputLength(title, CONFIG.VALIDATION.TITLE_MAX_LENGTH, 'Title');
         if (!titleValidation.valid) {
             await CustomModal.alert(titleValidation.message);
             return false;
         }
         
-        // Validate content
         const contentValidation = Utils.validateInputLength(content, CONFIG.VALIDATION.CONTENT_MAX_LENGTH, 'Content');
         if (!contentValidation.valid) {
             await CustomModal.alert(contentValidation.message);
@@ -141,32 +138,72 @@ class SavedSectionsManager {
         };
     }
     
+    clearContainer(container) {
+        if (!container) return false;
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+        return true;
+    }
+    
+    createEmptyState(message) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = message;
+        return emptyState;
+    }
+    
+    setupListItemAttributes(element, id, label, dataAttr = 'data-section-id', itemType = 'listitem') {
+        element.setAttribute(dataAttr, id);
+        element.setAttribute('role', itemType);
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('aria-label', label);
+    }
+    
+    addKeyboardActivation(element, callback) {
+        element.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!e.target.classList.contains('action-btn')) {
+                    callback(e);
+                }
+            }
+        });
+    }
+    
+    async validateAndProcessFile(file) {
+        const fileValidation = FileManager.validateFile(file);
+        if (!fileValidation.valid) {
+            await CustomModal.alert(fileValidation.message);
+            return null;
+        }
+        
+        try {
+            const { content, filename } = await FileManager.readMarkdownFile(file);
+            const sanitizedContent = Utils.sanitizeMarkdown(content);
+            return { content: sanitizedContent, filename };
+        } catch (error) {
+            console.error("Error reading file:", error);
+            await CustomModal.alert("Error reading file. Please check the console for details.");
+            return null;
+        }
+    }
+    
     renderSavedSections() {
         const sections = this.sectionsManager.getSections();
         const container = this.dom.savedSectionsList;
         
-        if (!container) return;
-        
-        // Clear container safely
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
+        if (!this.clearContainer(container)) return;
         
         if (sections.length === 0) {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-            emptyState.textContent = 'No items in library yet';
-            container.appendChild(emptyState);
+            container.appendChild(this.createEmptyState('No items in library yet'));
             return;
         }
         
         sections.forEach(section => {
             const sectionItem = document.createElement('div');
             sectionItem.className = 'section-item';
-            sectionItem.setAttribute('data-section-id', section.id);
-            sectionItem.setAttribute('role', 'listitem');
-            sectionItem.setAttribute('tabindex', '0');
-            sectionItem.setAttribute('aria-label', `Library item: ${section.title}`);
+            this.setupListItemAttributes(sectionItem, section.id, `Library item: ${section.title}`);
             
             const titleDiv = document.createElement('div');
             titleDiv.className = 'section-title';
@@ -188,7 +225,6 @@ class SavedSectionsManager {
             sectionItem.appendChild(actionsDiv);
             container.appendChild(sectionItem);
             
-            // Add event listeners
             this.addSectionEventListeners(sectionItem, section);
         });
     }
@@ -209,14 +245,7 @@ class SavedSectionsManager {
             }
         });
         
-        sectionItem.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (!e.target.classList.contains('action-btn')) {
-                    this.loadSectionAndRender(section);
-                }
-            }
-        });
+        this.addKeyboardActivation(sectionItem, () => this.loadSectionAndRender(section));
         
         const renameBtn = sectionItem.querySelector('.rename-btn');
         const exportBtn = sectionItem.querySelector('.export-btn');
@@ -292,28 +321,17 @@ class SavedSectionsManager {
         const history = this.historyManager.getHistory();
         const container = this.dom.historyList;
         
-        if (!container) return;
-        
-        // Clear container safely
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
+        if (!this.clearContainer(container)) return;
         
         if (history.length === 0) {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-            emptyState.textContent = 'No recent history';
-            container.appendChild(emptyState);
+            container.appendChild(this.createEmptyState('No recent history'));
             return;
         }
         
         history.forEach(item => {
             const historyItem = document.createElement('div');
             historyItem.className = 'history-item';
-            historyItem.setAttribute('data-history-id', item.id);
-            historyItem.setAttribute('role', 'listitem');
-            historyItem.setAttribute('tabindex', '0');
-            historyItem.setAttribute('aria-label', `History item: ${item.title}`);
+            this.setupListItemAttributes(historyItem, item.id, `History item: ${item.title}`, 'data-history-id');
             
             const titleDiv = document.createElement('div');
             titleDiv.className = 'history-title';
@@ -342,28 +360,23 @@ class SavedSectionsManager {
             historyItem.appendChild(actionsDiv);
             container.appendChild(historyItem);
             
-            // Add event listeners
             this.addHistoryEventListeners(historyItem, item);
         });
     }
     
     addHistoryEventListeners(historyItem, item) {
+        const loadHandler = () => {
+            this.loadContentToTextarea(item.content);
+            this.app.handleRender(true);
+        };
+        
         historyItem.addEventListener('click', (e) => {
             if (!e.target.classList.contains('action-btn')) {
-                this.loadContentToTextarea(item.content);
-                this.app.handleRender(true);
+                loadHandler();
             }
         });
         
-        historyItem.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (!e.target.classList.contains('action-btn')) {
-                    this.loadContentToTextarea(item.content);
-                    this.app.handleRender(true);
-                }
-            }
-        });
+        this.addKeyboardActivation(historyItem, loadHandler);
 
         const addToLibraryBtn = historyItem.querySelector('.add-to-library-btn');
         addToLibraryBtn?.addEventListener('click', (e) => {
@@ -405,25 +418,11 @@ class SavedSectionsManager {
         
         e.target.value = '';
         
-        // Validate file
-        const fileValidation = FileManager.validateFile(file);
-        if (!fileValidation.valid) {
-            await CustomModal.alert(fileValidation.message);
-            return;
-        }
+        const result = await this.validateAndProcessFile(file);
+        if (!result) return;
         
-        try {
-            const { content, filename } = await FileManager.readMarkdownFile(file);
-            
-            // Sanitize content
-            const sanitizedContent = Utils.sanitizeMarkdown(content);
-            
-            document.getElementById('modalSectionTitle').value = filename;
-            document.getElementById('modalSectionContent').value = sanitizedContent;
-        } catch (error) {
-            console.error("Error reading file:", error);
-            CustomModal.alert("Error reading file. Please check the console for details.");
-        }
+        document.getElementById('modalSectionTitle').value = result.filename;
+        document.getElementById('modalSectionContent').value = result.content;
     }
     
     async handleImportFile(e) {
@@ -432,45 +431,31 @@ class SavedSectionsManager {
         
         e.target.value = '';
         
-        // Validate file
-        const fileValidation = FileManager.validateFile(file);
-        if (!fileValidation.valid) {
-            await CustomModal.alert(fileValidation.message);
-            return;
+        const result = await this.validateAndProcessFile(file);
+        if (!result) return;
+        
+        this.loadContentToTextarea(result.content);
+        
+        if (result.content.trim().length > 10) {
+            const historyItem = {
+                id: 'temp_' + Date.now(),
+                title: result.filename,
+                content: result.content,
+                viewedAt: new Date().toISOString(),
+                titleAutoGenerated: false
+            };
+            this.addToHistory(historyItem);
         }
         
-        try {
-            const { content, filename } = await FileManager.readMarkdownFile(file);
-            
-            // Sanitize content
-            const sanitizedContent = Utils.sanitizeMarkdown(content);
-            
-            this.loadContentToTextarea(sanitizedContent);
-            
-            if (sanitizedContent.trim().length > 10) {
-                const historyItem = {
-                    id: 'temp_' + Date.now(),
-                    title: filename,
-                    content: sanitizedContent,
-                    viewedAt: new Date().toISOString(),
-                    titleAutoGenerated: false
-                };
-                this.addToHistory(historyItem);
+        this.app.handleRender(true);
+        
+        setTimeout(async () => {
+            const shouldSave = await CustomModal.confirm(`Would you like to save "${result.filename}" to your library?`, 'Save Imported File');
+            if (shouldSave) {
+                document.getElementById('modalSectionTitle').value = result.filename;
+                document.getElementById('modalSectionContent').value = result.content;
+                CustomModal.open('addSectionModal');
             }
-            
-            this.app.handleRender(true);
-            
-            setTimeout(async () => {
-                const shouldSave = await CustomModal.confirm(`Would you like to save "${filename}" to your library?`, 'Save Imported File');
-                if (shouldSave) {
-                    document.getElementById('modalSectionTitle').value = filename;
-                    document.getElementById('modalSectionContent').value = sanitizedContent;
-                    CustomModal.open('addSectionModal');
-                }
-            }, 100);
-        } catch (error) {
-            console.error("Error reading file:", error);
-            CustomModal.alert("Error reading file. Please check the console for details.");
-        }
+        }, 100);
     }
 }

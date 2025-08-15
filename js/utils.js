@@ -6,7 +6,6 @@ const Utils = {
     },
     
     sanitizeMarkdown(markdown) {
-        // Use DOMPurify if available to sanitize markdown content
         if (typeof DOMPurify !== 'undefined') {
             return DOMPurify.sanitize(markdown, {
                 ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 

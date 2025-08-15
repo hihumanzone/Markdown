@@ -48,7 +48,7 @@ class FileManager {
             return { valid: false, message: 'No file selected.' };
         }
         
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        if (file.size > 10 * 1024 * 1024) {
             return { valid: false, message: 'File size must be less than 10MB.' };
         }
         

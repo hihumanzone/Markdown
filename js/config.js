@@ -29,7 +29,7 @@ const CONFIG = {
     },
     VALIDATION: {
         TITLE_MAX_LENGTH: 100,
-        CONTENT_MAX_LENGTH: 100000, // 100KB limit for content
+        CONTENT_MAX_LENGTH: 100000,
         FILENAME_MAX_LENGTH: 255
     },
     SUPPORTED_FILE_TYPES: {
