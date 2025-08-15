@@ -20,14 +20,22 @@ class ListItemParser {
                     const nextLine = lines[j];
                     const nextTrimmed = nextLine.trim();
 
-                    if (nextTrimmed === '' ||
-                        nextLine.match(/^\s*[-*+]\s+/) ||
+                    // If we encounter a new list item, break
+                    if (nextLine.match(/^\s*[-*+]\s+/) ||
                         nextLine.match(/^\s*\d+\.\s+/)) {
                         break;
                     }
 
+                    // If line is empty, include it and continue to check next lines
+                    if (nextTrimmed === '') {
+                        fullContent += '\n';
+                        j++;
+                        continue;
+                    }
+
+                    // Check if this non-empty line belongs to the list item based on indentation
                     const leadingWhitespaceLength = (nextLine.match(/^\s*/) || [''])[0].length;
-                    if (leadingWhitespaceLength >= baseIndentation && nextTrimmed !== '') {
+                    if (leadingWhitespaceLength >= baseIndentation) {
                         fullContent += '\n' + nextLine.substring(baseIndentation);
                         j++;
                     } else {

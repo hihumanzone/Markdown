@@ -25,6 +25,11 @@ class ListItemController {
     }
 
     attachInitialListeners() {
+        // Check if long-press copy functionality is enabled
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) {
+            return;
+        }
+        
         const listItems = this.contentContainer.querySelectorAll('li');
         listItems.forEach((li, index) => {
             if (li.dataset.listCopyInitialized === 'true') return;
