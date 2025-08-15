@@ -60,6 +60,9 @@ class FallbackRenderer {
     }
     
     static processBlockElements(html) {
+        // Pre-process lists to convert multi-line list items to single-line with <br> tags
+        html = this.preprocessLists(html);
+        
         const lines = html.split('\n');
         const processedLines = [];
         let inBlockquote = false;
@@ -91,6 +94,57 @@ class FallbackRenderer {
         this.finalizePendingBlocks(inBlockquote, blockquoteContent, inList, listItems, listType, processedLines);
         
         return this.processParagraphs(processedLines.join('\n'));
+    }
+    
+    static preprocessLists(html) {
+        const listItems = ListItemParser.parse(html);
+        if (listItems.length === 0) return html;
+        
+        // Build a completely new version of the text with proper single-line list items
+        const lines = html.split('\n');
+        const resultLines = [];
+        let currentListItemIndex = 0;
+        let skipMode = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const unorderedMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
+            const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
+            
+            if (unorderedMatch || orderedMatch) {
+                // This is a list item start - replace with processed version
+                const match = unorderedMatch || orderedMatch;
+                
+                if (currentListItemIndex < listItems.length) {
+                    const listItem = listItems[currentListItemIndex];
+                    const content = listItem.content.replace(/\n/g, '<br>');
+                    const prefix = ' '.repeat(listItem.indent);
+                    const marker = listItem.isOrdered ? '1.' : '-';
+                    resultLines.push(`${prefix}${marker} ${content}`);
+                    currentListItemIndex++;
+                    skipMode = true;
+                } else {
+                    resultLines.push(line);
+                }
+            } else if (skipMode) {
+                // We're in skip mode, check if this line is part of list content
+                const trimmed = line.trim();
+                const leadingSpaces = line.length - line.trimLeft().length;
+                
+                // If it's empty or indented content, skip it (already processed)
+                if (trimmed === '' || leadingSpaces > 0) {
+                    continue;
+                } else {
+                    // This is a new non-list line, exit skip mode
+                    skipMode = false;
+                    resultLines.push(line);
+                }
+            } else {
+                resultLines.push(line);
+            }
+        }
+        
+        return resultLines.join('\n');
     }
     
     static processBlockquote(trimmedLine, inBlockquote, blockquoteContent, processedLines) {
