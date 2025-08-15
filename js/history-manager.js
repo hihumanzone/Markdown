@@ -108,35 +108,42 @@ class HistoryManager {
     }
     
     generateContentBasedSuffix(content, conflictingItems) {
+        const strategies = [
+            () => this.findDistinctiveHeader(content, conflictingItems),
+            () => this.findDistinctiveLine(content, conflictingItems),
+            () => this.findDistinctiveKeyword(content, conflictingItems),
+            () => `${content.trim().length} chars`
+        ];
         
-        const headers = this.extractHeaders(content);
-        if (headers.length > 1) {
-            const distinctiveHeader = headers.find(header => 
-                !conflictingItems.some(item => this.extractHeaders(item.content).includes(header))
-            );
-            if (distinctiveHeader) {
-                return this.truncateText(distinctiveHeader, 25);
-            }
+        for (const strategy of strategies) {
+            const result = strategy();
+            if (result) return this.truncateText(result, 25);
         }
         
+        return 'content';
+    }
+    
+    findDistinctiveHeader(content, conflictingItems) {
+        const headers = this.extractHeaders(content);
+        if (headers.length <= 1) return null;
+        
+        return headers.find(header => 
+            !conflictingItems.some(item => this.extractHeaders(item.content).includes(header))
+        );
+    }
+    
+    findDistinctiveLine(content, conflictingItems) {
         const contentLines = this.extractContentLines(content);
-        const distinctiveLine = contentLines.find(line =>
+        return contentLines.find(line =>
             !conflictingItems.some(item => this.extractContentLines(item.content).includes(line))
         );
-        if (distinctiveLine) {
-            return this.truncateText(distinctiveLine, 25);
-        }
-        
+    }
+    
+    findDistinctiveKeyword(content, conflictingItems) {
         const keywords = this.extractKeywords(content);
-        const distinctiveKeyword = keywords.find(keyword =>
+        return keywords.find(keyword =>
             !conflictingItems.some(item => this.extractKeywords(item.content).includes(keyword))
         );
-        if (distinctiveKeyword) {
-            return this.truncateText(distinctiveKeyword, 25);
-        }
-        
-        const contentLength = content.trim().length;
-        return `${contentLength} chars`;
     }
     
     extractHeaders(content) {

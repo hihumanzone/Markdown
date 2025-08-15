@@ -56,33 +56,65 @@ class SavedSectionsManager {
     }
     
     async saveFromModal() {
-        const originalTitle = document.getElementById('modalSectionTitle')?.value?.trim();
+        const title = document.getElementById('modalSectionTitle')?.value?.trim();
         const content = document.getElementById('modalSectionContent')?.value?.trim();
         
-        if (!originalTitle) {
-            await CustomModal.alert('Please enter a title for your library item.');
-            return;
-        }
+        if (!this.validateSectionInput(title, content)) return;
         
-        if (!content) {
-            await CustomModal.alert('Please enter some content to save.');
-            return;
-        }
-        
-        const uniqueTitle = this.sectionsManager.generateUniqueTitle(originalTitle);
-        
-        const section = {
-            id: Date.now().toString(),
-            title: uniqueTitle,
-            content: content,
-            createdAt: new Date().toISOString(),
-            lastModified: new Date().toISOString()
-        };
+        const uniqueTitle = this.sectionsManager.generateUniqueTitle(title);
+        const section = this.createSection(uniqueTitle, content);
         
         this.sectionsManager.addSection(section);
         CustomModal.close('addSectionModal');
         this.renderSavedSections();
         await CustomModal.alert('Section saved to library successfully!');
+    }
+    
+    async saveFromEditModal() {
+        const newTitle = document.getElementById('editModalSectionTitle')?.value?.trim();
+        const newContent = document.getElementById('editModalSectionContent')?.value?.trim();
+        
+        if (!this.validateSectionInput(newTitle, newContent)) return;
+        if (!this.currentEditingSection) {
+            await CustomModal.alert('No section is being edited.');
+            return;
+        }
+        
+        const uniqueTitle = this.sectionsManager.generateUniqueTitle(newTitle, this.currentEditingSection.id);
+        const success = this.sectionsManager.updateSection(this.currentEditingSection.id, { 
+            title: uniqueTitle,
+            content: newContent
+        });
+        
+        if (success) {
+            CustomModal.close('editSectionModal');
+            this.renderSavedSections();
+            this.currentEditingSection = null;
+        } else {
+            await CustomModal.alert('Failed to save changes. Please try again.');
+        }
+    }
+    
+    async validateSectionInput(title, content) {
+        if (!title) {
+            await CustomModal.alert('Please enter a title for your library item.');
+            return false;
+        }
+        if (!content) {
+            await CustomModal.alert('Please enter some content to save.');
+            return false;
+        }
+        return true;
+    }
+    
+    createSection(title, content) {
+        return {
+            id: Date.now().toString(),
+            title,
+            content,
+            createdAt: new Date().toISOString(),
+            lastModified: new Date().toISOString()
+        };
     }
     
     renderSavedSections() {
@@ -139,20 +171,21 @@ class SavedSectionsManager {
     }
     
     async loadSectionAndRender(section) {
-        if (this.dom.markdownInput) {
-            this.dom.markdownInput.value = section.content;
-            this.dom.markdownInput.focus();
-            
-            // Save the loaded content as current content for persistence
-            if (this.app.currentContentManager) {
-                this.app.currentContentManager.saveCurrentContent(section.content);
-            }
-        }
-        
+        this.loadContentToTextarea(section.content);
         this.historyManager.addToHistory(section);
         this.renderHistory();
-        
         this.app.handleRender(true);
+    }
+    
+    loadContentToTextarea(content) {
+        if (this.dom.markdownInput) {
+            this.dom.markdownInput.value = content;
+            this.dom.markdownInput.focus();
+            
+            if (this.app.currentContentManager) {
+                this.app.currentContentManager.saveCurrentContent(content);
+            }
+        }
     }
     
     async renameSection(section) {
@@ -160,41 +193,6 @@ class SavedSectionsManager {
         document.getElementById('editModalSectionTitle').value = section.title;
         document.getElementById('editModalSectionContent').value = section.content;
         CustomModal.open('editSectionModal');
-    }
-    
-    async saveFromEditModal() {
-        const newTitle = document.getElementById('editModalSectionTitle')?.value?.trim();
-        const newContent = document.getElementById('editModalSectionContent')?.value?.trim();
-        
-        if (!newTitle) {
-            await CustomModal.alert('Please enter a title for your library item.');
-            return;
-        }
-        
-        if (!newContent) {
-            await CustomModal.alert('Please enter some content to save.');
-            return;
-        }
-        
-        if (!this.currentEditingSection) {
-            await CustomModal.alert('No section is being edited.');
-            return;
-        }
-        
-        const uniqueTitle = this.sectionsManager.generateUniqueTitle(newTitle, this.currentEditingSection.id);
-        
-        const success = this.sectionsManager.updateSection(this.currentEditingSection.id, { 
-            title: uniqueTitle,
-            content: newContent
-        });
-        
-        if (success) {
-            CustomModal.close('editSectionModal');
-            this.renderSavedSections();
-            this.currentEditingSection = null;
-        } else {
-            await CustomModal.alert('Failed to save changes. Please try again.');
-        }
     }
     
     async deleteSection(section) {
@@ -247,16 +245,7 @@ class SavedSectionsManager {
             
             item.addEventListener('click', (e) => {
                 if (!e.target.classList.contains('action-btn')) {
-                    if (this.dom.markdownInput) {
-                        this.dom.markdownInput.value = historyItem.content;
-                        this.dom.markdownInput.focus();
-                        
-                        // Save the loaded content as current content for persistence
-                        if (this.app.currentContentManager) {
-                            this.app.currentContentManager.saveCurrentContent(historyItem.content);
-                        }
-                    }
-                    
+                    this.loadContentToTextarea(historyItem.content);
                     this.app.handleRender(true);
                 }
             });
@@ -323,13 +312,7 @@ class SavedSectionsManager {
         try {
             const { content, filename } = await FileManager.readMarkdownFile(file);
             
-            this.dom.markdownInput.value = content;
-            this.dom.markdownInput.focus();
-            
-            // Save the imported content as current content for persistence
-            if (this.app.currentContentManager) {
-                this.app.currentContentManager.saveCurrentContent(content);
-            }
+            this.loadContentToTextarea(content);
             
             if (content.trim().length > 10) {
                 const historyItem = {
@@ -337,7 +320,7 @@ class SavedSectionsManager {
                     title: filename,
                     content: content,
                     viewedAt: new Date().toISOString(),
-                    titleAutoGenerated: false // filename is explicitly provided
+                    titleAutoGenerated: false
                 };
                 this.addToHistory(historyItem);
             }
