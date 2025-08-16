@@ -174,10 +174,6 @@ This project welcomes contributions! To contribute:
 | Math rendering | ✅ | ✅ | ✅ | ✅ |
 | Themes | ✅ | ✅ | ✅ | ✅ |
 
-## License
-
-This project is open source. Please check the repository for license details.
-
 ## Support
 
 For issues, feature requests, or questions:
