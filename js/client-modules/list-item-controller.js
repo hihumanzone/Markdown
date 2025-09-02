@@ -25,12 +25,13 @@ class ListItemController {
     }
 
     attachInitialListeners() {
-        if (!this.isLongPressCopyEnabled()) return;
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return;
         
+        const isEnabled = this.isLongPressCopyEnabled();
         const listItems = this.contentContainer.querySelectorAll('li');
         listItems.forEach((li, index) => {
             if (li.dataset.listCopyInitialized === 'true') return;
-            this.initializeListItem(li, index, true);
+            this.initializeListItem(li, index, isEnabled);
         });
     }
 
