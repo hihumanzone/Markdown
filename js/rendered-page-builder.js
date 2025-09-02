@@ -995,12 +995,13 @@ class ListItemController {
     }
 
     attachInitialListeners() {
-        if (!this.isLongPressCopyEnabled()) return;
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return;
         
+        const isEnabled = this.isLongPressCopyEnabled();
         const listItems = this.contentContainer.querySelectorAll('li');
         listItems.forEach((li, index) => {
-            if (li.dataset.listCopyInitialized === 'true') return;
-            this.initializeListItem(li, index, true);
+            if (li.dataset.listCopyInitialized === 'true' || li.dataset.listCopyInitialized === 'false') return;
+            this.initializeListItem(li, index, isEnabled);
         });
     }
 
@@ -1015,9 +1016,23 @@ class ListItemController {
         li.dataset.listIndex = index;
         li.dataset.listCopyInitialized = enabled.toString();
         
+        // Clean up any existing event listeners first
+        this.cleanupListItemEventListeners(li);
+        
         if (enabled) {
-            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+            // Create bound event handlers and store references
+            const mousedownHandler = (e) => { if (e.button === 0) this.handleStart(li, e); };
+            const touchstartHandler = (e) => this.handleStart(li, e);
+            
+            li.addEventListener('mousedown', mousedownHandler);
+            li.addEventListener('touchstart', touchstartHandler, { passive: true });
+            
+            // Store references for cleanup
+            li._longPressHandlers = {
+                mousedown: mousedownHandler,
+                touchstart: touchstartHandler
+            };
+            
             this.applyClickableStyles(li);
         } else {
             this.applyTextSelectableStyles(li);
@@ -1047,32 +1062,37 @@ class ListItemController {
     updateLongPressCopyState(enabled) {
         const listItems = this.contentContainer.querySelectorAll('li');
         
-        if (enabled) {
-            listItems.forEach((li, index) => {
-                if (li.dataset.listCopyInitialized !== 'true') {
-                    this.initializeListItem(li, index, true);
-                } else {
-                    this.applyClickableStyles(li);
-                }
-            });
-        } else {
-            this.handleEnd();
-            listItems.forEach((li, index) => {
-                this.removeEventListeners(li);
-                this.initializeListItem(li, index, false);
-                li.classList.remove('list-item-highlight');
-            });
+        listItems.forEach((li, index) => {
+            // Cancel any ongoing long press operation
+            if (this.longPressElement === li) {
+                this.handleEnd();
+            }
+            
+            // Remove existing event listeners by storing references
+            this.cleanupListItemEventListeners(li);
+            
+            // Reinitialize with new state
+            this.initializeListItem(li, index, enabled);
+            
+            // Remove highlight class
+            li.classList.remove('list-item-highlight');
+        });
+    }
+
+    cleanupListItemEventListeners(li) {
+        // Remove stored event listeners if they exist
+        if (li._longPressHandlers) {
+            if (li._longPressHandlers.mousedown) {
+                li.removeEventListener('mousedown', li._longPressHandlers.mousedown);
+            }
+            if (li._longPressHandlers.touchstart) {
+                li.removeEventListener('touchstart', li._longPressHandlers.touchstart);
+            }
+            delete li._longPressHandlers;
         }
     }
 
-    removeEventListeners(li) {
-        if (this.longPressElement === li) {
-            this.handleEnd();
-        }
-        const newLi = li.cloneNode(true);
-        li.parentNode.replaceChild(newLi, li);
-        return newLi;
-    }
+
 
     handleStart(element, event) {
         this.handleEnd();
