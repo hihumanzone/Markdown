@@ -462,6 +462,7 @@ class RenderedPageBuilder {
                 <button id="increaseFontBtn" title="Increase font size (Ctrl/Cmd + +)" class="fc-button">+</button>
                 <button id="resetFontBtn" title="Reset font size (Ctrl/Cmd + 0)" class="fc-button">Reset</button>
                 <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
+                <button id="toggleLongPressCopyBtn" title="Toggle long press to copy list items" class="fc-button">Long Press Copy</button>
                 <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
                 <button id="toggleFullscreenBtn" title="Toggle fullscreen mode (F11)" class="fc-button">Fullscreen</button>
                 <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
@@ -479,6 +480,7 @@ class RenderedPageBuilder {
             this.getCollapsibleControllerScript(),
             this.getViewToggleControllerScript(),
             this.getFullscreenControllerScript(),
+            this.getLongPressCopyControllerScript(),
             this.getSavePdfControllerScript(),
             this.getExportMarkdownControllerScript(),
             this.getExportImageControllerScript(),
@@ -764,6 +766,54 @@ class FullscreenController {
 }`;
     }
     
+    static getLongPressCopyControllerScript() {
+        return `
+class LongPressCopyController {
+    constructor() {
+        this.toggleBtn = document.getElementById('toggleLongPressCopyBtn');
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY;
+        this.init();
+    }
+    
+    init() {
+        if (!this.toggleBtn) return;
+        this.toggleBtn.addEventListener('click', () => this.toggle());
+        // Default to enabled if no setting exists
+        const savedSetting = localStorage.getItem(this.lsKey);
+        const defaultEnabled = savedSetting !== null ? savedSetting === 'true' : true;
+        this.applyState(defaultEnabled);
+    }
+    
+    applyState(enabled) {
+        this.toggleBtn.textContent = enabled ? 'Long Press Copy' : 'Long Press Copy (Off)';
+        this.toggleBtn.title = enabled ? 
+            'Long press to copy list items is enabled. Click to disable.' : 
+            'Long press to copy list items is disabled. Click to enable.';
+        localStorage.setItem(this.lsKey, enabled.toString());
+        
+        // Notify the list item controller of the change
+        this.notifyListItemController(enabled);
+    }
+    
+    toggle() {
+        const current = this.isEnabled();
+        this.applyState(!current);
+    }
+    
+    isEnabled() {
+        const savedSetting = localStorage.getItem(this.lsKey);
+        return savedSetting !== null ? savedSetting === 'true' : true;
+    }
+    
+    notifyListItemController(enabled) {
+        // Find the list item controller and update its state
+        if (window.uiController && window.uiController.listItemController) {
+            window.uiController.listItemController.updateLongPressCopyState(enabled);
+        }
+    }
+}`;
+    }
+    
     static getSavePdfControllerScript() {
         return `
 class SavePdfController {
@@ -954,7 +1004,7 @@ class ListItemController {
     }
 
     attachInitialListeners() {
-        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) {
+        if (!this.isLongPressCopyEnabled()) {
             return;
         }
         
@@ -967,6 +1017,45 @@ class ListItemController {
             li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
             li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
         });
+    }
+
+    isLongPressCopyEnabled() {
+        // Check both the global config and the localStorage setting
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) {
+            return false;
+        }
+        
+        const savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
+        return savedSetting !== null ? savedSetting === 'true' : true;
+    }
+    
+    updateLongPressCopyState(enabled) {
+        const listItems = this.contentContainer.querySelectorAll('li');
+        
+        if (enabled) {
+            // Enable long press copy for all list items
+            listItems.forEach((li, index) => {
+                if (li.dataset.listCopyInitialized !== 'true') {
+                    li.dataset.listIndex = index;
+                    li.dataset.listCopyInitialized = 'true';
+                    
+                    li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
+                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+                }
+            });
+        } else {
+            // Disable long press copy by removing event listeners and clearing any active state
+            this.handleEnd(); // Clear any ongoing long press
+            
+            listItems.forEach((li) => {
+                if (li.dataset.listCopyInitialized === 'true') {
+                    // Remove event listeners by cloning and replacing the element
+                    const newLi = li.cloneNode(true);
+                    li.parentNode.replaceChild(newLi, li);
+                    newLi.dataset.listCopyInitialized = 'false';
+                }
+            });
+        }
     }
 
     handleStart(element, event) {
@@ -1105,10 +1194,14 @@ class UIController {
         this.collapsibleController = new CollapsibleController();
         this.viewToggleController = new ViewToggleController();
         this.fullscreenController = new FullscreenController();
+        this.longPressCopyController = new LongPressCopyController();
         this.listItemController = new ListItemController();
         this.savePdfController = new SavePdfController();
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
+        
+        // Make the UI controller globally accessible for controller communication
+        window.uiController = this;
     }
     
     addGlobalKeydownListener() {
