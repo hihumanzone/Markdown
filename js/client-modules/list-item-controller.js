@@ -29,14 +29,35 @@ class ListItemController {
             return;
         }
         
+        // Check if long press copy is currently enabled via the toggle
+        const lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY;
+        const savedSetting = localStorage.getItem(lsKey);
+        const isEnabled = savedSetting !== null ? savedSetting === 'true' : true;
+        
         const listItems = this.contentContainer.querySelectorAll('li');
         listItems.forEach((li, index) => {
             if (li.dataset.listCopyInitialized === 'true') return;
             li.dataset.listIndex = index;
-            li.dataset.listCopyInitialized = 'true';
             
-            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+            if (isEnabled) {
+                li.dataset.listCopyInitialized = 'true';
+                li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
+                li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+                // Apply clickable styles
+                li.style.cursor = 'pointer';
+                li.style.userSelect = 'none';
+                li.style.webkitUserSelect = 'none';
+                li.style.mozUserSelect = 'none';
+                li.style.msUserSelect = 'none';
+            } else {
+                li.dataset.listCopyInitialized = 'false';
+                // Allow normal text selection
+                li.style.cursor = 'auto';
+                li.style.userSelect = 'auto';
+                li.style.webkitUserSelect = 'auto';
+                li.style.mozUserSelect = 'auto';
+                li.style.msUserSelect = 'auto';
+            }
         });
     }
 
@@ -156,5 +177,48 @@ class ListItemController {
         setTimeout(() => { 
             this.notificationElement.style.display = 'none'; 
         }, isError ? 3500 : 2000);
+    }
+
+    updateLongPressCopyState(enabled) {
+        const listItems = this.contentContainer.querySelectorAll('li');
+        listItems.forEach(li => {
+            if (enabled) {
+                // Enable long press copy functionality
+                if (li.dataset.listCopyInitialized !== 'true') {
+                    li.dataset.listCopyInitialized = 'true';
+                    li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
+                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+                }
+                // Add styles that make items look clickable and prevent text selection
+                li.style.cursor = 'pointer';
+                li.style.userSelect = 'none';
+                li.style.webkitUserSelect = 'none';
+                li.style.mozUserSelect = 'none';
+                li.style.msUserSelect = 'none';
+            } else {
+                // Disable long press copy functionality
+                this.removeListItemListeners(li);
+                li.dataset.listCopyInitialized = 'false';
+                
+                // Force remove styles to allow normal text selection
+                li.style.cursor = 'auto';
+                li.style.userSelect = 'auto';
+                li.style.webkitUserSelect = 'auto';
+                li.style.mozUserSelect = 'auto';
+                li.style.msUserSelect = 'auto';
+                
+                // Clear any highlight class
+                li.classList.remove('list-item-highlight');
+            }
+        });
+    }
+
+    removeListItemListeners(li) {
+        // Remove event listeners by storing references
+        // Since we can't easily remove specific listeners without references,
+        // we'll mark the element as having no listeners and clear any timers
+        if (this.longPressElement === li) {
+            this.handleEnd();
+        }
     }
 }

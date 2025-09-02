@@ -386,11 +386,6 @@ class RenderedPageBuilder {
                  color: #0d1117;
             }
             li[data-list-index] {
-                cursor: pointer;
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
                 position: relative;
             }
             .katex-display {
