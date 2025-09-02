@@ -386,11 +386,6 @@ class RenderedPageBuilder {
                  color: #0d1117;
             }
             li[data-list-index] {
-                cursor: pointer;
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
                 position: relative;
             }
             .katex-display {
@@ -462,6 +457,7 @@ class RenderedPageBuilder {
                 <button id="increaseFontBtn" title="Increase font size (Ctrl/Cmd + +)" class="fc-button">+</button>
                 <button id="resetFontBtn" title="Reset font size (Ctrl/Cmd + 0)" class="fc-button">Reset</button>
                 <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
+                <button id="toggleLongPressCopyBtn" title="Toggle long press to copy list items" class="fc-button">Long Press Copy</button>
                 <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
                 <button id="toggleFullscreenBtn" title="Toggle fullscreen mode (F11)" class="fc-button">Fullscreen</button>
                 <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
@@ -479,6 +475,7 @@ class RenderedPageBuilder {
             this.getCollapsibleControllerScript(),
             this.getViewToggleControllerScript(),
             this.getFullscreenControllerScript(),
+            this.getLongPressCopyControllerScript(),
             this.getSavePdfControllerScript(),
             this.getExportMarkdownControllerScript(),
             this.getExportImageControllerScript(),
@@ -764,6 +761,50 @@ class FullscreenController {
 }`;
     }
     
+    static getLongPressCopyControllerScript() {
+        return `
+class LongPressCopyController {
+    constructor() {
+        this.toggleBtn = document.getElementById('toggleLongPressCopyBtn');
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY;
+        this.init();
+    }
+    
+    init() {
+        if (!this.toggleBtn) return;
+        this.toggleBtn.addEventListener('click', () => this.toggle());
+        const savedSetting = localStorage.getItem(this.lsKey);
+        const defaultEnabled = savedSetting !== null ? savedSetting === 'true' : true;
+        this.applyState(defaultEnabled);
+    }
+    
+    applyState(enabled) {
+        this.toggleBtn.textContent = enabled ? 'Long Press Copy' : 'Long Press Copy (Off)';
+        this.toggleBtn.title = enabled ? 
+            'Long press to copy list items is enabled. Click to disable.' : 
+            'Long press to copy list items is disabled. Click to enable.';
+        localStorage.setItem(this.lsKey, enabled.toString());
+        this.notifyListItemController(enabled);
+    }
+    
+    toggle() {
+        const current = this.isEnabled();
+        this.applyState(!current);
+    }
+    
+    isEnabled() {
+        const savedSetting = localStorage.getItem(this.lsKey);
+        return savedSetting !== null ? savedSetting === 'true' : true;
+    }
+    
+    notifyListItemController(enabled) {
+        if (window.uiController && window.uiController.listItemController) {
+            window.uiController.listItemController.updateLongPressCopyState(enabled);
+        }
+    }
+}`;
+    }
+    
     static getSavePdfControllerScript() {
         return `
 class SavePdfController {
@@ -954,20 +995,96 @@ class ListItemController {
     }
 
     attachInitialListeners() {
-        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) {
-            return;
-        }
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return;
         
+        const isEnabled = this.isLongPressCopyEnabled();
         const listItems = this.contentContainer.querySelectorAll('li');
         listItems.forEach((li, index) => {
-            if (li.dataset.listCopyInitialized === 'true') return;
-            li.dataset.listIndex = index;
-            li.dataset.listCopyInitialized = 'true';
-            
-            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+            if (li.dataset.listCopyInitialized === 'true' || li.dataset.listCopyInitialized === 'false') return;
+            this.initializeListItem(li, index, isEnabled);
         });
     }
+
+    isLongPressCopyEnabled() {
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return false;
+        
+        const savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
+        return savedSetting !== null ? savedSetting === 'true' : true;
+    }
+
+    initializeListItem(li, index, enabled) {
+        li.dataset.listIndex = index;
+        li.dataset.listCopyInitialized = enabled.toString();
+        
+        this.cleanupListItemEventListeners(li);
+        
+        if (enabled) {
+            const mousedownHandler = (e) => { if (e.button === 0) this.handleStart(li, e); };
+            const touchstartHandler = (e) => this.handleStart(li, e);
+            
+            li.addEventListener('mousedown', mousedownHandler);
+            li.addEventListener('touchstart', touchstartHandler, { passive: true });
+            
+            li._longPressHandlers = {
+                mousedown: mousedownHandler,
+                touchstart: touchstartHandler
+            };
+            
+            this.applyClickableStyles(li);
+        } else {
+            this.applyTextSelectableStyles(li);
+        }
+    }
+
+    applyClickableStyles(element) {
+        Object.assign(element.style, {
+            cursor: 'pointer',
+            userSelect: 'none',
+            webkitUserSelect: 'none',
+            mozUserSelect: 'none',
+            msUserSelect: 'none'
+        });
+    }
+
+    applyTextSelectableStyles(element) {
+        Object.assign(element.style, {
+            cursor: 'auto',
+            userSelect: 'auto',
+            webkitUserSelect: 'auto',
+            mozUserSelect: 'auto',
+            msUserSelect: 'auto'
+        });
+    }
+
+    updateLongPressCopyState(enabled) {
+        const listItems = this.contentContainer.querySelectorAll('li');
+        
+        listItems.forEach((li, index) => {
+            if (this.longPressElement === li) {
+                this.handleEnd();
+            }
+            
+            this.cleanupListItemEventListeners(li);
+            
+            this.initializeListItem(li, index, enabled);
+            
+            li.classList.remove('list-item-highlight');
+        });
+    }
+
+    cleanupListItemEventListeners(li) {
+        if (li._longPressHandlers) {
+            if (li._longPressHandlers.mousedown) {
+                li.removeEventListener('mousedown', li._longPressHandlers.mousedown);
+            }
+            if (li._longPressHandlers.touchstart) {
+                li.removeEventListener('touchstart', li._longPressHandlers.touchstart);
+            }
+            delete li._longPressHandlers;
+        }
+    }
+
+
 
     handleStart(element, event) {
         this.handleEnd();
@@ -1105,10 +1222,13 @@ class UIController {
         this.collapsibleController = new CollapsibleController();
         this.viewToggleController = new ViewToggleController();
         this.fullscreenController = new FullscreenController();
+        this.longPressCopyController = new LongPressCopyController();
         this.listItemController = new ListItemController();
         this.savePdfController = new SavePdfController();
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
+        
+        window.uiController = this;
     }
     
     addGlobalKeydownListener() {

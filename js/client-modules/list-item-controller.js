@@ -25,19 +25,93 @@ class ListItemController {
     }
 
     attachInitialListeners() {
-        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) {
-            return;
-        }
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return;
         
+        const isEnabled = this.isLongPressCopyEnabled();
         const listItems = this.contentContainer.querySelectorAll('li');
         listItems.forEach((li, index) => {
-            if (li.dataset.listCopyInitialized === 'true') return;
-            li.dataset.listIndex = index;
-            li.dataset.listCopyInitialized = 'true';
-            
-            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+            if (li.dataset.listCopyInitialized === 'true' || li.dataset.listCopyInitialized === 'false') return;
+            this.initializeListItem(li, index, isEnabled);
         });
+    }
+
+    isLongPressCopyEnabled() {
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return false;
+        
+        const savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
+        return savedSetting !== null ? savedSetting === 'true' : true;
+    }
+
+    initializeListItem(li, index, enabled) {
+        li.dataset.listIndex = index;
+        li.dataset.listCopyInitialized = enabled.toString();
+        
+        this.cleanupListItemEventListeners(li);
+        
+        if (enabled) {
+            const mousedownHandler = (e) => { if (e.button === 0) this.handleStart(li, e); };
+            const touchstartHandler = (e) => this.handleStart(li, e);
+            
+            li.addEventListener('mousedown', mousedownHandler);
+            li.addEventListener('touchstart', touchstartHandler, { passive: true });
+            
+            li._longPressHandlers = {
+                mousedown: mousedownHandler,
+                touchstart: touchstartHandler
+            };
+            
+            this.applyClickableStyles(li);
+        } else {
+            this.applyTextSelectableStyles(li);
+        }
+    }
+
+    applyClickableStyles(element) {
+        Object.assign(element.style, {
+            cursor: 'pointer',
+            userSelect: 'none',
+            webkitUserSelect: 'none',
+            mozUserSelect: 'none',
+            msUserSelect: 'none'
+        });
+    }
+
+    applyTextSelectableStyles(element) {
+        Object.assign(element.style, {
+            cursor: 'auto',
+            userSelect: 'auto',
+            webkitUserSelect: 'auto',
+            mozUserSelect: 'auto',
+            msUserSelect: 'auto'
+        });
+    }
+
+    updateLongPressCopyState(enabled) {
+        const listItems = this.contentContainer.querySelectorAll('li');
+        
+        listItems.forEach((li, index) => {
+            if (this.longPressElement === li) {
+                this.handleEnd();
+            }
+            
+            this.cleanupListItemEventListeners(li);
+            
+            this.initializeListItem(li, index, enabled);
+            
+            li.classList.remove('list-item-highlight');
+        });
+    }
+
+    cleanupListItemEventListeners(li) {
+        if (li._longPressHandlers) {
+            if (li._longPressHandlers.mousedown) {
+                li.removeEventListener('mousedown', li._longPressHandlers.mousedown);
+            }
+            if (li._longPressHandlers.touchstart) {
+                li.removeEventListener('touchstart', li._longPressHandlers.touchstart);
+            }
+            delete li._longPressHandlers;
+        }
     }
 
     handleStart(element, event) {

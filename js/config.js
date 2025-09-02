@@ -25,7 +25,8 @@ const CONFIG = {
         THEME: 'renderedOutputTheme',
         FONT_SIZE: 'renderedOutputFontSizePercent',
         VIEW_MODE: 'renderedOutputViewMode',
-        CONTROLS_COLLAPSED: 'fontControlsCollapsed'
+        CONTROLS_COLLAPSED: 'fontControlsCollapsed',
+        LONG_PRESS_COPY: 'longPressCopyEnabled'
     },
     VALIDATION: {
         TITLE_MAX_LENGTH: 100,
