@@ -1016,18 +1016,15 @@ class ListItemController {
         li.dataset.listIndex = index;
         li.dataset.listCopyInitialized = enabled.toString();
         
-        // Clean up any existing event listeners first
         this.cleanupListItemEventListeners(li);
         
         if (enabled) {
-            // Create bound event handlers and store references
             const mousedownHandler = (e) => { if (e.button === 0) this.handleStart(li, e); };
             const touchstartHandler = (e) => this.handleStart(li, e);
             
             li.addEventListener('mousedown', mousedownHandler);
             li.addEventListener('touchstart', touchstartHandler, { passive: true });
             
-            // Store references for cleanup
             li._longPressHandlers = {
                 mousedown: mousedownHandler,
                 touchstart: touchstartHandler
@@ -1063,24 +1060,19 @@ class ListItemController {
         const listItems = this.contentContainer.querySelectorAll('li');
         
         listItems.forEach((li, index) => {
-            // Cancel any ongoing long press operation
             if (this.longPressElement === li) {
                 this.handleEnd();
             }
             
-            // Remove existing event listeners by storing references
             this.cleanupListItemEventListeners(li);
             
-            // Reinitialize with new state
             this.initializeListItem(li, index, enabled);
             
-            // Remove highlight class
             li.classList.remove('list-item-highlight');
         });
     }
 
     cleanupListItemEventListeners(li) {
-        // Remove stored event listeners if they exist
         if (li._longPressHandlers) {
             if (li._longPressHandlers.mousedown) {
                 li.removeEventListener('mousedown', li._longPressHandlers.mousedown);
@@ -1236,7 +1228,6 @@ class UIController {
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
         
-        // Make the UI controller globally accessible for controller communication
         window.uiController = this;
     }
     
