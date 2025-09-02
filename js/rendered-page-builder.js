@@ -773,7 +773,6 @@ class LongPressCopyController {
     init() {
         if (!this.toggleBtn) return;
         this.toggleBtn.addEventListener('click', () => this.toggle());
-        // Default to enabled if no setting exists
         const savedSetting = localStorage.getItem(this.lsKey);
         const defaultEnabled = savedSetting !== null ? savedSetting === 'true' : true;
         this.applyState(defaultEnabled);
@@ -785,8 +784,6 @@ class LongPressCopyController {
             'Long press to copy list items is enabled. Click to disable.' : 
             'Long press to copy list items is disabled. Click to enable.';
         localStorage.setItem(this.lsKey, enabled.toString());
-        
-        // Notify the list item controller of the change
         this.notifyListItemController(enabled);
     }
     
@@ -801,7 +798,6 @@ class LongPressCopyController {
     }
     
     notifyListItemController(enabled) {
-        // Find the list item controller and update its state
         if (window.uiController && window.uiController.listItemController) {
             window.uiController.listItemController.updateLongPressCopyState(enabled);
         }
@@ -999,58 +995,83 @@ class ListItemController {
     }
 
     attachInitialListeners() {
-        if (!this.isLongPressCopyEnabled()) {
-            return;
-        }
+        if (!this.isLongPressCopyEnabled()) return;
         
         const listItems = this.contentContainer.querySelectorAll('li');
         listItems.forEach((li, index) => {
             if (li.dataset.listCopyInitialized === 'true') return;
-            li.dataset.listIndex = index;
-            li.dataset.listCopyInitialized = 'true';
-            
-            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+            this.initializeListItem(li, index, true);
         });
     }
 
     isLongPressCopyEnabled() {
-        // Check both the global config and the localStorage setting
-        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) {
-            return false;
-        }
+        if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return false;
         
         const savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
         return savedSetting !== null ? savedSetting === 'true' : true;
     }
-    
+
+    initializeListItem(li, index, enabled) {
+        li.dataset.listIndex = index;
+        li.dataset.listCopyInitialized = enabled.toString();
+        
+        if (enabled) {
+            li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
+            li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+            this.applyClickableStyles(li);
+        } else {
+            this.applyTextSelectableStyles(li);
+        }
+    }
+
+    applyClickableStyles(element) {
+        Object.assign(element.style, {
+            cursor: 'pointer',
+            userSelect: 'none',
+            webkitUserSelect: 'none',
+            mozUserSelect: 'none',
+            msUserSelect: 'none'
+        });
+    }
+
+    applyTextSelectableStyles(element) {
+        Object.assign(element.style, {
+            cursor: 'auto',
+            userSelect: 'auto',
+            webkitUserSelect: 'auto',
+            mozUserSelect: 'auto',
+            msUserSelect: 'auto'
+        });
+    }
+
     updateLongPressCopyState(enabled) {
         const listItems = this.contentContainer.querySelectorAll('li');
         
         if (enabled) {
-            // Enable long press copy for all list items
             listItems.forEach((li, index) => {
                 if (li.dataset.listCopyInitialized !== 'true') {
-                    li.dataset.listIndex = index;
-                    li.dataset.listCopyInitialized = 'true';
-                    
-                    li.addEventListener('mousedown', (e) => { if (e.button === 0) this.handleStart(li, e); });
-                    li.addEventListener('touchstart', (e) => this.handleStart(li, e), { passive: true });
+                    this.initializeListItem(li, index, true);
+                } else {
+                    this.applyClickableStyles(li);
                 }
             });
         } else {
-            // Disable long press copy by removing event listeners and clearing any active state
-            this.handleEnd(); // Clear any ongoing long press
-            
-            listItems.forEach((li) => {
-                if (li.dataset.listCopyInitialized === 'true') {
-                    // Remove event listeners by cloning and replacing the element
-                    const newLi = li.cloneNode(true);
-                    li.parentNode.replaceChild(newLi, li);
-                    newLi.dataset.listCopyInitialized = 'false';
-                }
+            this.handleEnd();
+            listItems.forEach((li, index) => {
+                this.removeEventListeners(li);
+                this.initializeListItem(li, index, false);
+                li.classList.remove('list-item-highlight');
             });
         }
+    }
+
+    removeEventListeners(li) {
+        if (this.longPressElement === li) {
+            this.handleEnd();
+        }
+        const newLi = li.cloneNode(true);
+        li.parentNode.replaceChild(newLi, li);
+        return newLi;
     }
 
     handleStart(element, event) {

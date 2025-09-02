@@ -8,7 +8,6 @@ class LongPressCopyController {
     init() {
         if (!this.toggleBtn) return;
         this.toggleBtn.addEventListener('click', () => this.toggle());
-        // Default to enabled if no setting exists
         const savedSetting = localStorage.getItem(this.lsKey);
         const defaultEnabled = savedSetting !== null ? savedSetting === 'true' : true;
         this.applyState(defaultEnabled);
@@ -20,8 +19,6 @@ class LongPressCopyController {
             'Long press to copy list items is enabled. Click to disable.' : 
             'Long press to copy list items is disabled. Click to enable.';
         localStorage.setItem(this.lsKey, enabled.toString());
-        
-        // Notify the list item controller of the change
         this.notifyListItemController(enabled);
     }
     
@@ -36,7 +33,6 @@ class LongPressCopyController {
     }
     
     notifyListItemController(enabled) {
-        // Find the list item controller and update its state
         if (window.uiController && window.uiController.listItemController) {
             window.uiController.listItemController.updateLongPressCopyState(enabled);
         }
