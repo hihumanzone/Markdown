@@ -19,19 +19,35 @@ class ListItemParser {
                 const match = unorderedMatch || orderedMatch;
                 const contentOnFirstLine = match[2];
                 const isOrdered = !!orderedMatch;
+                const currentIndent = match[1].length;
 
                 const baseIndentation = line.indexOf(contentOnFirstLine);
 
                 let fullContent = contentOnFirstLine;
                 let j = i + 1;
 
+                // Collect all content and nested list items
                 while (j < lines.length) {
                     const nextLine = lines[j];
                     const nextTrimmed = nextLine.trim();
 
-                    if (nextLine.match(this.LIST_MARKER_REGEX.ANY_UNORDERED) ||
-                        nextLine.match(this.LIST_MARKER_REGEX.ANY_ORDERED)) {
-                        break;
+                    // Check if this is another list item at the same or higher level
+                    const nextUnorderedMatch = nextLine.match(this.LIST_MARKER_REGEX.UNORDERED);
+                    const nextOrderedMatch = nextLine.match(this.LIST_MARKER_REGEX.ORDERED);
+                    
+                    if (nextUnorderedMatch || nextOrderedMatch) {
+                        const nextMatch = nextUnorderedMatch || nextOrderedMatch;
+                        const nextIndent = nextMatch[1].length;
+                        
+                        // If it's at the same level or less indented than current item, stop
+                        if (nextIndent <= currentIndent) {
+                            break;
+                        }
+                        
+                        // If it's more indented (nested), include it as part of this item
+                        fullContent += '\n' + nextLine;
+                        j++;
+                        continue;
                     }
 
                     if (nextTrimmed === '') {
@@ -50,7 +66,7 @@ class ListItemParser {
                 }
                 listItems.push({
                     content: fullContent,
-                    indent: match[1].length,
+                    indent: currentIndent,
                     isOrdered: isOrdered
                 });
                 i = j - 1;
