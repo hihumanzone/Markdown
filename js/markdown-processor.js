@@ -65,7 +65,7 @@ class ListItemParser {
                     }
                 }
                 listItems.push({
-                    content: fullContent,
+                    content: fullContent.trimEnd(),
                     indent: currentIndent,
                     isOrdered: isOrdered
                 });
