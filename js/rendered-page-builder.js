@@ -1147,16 +1147,9 @@ class ListItemController {
 
     async copyListContent(element) {
         try {
-            const listIndex = parseInt(element.dataset.listIndex, 10);
-            const listData = window.__APP_DATA__.listItems;
-            const isValidIndex = !isNaN(listIndex) && listData && listIndex < listData.length && listData[listIndex];
-            
-            if (!isValidIndex) {
-                await this.copyElementText(element);
-                return;
-            }
-            
-            const textToCopy = listData[listIndex].content;
+            // Copy the full visible text of the list item, including any nested options/sub-lists
+            const textToCopy = (element.innerText || element.textContent || '').trim();
+            if (!textToCopy) throw new Error('List item content is empty.');
             await this._copyToClipboard(textToCopy);
             this.showNotification('List content copied!');
         } catch (err) {
