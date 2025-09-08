@@ -28,8 +28,8 @@ class ListItemController {
         if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return;
         
         const isEnabled = this.isLongPressCopyEnabled();
-        const listItems = this.contentContainer.querySelectorAll('li');
-        listItems.forEach((li, index) => {
+        const allLis = Array.from(this.contentContainer.querySelectorAll('li'));
+        allLis.forEach((li, index) => {
             if (li.dataset.listCopyInitialized === 'true' || li.dataset.listCopyInitialized === 'false') return;
             this.initializeListItem(li, index, isEnabled);
         });
@@ -45,6 +45,13 @@ class ListItemController {
     initializeListItem(li, index, enabled) {
         li.dataset.listIndex = index;
         li.dataset.listCopyInitialized = enabled.toString();
+        
+        try {
+            const listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
+            if (Array.isArray(listData) && listData[index]) {
+                li.dataset.rawListContent = listData[index].content || '';
+            }
+        } catch (_) { /* no-op */ }
         
         this.cleanupListItemEventListeners(li);
         
@@ -87,9 +94,9 @@ class ListItemController {
     }
 
     updateLongPressCopyState(enabled) {
-        const listItems = this.contentContainer.querySelectorAll('li');
+        const allLis = Array.from(this.contentContainer.querySelectorAll('li'));
         
-        listItems.forEach((li, index) => {
+        allLis.forEach((li, index) => {
             if (this.longPressElement === li) {
                 this.handleEnd();
             }
@@ -175,16 +182,21 @@ class ListItemController {
 
     async copyListContent(element) {
         try {
-            const listIndex = parseInt(element.dataset.listIndex, 10);
-            const listData = window.__APP_DATA__.listItems;
-            const isValidIndex = !isNaN(listIndex) && listData && listIndex < listData.length && listData[listIndex];
-            
-            if (!isValidIndex) {
+            let textToCopy = element.dataset.rawListContent;
+            if (!textToCopy) {
+                const allLis = Array.from(this.contentContainer.querySelectorAll('li'));
+                const recomputedIndex = allLis.indexOf(element);
+                const listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
+                if (recomputedIndex > -1 && listData[recomputedIndex]) {
+                    textToCopy = listData[recomputedIndex].content;
+                }
+            }
+
+            if (!textToCopy) {
                 await this.copyElementText(element);
                 return;
             }
             
-            const textToCopy = listData[listIndex].content;
             await this._copyToClipboard(textToCopy);
             this.showNotification('List content copied!');
         } catch (err) {

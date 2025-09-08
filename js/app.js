@@ -177,11 +177,13 @@ class MarkdownRendererApp {
             let html = marked.parse(tempText);
             html = MathProcessor.restoreMathExpressions(html, mathExpressions);
             const listItems = ListItemParser.parse(markdownText);
+            const flatListItems = ListItemParser.parseFlat(markdownText);
             const fullPageHtml = RenderedPageBuilder.build(
                 html,
                 markdownText,
                 "Rendered Markdown & LaTeX",
-                listItems
+                listItems,
+                flatListItems
             );
             this.openInNewTab(fullPageHtml);
         } catch (error) {
@@ -202,11 +204,13 @@ class MarkdownRendererApp {
         
         const basicHtml = FallbackRenderer.renderToHtml(markdownText);
         const listItems = ListItemParser.parse(markdownText);
+        const flatListItems = ListItemParser.parseFlat(markdownText);
         const fullPageHtml = RenderedPageBuilder.build(
             basicHtml,
             markdownText,
             "Rendered Markdown & LaTeX (Basic Mode)",
-            listItems
+            listItems,
+            flatListItems
         );
         this.openInNewTab(fullPageHtml);
     }
