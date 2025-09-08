@@ -26,7 +26,8 @@ const CONFIG = {
         FONT_SIZE: 'renderedOutputFontSizePercent',
         VIEW_MODE: 'renderedOutputViewMode',
         CONTROLS_COLLAPSED: 'fontControlsCollapsed',
-        LONG_PRESS_COPY: 'longPressCopyEnabled'
+        LONG_PRESS_COPY: 'longPressCopyEnabled',
+        FULL_WIDTH: 'renderedOutputFullWidth'
     },
     VALIDATION: {
         TITLE_MAX_LENGTH: 100,

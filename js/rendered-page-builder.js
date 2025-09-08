@@ -46,11 +46,18 @@ class RenderedPageBuilder {
                 transition: background-color 0.3s ease, color 0.3s ease;
                 overscroll-behavior-y: contain;
             }
+            body.markdown-body.full-width {
+                max-width: none;
+                margin: 0;
+                padding-left: 0;
+                padding-right: 0;
+            }
             @media (max-width: 767px) {
                 body.markdown-body {
                     padding: 20px;
                     padding-top: 60px;
                 }
+                body.markdown-body.full-width { padding-left: 0; padding-right: 0; }
             }
             body.markdown-body {
                 background-color: #ffffff;
@@ -426,6 +433,7 @@ class RenderedPageBuilder {
                     margin: 0 !important;
                     max-width: 100% !important;
                 }
+                body.markdown-body.full-width { max-width: 100% !important; }
                 body.markdown-body table,
                 body.markdown-body th,
                 body.markdown-body td,
@@ -457,6 +465,7 @@ class RenderedPageBuilder {
                 <button id="increaseFontBtn" title="Increase font size (Ctrl/Cmd + +)" class="fc-button">+</button>
                 <button id="resetFontBtn" title="Reset font size (Ctrl/Cmd + 0)" class="fc-button">Reset</button>
                 <button id="toggleThemeBtn" title="Toggle theme (Ctrl/Cmd + T)" class="fc-button">Theme</button>
+                <button id="toggleFullWidthBtn" title="Toggle full-width content" class="fc-button">Full Width</button>
                 <button id="toggleLongPressCopyBtn" title="Toggle long press to copy list items" class="fc-button">Long Press Copy</button>
                 <button id="toggleViewBtn" title="Toggle between rendered and raw markdown (Ctrl/Cmd + R)" class="fc-button">Raw</button>
                 <button id="toggleFullscreenBtn" title="Toggle fullscreen mode (F11)" class="fc-button">Fullscreen</button>
@@ -471,6 +480,7 @@ class RenderedPageBuilder {
         const scripts = [
             this.getKatexRendererScript(),
             this.getThemeControllerScript(),
+            this.getFullWidthControllerScript(),
             this.getFontSizeControllerScript(),
             this.getCollapsibleControllerScript(),
             this.getViewToggleControllerScript(),
@@ -487,6 +497,39 @@ class RenderedPageBuilder {
         return `<script>
             ${scripts.join('\n\n')}
         <\/script>`;
+    }
+
+    static getFullWidthControllerScript() {
+        return `
+class FullWidthController {
+    constructor(body) {
+        this.body = body;
+        this.toggleBtn = document.getElementById('toggleFullWidthBtn');
+        this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.FULL_WIDTH;
+        this.className = 'full-width';
+        this.init();
+    }
+    
+    init() {
+        if (!this.toggleBtn) return;
+        this.toggleBtn.addEventListener('click', () => this.toggle());
+        const savedState = localStorage.getItem(this.lsKey);
+        const isEnabled = savedState === 'true';
+        this.applyState(isEnabled);
+    }
+    
+    toggle() {
+        const isEnabled = !this.body.classList.contains(this.className);
+        this.applyState(isEnabled);
+    }
+    
+    applyState(enabled) {
+        this.body.classList.toggle(this.className, enabled);
+        this.toggleBtn.textContent = enabled ? 'Centered' : 'Full Width';
+        this.toggleBtn.title = enabled ? 'Switch to centered, fixed-width view' : 'Switch to full-width view';
+        localStorage.setItem(this.lsKey, enabled.toString());
+    }
+}`;
     }
     
     static getKatexRendererScript() {
@@ -1218,6 +1261,7 @@ class UIController {
     initializeControls() {
         this.katexRenderer = new KatexRenderer();
         this.themeController = new ThemeController(this.body);
+    this.fullWidthController = new FullWidthController(this.body);
         this.fontSizeController = new FontSizeController(this.body);
         this.collapsibleController = new CollapsibleController();
         this.viewToggleController = new ViewToggleController();
