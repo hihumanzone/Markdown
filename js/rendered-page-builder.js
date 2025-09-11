@@ -50,15 +50,15 @@ class RenderedPageBuilder {
             body.markdown-body.full-width {
                 max-width: none;
                 margin: 0;
-                padding-left: 0;
-                padding-right: 0;
+                padding-left: 20px;
+                padding-right: 20px;
             }
             @media (max-width: 767px) {
                 body.markdown-body {
                     padding: 20px;
                     padding-top: 60px;
                 }
-                body.markdown-body.full-width { padding-left: 0; padding-right: 0; }
+                body.markdown-body.full-width { padding-left: 20px; padding-right: 20px; }
             }
             body.markdown-body {
                 background-color: #ffffff;
@@ -108,7 +108,7 @@ class RenderedPageBuilder {
             body.markdown-body tr:nth-child(2n) {
                 background-color: #f6f8fa;
             }
-            body.markdown-body code:not([class*="language-"]) {
+            body.markdown-body code:not([class*="language-"]):not(pre > code) {
                 background-color: rgba(27,31,35,0.05);
                 border-radius: 3px;
                 font-size: 85%;
@@ -214,7 +214,7 @@ class RenderedPageBuilder {
             body.markdown-body.dark-theme tr:nth-child(2n) {
                 background-color: #161b22;
             }
-            body.markdown-body.dark-theme code:not([class*="language-"]) {
+            body.markdown-body.dark-theme code:not([class*="language-"]):not(pre > code) {
                 background-color: rgba(110,118,129,0.4);
             }
             body.markdown-body.dark-theme pre {
@@ -257,7 +257,7 @@ class RenderedPageBuilder {
             body.markdown-body.high-contrast-theme td{border-color:#444}
             body.markdown-body.high-contrast-theme th{background:#111}
             body.markdown-body.high-contrast-theme tr:nth-child(2n){background:#111}
-            body.markdown-body.high-contrast-theme code:not([class*="language-"]){
+            body.markdown-body.high-contrast-theme code:not([class*="language-"]):not(pre > code){
                 background:#222;color:#fff
             }
             body.markdown-body.high-contrast-theme pre{background:#111}
