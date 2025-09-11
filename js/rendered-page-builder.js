@@ -108,7 +108,7 @@ class RenderedPageBuilder {
             body.markdown-body tr:nth-child(2n) {
                 background-color: #f6f8fa;
             }
-            body.markdown-body code:not([class*="language-"]) {
+            body.markdown-body :not(pre) > code:not([class*="language-"]) {
                 background-color: rgba(27,31,35,0.05);
                 border-radius: 3px;
                 font-size: 85%;
