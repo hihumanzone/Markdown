@@ -50,15 +50,15 @@ class RenderedPageBuilder {
             body.markdown-body.full-width {
                 max-width: none;
                 margin: 0;
-                padding-left: 0;
-                padding-right: 0;
+                padding-left: 24px;
+                padding-right: 24px;
             }
             @media (max-width: 767px) {
                 body.markdown-body {
                     padding: 20px;
                     padding-top: 60px;
                 }
-                body.markdown-body.full-width { padding-left: 0; padding-right: 0; }
+                body.markdown-body.full-width { padding-left: 16px; padding-right: 16px; }
             }
             body.markdown-body {
                 background-color: #ffffff;
