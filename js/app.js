@@ -175,9 +175,7 @@ class MarkdownRendererApp {
 
             const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
             let html = marked.parse(tempText);
-            if (typeof Utils !== 'undefined' && typeof Utils.sanitizeMarkdown === 'function') {
-                html = Utils.sanitizeMarkdown(html);
-            }
+            html = Utils.sanitizeMarkdown(html);
             html = MathProcessor.restoreMathExpressions(html, mathExpressions);
             const listItems = ListItemParser.parse(markdownText);
             const flatListItems = ListItemParser.parseFlat(markdownText);
