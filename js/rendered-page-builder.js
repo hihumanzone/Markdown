@@ -462,6 +462,7 @@ class RenderedPageBuilder {
                 body.markdown-body th,
                 body.markdown-body td {
                     word-break: break-word;
+                    overflow-wrap: break-word;
                     white-space: normal;
                 }
                 pre, blockquote, img, .katex-display {
