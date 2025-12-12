@@ -6,6 +6,8 @@ class SavedSectionsManager {
         this.historyManager = new HistoryManager();
         this.currentActiveSection = null;
         this.currentEditingSection = null;
+        this.currentFolderId = null; // Current folder being viewed
+        this.selectedColorLabel = 'none'; // Currently selected color for new items
         this.init();
     }
     
@@ -19,6 +21,7 @@ class SavedSectionsManager {
     
     bindEventListeners() {
         document.getElementById('addSectionBtn')?.addEventListener('click', () => this.openAddSectionModal());
+        document.getElementById('createFolderBtn')?.addEventListener('click', () => this.openCreateFolderModal());
         
         document.getElementById('modalSaveBtn')?.addEventListener('click', () => this.saveFromModal());
         
@@ -63,33 +66,166 @@ class SavedSectionsManager {
                 }
             }
         });
+        
+        // Folder modal events
+        document.getElementById('folderModalSaveBtn')?.addEventListener('click', () => this.saveFolder());
+        document.getElementById('folderModalInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.saveFolder();
+            }
+        });
+        
+        // Quick save button
+        document.getElementById('quickSaveBtn')?.addEventListener('click', () => this.quickSaveCurrentContent());
     }
     
     openAddSectionModal() {
         document.getElementById('modalSectionTitle').value = '';
         document.getElementById('modalSectionContent').value = '';
+        this.selectedColorLabel = 'none';
+        this.renderColorPicker('modalColorPicker');
+        this.updateFolderSelector('modalFolderSelect');
         
         CustomModal.open('addSectionModal');
+    }
+    
+    openCreateFolderModal() {
+        document.getElementById('folderModalInput').value = '';
+        this.updateFolderSelector('folderParentSelect');
+        CustomModal.open('createFolderModal');
+    }
+    
+    quickSaveCurrentContent() {
+        const content = this.dom.markdownInput?.value?.trim();
+        if (!content) {
+            CustomModal.alert('No content to save. Please enter some markdown text first.');
+            return;
+        }
+        
+        // Pre-populate the modal with current content
+        const extractedTitle = this.app.extractTitle(content) || 'Untitled';
+        document.getElementById('modalSectionTitle').value = extractedTitle;
+        document.getElementById('modalSectionContent').value = content;
+        this.selectedColorLabel = 'none';
+        this.renderColorPicker('modalColorPicker');
+        this.updateFolderSelector('modalFolderSelect');
+        
+        CustomModal.open('addSectionModal');
+    }
+    
+    renderColorPicker(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = '';
+        const colorLabels = this.sectionsManager.getColorLabels();
+        
+        colorLabels.forEach(color => {
+            const colorBtn = document.createElement('button');
+            colorBtn.type = 'button';
+            colorBtn.className = 'color-picker-btn' + (this.selectedColorLabel === color.id ? ' selected' : '');
+            colorBtn.title = color.name;
+            colorBtn.setAttribute('aria-label', `Select ${color.name} color`);
+            colorBtn.setAttribute('data-color-id', color.id);
+            
+            if (color.id === 'none') {
+                colorBtn.innerHTML = '✕';
+                colorBtn.style.backgroundColor = 'var(--surface-color)';
+                colorBtn.style.border = '2px dashed var(--border-color)';
+            } else {
+                colorBtn.style.backgroundColor = color.color;
+            }
+            
+            colorBtn.addEventListener('click', () => {
+                this.selectedColorLabel = color.id;
+                container.querySelectorAll('.color-picker-btn').forEach(btn => btn.classList.remove('selected'));
+                colorBtn.classList.add('selected');
+            });
+            
+            container.appendChild(colorBtn);
+        });
+    }
+    
+    updateFolderSelector(selectId) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        select.innerHTML = '';
+        
+        // Add root option
+        const rootOption = document.createElement('option');
+        rootOption.value = '';
+        rootOption.textContent = '📁 Root (No folder)';
+        select.appendChild(rootOption);
+        
+        // Add all folders with proper hierarchy
+        const folders = this.sectionsManager.getFolders();
+        this.addFolderOptionsRecursive(select, folders, null, 0);
+        
+        // Set current folder as default
+        if (this.currentFolderId) {
+            select.value = this.currentFolderId;
+        }
+    }
+    
+    addFolderOptionsRecursive(select, allFolders, parentId, level) {
+        const folders = allFolders.filter(f => f.parentId === parentId);
+        folders.forEach(folder => {
+            const option = document.createElement('option');
+            option.value = folder.id;
+            option.textContent = '  '.repeat(level) + '📁 ' + folder.name;
+            select.appendChild(option);
+            
+            this.addFolderOptionsRecursive(select, allFolders, folder.id, level + 1);
+        });
     }
     
     async saveFromModal() {
         const title = document.getElementById('modalSectionTitle')?.value?.trim();
         const content = document.getElementById('modalSectionContent')?.value?.trim();
+        const folderSelect = document.getElementById('modalFolderSelect');
+        const folderId = folderSelect?.value || null;
         
         if (!this.validateSectionInput(title, content)) return;
         
         const uniqueTitle = this.sectionsManager.generateUniqueTitle(title);
-        const section = this.createSection(uniqueTitle, content);
+        const section = this.createSection(uniqueTitle, content, folderId, this.selectedColorLabel);
         
         this.sectionsManager.addSection(section);
         CustomModal.close('addSectionModal');
         this.renderSavedSections();
-        await CustomModal.alert('Section saved to library successfully!');
+        await CustomModal.alert('Saved to library successfully!');
+    }
+    
+    async saveFolder() {
+        const name = document.getElementById('folderModalInput')?.value?.trim();
+        const parentSelect = document.getElementById('folderParentSelect');
+        const parentId = parentSelect?.value || null;
+        
+        if (!name) {
+            await CustomModal.alert('Please enter a folder name.');
+            return;
+        }
+        
+        if (name.length > CONFIG.VALIDATION.TITLE_MAX_LENGTH) {
+            await CustomModal.alert(`Folder name must be ${CONFIG.VALIDATION.TITLE_MAX_LENGTH} characters or less.`);
+            return;
+        }
+        
+        const uniqueName = this.sectionsManager.generateUniqueFolderName(name, parentId);
+        this.sectionsManager.createFolder(uniqueName, parentId);
+        CustomModal.close('createFolderModal');
+        this.renderSavedSections();
     }
     
     async saveFromEditModal() {
         const newTitle = document.getElementById('editModalSectionTitle')?.value?.trim();
         const newContent = document.getElementById('editModalSectionContent')?.value?.trim();
+        const folderSelect = document.getElementById('editModalFolderSelect');
+        const colorPicker = document.getElementById('editModalColorPicker');
+        const selectedColorBtn = colorPicker?.querySelector('.color-picker-btn.selected');
+        const colorLabel = selectedColorBtn?.getAttribute('data-color-id') || 'none';
+        const folderId = folderSelect?.value || null;
         
         if (!this.validateSectionInput(newTitle, newContent)) return;
         if (!this.currentEditingSection) {
@@ -100,7 +236,9 @@ class SavedSectionsManager {
         const uniqueTitle = this.sectionsManager.generateUniqueTitle(newTitle, this.currentEditingSection.id);
         const success = this.sectionsManager.updateSection(this.currentEditingSection.id, { 
             title: uniqueTitle,
-            content: newContent
+            content: newContent,
+            folderId: folderId,
+            colorLabel: colorLabel
         });
         
         if (success) {
@@ -128,11 +266,13 @@ class SavedSectionsManager {
         return true;
     }
     
-    createSection(title, content) {
+    createSection(title, content, folderId = null, colorLabel = 'none') {
         return {
-            id: Date.now().toString(),
+            id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 9),
             title,
             content,
+            folderId: folderId,
+            colorLabel: colorLabel,
             createdAt: new Date().toISOString(),
             lastModified: new Date().toISOString()
         };
@@ -190,43 +330,218 @@ class SavedSectionsManager {
     }
     
     renderSavedSections() {
-        const sections = this.sectionsManager.getSections();
         const container = this.dom.savedSectionsList;
         
         if (!this.clearContainer(container)) return;
         
-        if (sections.length === 0) {
-            container.appendChild(this.createEmptyState('No items in library yet'));
+        // Render breadcrumb navigation
+        this.renderBreadcrumb(container);
+        
+        // Get folders and sections in current folder
+        const childFolders = this.sectionsManager.getChildFolders(this.currentFolderId);
+        const sectionsInFolder = this.sectionsManager.getSectionsInFolder(this.currentFolderId);
+        
+        if (childFolders.length === 0 && sectionsInFolder.length === 0) {
+            container.appendChild(this.createEmptyState(
+                this.currentFolderId ? 'This folder is empty' : 'No items in library yet'
+            ));
             return;
         }
         
-        sections.forEach(section => {
-            const sectionItem = document.createElement('div');
-            sectionItem.className = 'section-item';
-            this.setupListItemAttributes(sectionItem, section.id, `Library item: ${section.title}`);
-            
-            const titleDiv = document.createElement('div');
-            titleDiv.className = 'section-title';
-            titleDiv.title = section.title;
-            titleDiv.textContent = section.title;
-            
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'section-actions';
-            
-            const renameBtn = this.createActionButton('✎', 'Edit item', 'rename-btn');
-            const exportBtn = this.createActionButton('↓', 'Export as .md file', 'export-btn');
-            const deleteBtn = this.createActionButton('✕', 'Delete item', 'delete-btn');
-            
-            actionsDiv.appendChild(renameBtn);
-            actionsDiv.appendChild(exportBtn);
-            actionsDiv.appendChild(deleteBtn);
-            
-            sectionItem.appendChild(titleDiv);
-            sectionItem.appendChild(actionsDiv);
-            container.appendChild(sectionItem);
-            
-            this.addSectionEventListeners(sectionItem, section);
+        // Render folders first
+        childFolders.forEach(folder => {
+            const folderItem = this.createFolderElement(folder);
+            container.appendChild(folderItem);
         });
+        
+        // Render sections
+        sectionsInFolder.forEach(section => {
+            const sectionItem = this.createSectionElement(section);
+            container.appendChild(sectionItem);
+        });
+    }
+    
+    renderBreadcrumb(container) {
+        if (!this.currentFolderId) return;
+        
+        const breadcrumb = document.createElement('div');
+        breadcrumb.className = 'library-breadcrumb';
+        
+        // Root link
+        const rootLink = document.createElement('button');
+        rootLink.className = 'breadcrumb-link';
+        rootLink.textContent = '📁 Library';
+        rootLink.addEventListener('click', () => {
+            this.currentFolderId = null;
+            this.renderSavedSections();
+        });
+        breadcrumb.appendChild(rootLink);
+        
+        // Path to current folder
+        const path = this.sectionsManager.getFolderPath(this.currentFolderId);
+        path.forEach((folder, index) => {
+            const separator = document.createElement('span');
+            separator.className = 'breadcrumb-separator';
+            separator.textContent = ' › ';
+            breadcrumb.appendChild(separator);
+            
+            if (index === path.length - 1) {
+                // Current folder (not clickable)
+                const current = document.createElement('span');
+                current.className = 'breadcrumb-current';
+                current.textContent = folder.name;
+                breadcrumb.appendChild(current);
+            } else {
+                const link = document.createElement('button');
+                link.className = 'breadcrumb-link';
+                link.textContent = folder.name;
+                link.addEventListener('click', () => {
+                    this.currentFolderId = folder.id;
+                    this.renderSavedSections();
+                });
+                breadcrumb.appendChild(link);
+            }
+        });
+        
+        container.appendChild(breadcrumb);
+    }
+    
+    createFolderElement(folder) {
+        const folderItem = document.createElement('div');
+        folderItem.className = 'section-item folder-item';
+        this.setupListItemAttributes(folderItem, folder.id, `Folder: ${folder.name}`, 'data-folder-id', 'treeitem');
+        
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'folder-icon';
+        iconDiv.textContent = '📁';
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'section-title folder-title';
+        titleDiv.title = folder.name;
+        titleDiv.textContent = folder.name;
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'section-actions';
+        
+        const renameBtn = this.createActionButton('✎', 'Rename folder', 'rename-btn');
+        const deleteBtn = this.createActionButton('✕', 'Delete folder', 'delete-btn');
+        
+        actionsDiv.appendChild(renameBtn);
+        actionsDiv.appendChild(deleteBtn);
+        
+        folderItem.appendChild(iconDiv);
+        folderItem.appendChild(titleDiv);
+        folderItem.appendChild(actionsDiv);
+        
+        // Navigate into folder on click
+        folderItem.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('action-btn')) {
+                this.currentFolderId = folder.id;
+                this.renderSavedSections();
+            }
+        });
+        
+        this.addKeyboardActivation(folderItem, () => {
+            this.currentFolderId = folder.id;
+            this.renderSavedSections();
+        });
+        
+        renameBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.renameFolder(folder);
+        });
+        
+        deleteBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.deleteFolder(folder);
+        });
+        
+        return folderItem;
+    }
+    
+    createSectionElement(section) {
+        const sectionItem = document.createElement('div');
+        sectionItem.className = 'section-item';
+        this.setupListItemAttributes(sectionItem, section.id, `Library item: ${section.title}`);
+        
+        // Color indicator
+        const colorInfo = this.sectionsManager.getColorById(section.colorLabel);
+        if (section.colorLabel && section.colorLabel !== 'none') {
+            const colorIndicator = document.createElement('div');
+            colorIndicator.className = 'color-indicator';
+            colorIndicator.style.backgroundColor = colorInfo.color;
+            colorIndicator.title = colorInfo.name;
+            sectionItem.appendChild(colorIndicator);
+        }
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'section-title';
+        titleDiv.title = section.title;
+        titleDiv.textContent = section.title;
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'section-actions';
+        
+        const renameBtn = this.createActionButton('✎', 'Edit item', 'rename-btn');
+        const colorBtn = this.createActionButton('●', 'Change color', 'color-btn');
+        const exportBtn = this.createActionButton('↓', 'Export as .md file', 'export-btn');
+        const deleteBtn = this.createActionButton('✕', 'Delete item', 'delete-btn');
+        
+        actionsDiv.appendChild(renameBtn);
+        actionsDiv.appendChild(colorBtn);
+        actionsDiv.appendChild(exportBtn);
+        actionsDiv.appendChild(deleteBtn);
+        
+        sectionItem.appendChild(titleDiv);
+        sectionItem.appendChild(actionsDiv);
+        
+        this.addSectionEventListeners(sectionItem, section);
+        
+        return sectionItem;
+    }
+    
+    async renameFolder(folder) {
+        const newName = await CustomModal.prompt('Enter new folder name:', folder.name, 'Rename Folder');
+        if (newName && newName !== folder.name) {
+            const uniqueName = this.sectionsManager.generateUniqueFolderName(newName, folder.parentId, folder.id);
+            this.sectionsManager.updateFolder(folder.id, { name: uniqueName });
+            this.renderSavedSections();
+        }
+    }
+    
+    async deleteFolder(folder) {
+        const confirmed = await CustomModal.confirm(
+            `Are you sure you want to delete the folder "${folder.name}"? Items inside will be moved to the parent folder.`,
+            'Delete Folder'
+        );
+        if (confirmed) {
+            this.sectionsManager.deleteFolder(folder.id, false);
+            this.renderSavedSections();
+        }
+    }
+    
+    async showColorPicker(section) {
+        // Create a simple color selection modal
+        const colorLabels = this.sectionsManager.getColorLabels();
+        const currentColor = section.colorLabel || 'none';
+        
+        // Use the prompt modal with custom content for color picking
+        const colorNames = colorLabels.map(c => c.name).join(', ');
+        const result = await CustomModal.prompt(
+            `Current: ${this.sectionsManager.getColorById(currentColor).name}\nEnter color (${colorNames}):`,
+            '',
+            'Change Color'
+        );
+        
+        if (result) {
+            const color = colorLabels.find(c => c.name.toLowerCase() === result.toLowerCase());
+            if (color) {
+                this.sectionsManager.setSectionColor(section.id, color.id);
+                this.renderSavedSections();
+            } else {
+                await CustomModal.alert('Invalid color. Please try again.');
+            }
+        }
     }
     
     createActionButton(text, title, className) {
@@ -248,12 +563,18 @@ class SavedSectionsManager {
         this.addKeyboardActivation(sectionItem, () => this.loadSectionAndRender(section));
         
         const renameBtn = sectionItem.querySelector('.rename-btn');
+        const colorBtn = sectionItem.querySelector('.color-btn');
         const exportBtn = sectionItem.querySelector('.export-btn');
         const deleteBtn = sectionItem.querySelector('.delete-btn');
         
         renameBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
             this.renameSection(section);
+        });
+        
+        colorBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showColorPicker(section);
         });
         
         exportBtn?.addEventListener('click', (e) => {
@@ -293,8 +614,26 @@ class SavedSectionsManager {
     
     async renameSection(section) {
         this.currentEditingSection = section;
+        this.selectedColorLabel = section.colorLabel || 'none';
         document.getElementById('editModalSectionTitle').value = section.title;
         document.getElementById('editModalSectionContent').value = section.content;
+        this.renderColorPicker('editModalColorPicker');
+        
+        // Update and set the folder selector for edit modal
+        this.updateFolderSelector('editModalFolderSelect');
+        const folderSelect = document.getElementById('editModalFolderSelect');
+        if (folderSelect) {
+            folderSelect.value = section.folderId || '';
+        }
+        
+        // Set selected color
+        const colorPicker = document.getElementById('editModalColorPicker');
+        if (colorPicker) {
+            colorPicker.querySelectorAll('.color-picker-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.getAttribute('data-color-id') === this.selectedColorLabel);
+            });
+        }
+        
         CustomModal.open('editSectionModal');
     }
     
