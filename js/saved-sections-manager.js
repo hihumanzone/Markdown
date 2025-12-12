@@ -268,7 +268,7 @@ class SavedSectionsManager {
     
     createSection(title, content, folderId = null, colorLabel = 'none') {
         return {
-            id: Date.now().toString(),
+            id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 9),
             title,
             content,
             folderId: folderId,
@@ -409,7 +409,7 @@ class SavedSectionsManager {
     createFolderElement(folder) {
         const folderItem = document.createElement('div');
         folderItem.className = 'section-item folder-item';
-        this.setupListItemAttributes(folderItem, folder.id, `Folder: ${folder.name}`, 'data-folder-id');
+        this.setupListItemAttributes(folderItem, folder.id, `Folder: ${folder.name}`, 'data-folder-id', 'treeitem');
         
         const iconDiv = document.createElement('div');
         iconDiv.className = 'folder-icon';

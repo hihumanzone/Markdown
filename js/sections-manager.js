@@ -37,7 +37,7 @@ class SectionsManager {
     createFolder(name, parentId = null) {
         const folders = this.getFolders();
         const folder = {
-            id: 'folder_' + Date.now().toString(),
+            id: 'folder_' + Date.now().toString() + '_' + Math.random().toString(36).substring(2, 9),
             name: name.trim(),
             parentId: parentId,
             createdAt: new Date().toISOString(),
