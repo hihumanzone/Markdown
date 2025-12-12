@@ -60,6 +60,7 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <div class="button-group" role="toolbar" aria-label="Markdown actions">
                     <button id="renderMarkdownBtn" class="button-primary" title="Render the markdown content" aria-label="Render Markdown">Render Markdown</button>
                     <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render" aria-label="Paste and Render">Paste & Render</button>
+                    <button id="quickSaveBtn" class="button-secondary" title="Save current content to library" aria-label="Quick Save to Library">💾 Save to Library</button>
                     <button id="clearBtn" class="button-secondary" title="Clear the input" aria-label="Clear Input">Clear</button>
                     <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" aria-label="Import file input" />
                     <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file" aria-label="Import File">Import File</button>
@@ -70,7 +71,14 @@ Don't write something like $E=mc^2$ across multiple lines.
         <div class="workspace-panel" role="complementary" aria-label="Library and history panel">
             <div class="library-sections">
                 <h3 id="libraryHeading">My Library</h3>
-                <button id="addSectionBtn" class="modal-button modal-button-primary" style="width: 100%; margin-bottom: 1rem;" aria-label="Add new item to library">Add to Library</button>
+                <div class="library-actions">
+                    <button id="addSectionBtn" class="modal-button modal-button-primary library-action-btn" aria-label="Add new item to library" title="Add new item">
+                        <span class="btn-icon">+</span> Add Item
+                    </button>
+                    <button id="createFolderBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Create new folder" title="Create folder">
+                        <span class="btn-icon">📁</span> New Folder
+                    </button>
+                </div>
                 <div id="savedSectionsList" class="sections-list" role="list" aria-labelledby="libraryHeading">
                     <div class="empty-state">No saved sections yet</div>
                 </div>
@@ -118,6 +126,19 @@ Don't write something like $E=mc^2$ across multiple lines.
             </div>
             <div class="modal-content">
                 <input type="text" id="modalSectionTitle" class="modal-input" placeholder="Enter a title for your library item..." maxlength="100" aria-label="Library item title">
+                
+                <div class="modal-field-group">
+                    <label class="modal-label">Save to folder:</label>
+                    <select id="modalFolderSelect" class="modal-select" aria-label="Select folder">
+                        <option value="">📁 Root (No folder)</option>
+                    </select>
+                </div>
+                
+                <div class="modal-field-group">
+                    <label class="modal-label">Color label:</label>
+                    <div id="modalColorPicker" class="color-picker" aria-label="Select color label"></div>
+                </div>
+                
                 <textarea id="modalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..." aria-label="Library item content"></textarea>
                 
                 <div class="import-section">
@@ -195,11 +216,48 @@ Don't write something like $E=mc^2$ across multiple lines.
             </div>
             <div class="modal-content">
                 <input type="text" id="editModalSectionTitle" class="modal-input" placeholder="Enter a title for your library item..." maxlength="100" aria-label="Edit library item title">
+                
+                <div class="modal-field-group">
+                    <label class="modal-label">Move to folder:</label>
+                    <select id="editModalFolderSelect" class="modal-select" aria-label="Select folder">
+                        <option value="">📁 Root (No folder)</option>
+                    </select>
+                </div>
+                
+                <div class="modal-field-group">
+                    <label class="modal-label">Color label:</label>
+                    <div id="editModalColorPicker" class="color-picker" aria-label="Select color label"></div>
+                </div>
+                
                 <textarea id="editModalSectionContent" class="modal-textarea" placeholder="Enter your markdown content here..." aria-label="Edit library item content"></textarea>
             </div>
             <div class="modal-actions" role="group" aria-label="Modal actions">
                 <button class="modal-button modal-button-secondary" data-close-modal="editSectionModal">Cancel</button>
                 <button id="editModalSaveBtn" class="modal-button modal-button-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Folder Modal -->
+    <div id="createFolderModal" class="modal-overlay" role="dialog" aria-labelledby="createFolderModalTitle" aria-modal="true">
+        <div class="modal-container modal-container-small">
+            <div class="modal-header">
+                <h3 class="modal-title" id="createFolderModalTitle">Create New Folder</h3>
+                <button class="modal-close" data-close-modal="createFolderModal" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <input type="text" id="folderModalInput" class="modal-input" placeholder="Enter folder name..." maxlength="100" aria-label="Folder name">
+                
+                <div class="modal-field-group">
+                    <label class="modal-label">Create inside:</label>
+                    <select id="folderParentSelect" class="modal-select" aria-label="Select parent folder">
+                        <option value="">📁 Root (Top level)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions" role="group" aria-label="Modal actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="createFolderModal">Cancel</button>
+                <button id="folderModalSaveBtn" class="modal-button modal-button-primary">Create Folder</button>
             </div>
         </div>
     </div>

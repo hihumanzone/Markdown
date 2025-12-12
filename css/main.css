@@ -210,6 +210,7 @@ button:disabled {
     cursor: pointer;
     transition: all 0.2s ease;
     background-color: var(--surface-color);
+    position: relative;
 }
 
 .section-item:hover {
@@ -398,4 +399,131 @@ button:disabled {
     border-color: var(--primary-color);
     color: var(--primary-color);
     background-color: var(--surface-color);
+}
+
+/* Library Action Buttons */
+.library-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.library-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.library-action-btn .btn-icon {
+    font-size: 1rem;
+}
+
+/* Breadcrumb Navigation */
+.library-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+    background-color: var(--bg-color);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.breadcrumb-link {
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+    background-color: var(--surface-color);
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: var(--text-muted-color);
+    margin: 0 0.125rem;
+}
+
+.breadcrumb-current {
+    color: var(--text-color);
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Folder Items */
+.folder-item {
+    background-color: var(--bg-color);
+}
+
+.folder-item:hover {
+    background-color: var(--surface-color);
+}
+
+.folder-icon {
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.folder-title {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Color Indicator */
+.color-indicator {
+    width: 6px;
+    height: 100%;
+    min-height: 24px;
+    border-radius: 3px 0 0 3px;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Color Picker */
+.color-picker {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.color-picker-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: var(--text-muted-color);
+    padding: 0;
+}
+
+.color-picker-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.color-picker-btn.selected {
+    border-color: var(--text-color);
+    box-shadow: 0 0 0 2px var(--primary-focus-shadow);
+}
+
+/* Color button in actions */
+.color-btn {
+    font-size: 0.6rem;
 }
