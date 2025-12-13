@@ -422,6 +422,10 @@ class RenderedPageBuilder {
                 #copy-notification {
                     display: none !important;
                 }
+                #content-container {
+                    max-width: 100% !important;
+                    overflow: visible !important;
+                }
                 body.markdown-body * {
                     color: #000 !important;
                     background-color: transparent !important;
@@ -447,7 +451,21 @@ class RenderedPageBuilder {
                 body.markdown-body img {
                     background-color: #fff !important;
                 }
-                pre, blockquote, table, img, .katex-display {
+                body.markdown-body table {
+                    display: table !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    table-layout: auto !important;
+                    overflow: visible !important;
+                    page-break-inside: auto !important;
+                }
+                body.markdown-body th,
+                body.markdown-body td {
+                    word-break: break-word;
+                    overflow-wrap: break-word;
+                    white-space: normal;
+                }
+                pre, blockquote, img, .katex-display {
                     page-break-inside: avoid;
                 }
                 a[href]:after {
