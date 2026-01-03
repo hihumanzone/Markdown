@@ -250,4 +250,34 @@ class SectionsManager {
     clearFolders() {
         localStorage.removeItem(this.FOLDERS_KEY);
     }
+    
+    // Backup and restore methods
+    exportLibraryData() {
+        const data = {
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            sections: this.getSections(),
+            folders: this.getFolders()
+        };
+        return data;
+    }
+    
+    importLibraryData(data) {
+        // Validate data structure
+        if (!data || typeof data !== 'object') {
+            throw new Error('Invalid backup file format');
+        }
+        
+        if (!Array.isArray(data.sections) || !Array.isArray(data.folders)) {
+            throw new Error('Invalid backup file structure');
+        }
+        
+        // Import folders first
+        this.setFolders(data.folders);
+        
+        // Import sections
+        this.setSections(data.sections);
+        
+        return true;
+    }
 }

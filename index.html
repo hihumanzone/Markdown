@@ -78,6 +78,13 @@ Don't write something like $E=mc^2$ across multiple lines.
                     <button id="createFolderBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Create new folder" title="Create folder">
                         <span class="btn-icon">📁</span> New Folder
                     </button>
+                    <button id="backupLibraryBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Backup library" title="Backup library">
+                        <span class="btn-icon">💾</span> Backup
+                    </button>
+                    <input type="file" id="restoreLibraryInput" accept=".json,application/json" style="display:none" aria-label="Restore library backup" />
+                    <button id="restoreLibraryBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Restore library from backup" title="Restore library">
+                        <span class="btn-icon">📥</span> Restore
+                    </button>
                 </div>
                 <div id="savedSectionsList" class="sections-list" role="list" aria-labelledby="libraryHeading">
                     <div class="empty-state">No saved sections yet</div>

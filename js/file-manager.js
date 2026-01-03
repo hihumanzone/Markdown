@@ -62,4 +62,61 @@ class FileManager {
         
         return { valid: true };
     }
+    
+    static exportLibraryBackup(libraryData) {
+        const jsonString = JSON.stringify(libraryData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const filename = `markdown-library-backup-${timestamp}.json`;
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+    
+    static readJSONFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = (event) => {
+                try {
+                    const content = event.target.result;
+                    const data = JSON.parse(content);
+                    resolve(data);
+                } catch (error) {
+                    reject(new Error('Invalid JSON file format'));
+                }
+            };
+            
+            reader.onerror = (error) => {
+                console.error("Error reading file:", error);
+                reject(new Error("Error reading file. Please check the console for details."));
+            };
+            
+            reader.readAsText(file);
+        });
+    }
+    
+    static validateBackupFile(file) {
+        if (!file) {
+            return { valid: false, message: 'No file selected.' };
+        }
+        
+        if (file.size > 10 * 1024 * 1024) {
+            return { valid: false, message: 'Backup file size must be less than 10MB.' };
+        }
+        
+        if (!file.name.toLowerCase().endsWith('.json')) {
+            return { 
+                valid: false, 
+                message: 'Only JSON files are supported for backup restoration.' 
+            };
+        }
+        
+        return { valid: true };
+    }
 }
