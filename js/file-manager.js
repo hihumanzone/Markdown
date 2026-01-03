@@ -48,7 +48,7 @@ class FileManager {
             return { valid: false, message: 'No file selected.' };
         }
         
-        if (file.size > 10 * 1024 * 1024) {
+        if (file.size > CONFIG.VALIDATION.MAX_FILE_SIZE) {
             return { valid: false, message: 'File size must be less than 10MB.' };
         }
         
@@ -68,7 +68,8 @@ class FileManager {
         const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        // Format timestamp as YYYY-MM-DDTHH-MM-SS
+        const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, '').replace(/[:.]/g, '-');
         const filename = `markdown-library-backup-${timestamp}.json`;
         link.href = url;
         link.download = filename;
@@ -106,7 +107,7 @@ class FileManager {
             return { valid: false, message: 'No file selected.' };
         }
         
-        if (file.size > 10 * 1024 * 1024) {
+        if (file.size > CONFIG.VALIDATION.MAX_FILE_SIZE) {
             return { valid: false, message: 'Backup file size must be less than 10MB.' };
         }
         
