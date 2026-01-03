@@ -32,7 +32,8 @@ const CONFIG = {
     VALIDATION: {
         TITLE_MAX_LENGTH: 100,
         CONTENT_MAX_LENGTH: 100000,
-        FILENAME_MAX_LENGTH: 255
+        FILENAME_MAX_LENGTH: 255,
+        MAX_FILE_SIZE: 10 * 1024 * 1024  // 10MB
     },
     SUPPORTED_FILE_TYPES: {
         EXTENSIONS: ['.md', '.markdown', '.txt'],

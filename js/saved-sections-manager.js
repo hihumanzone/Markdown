@@ -23,6 +23,13 @@ class SavedSectionsManager {
         document.getElementById('addSectionBtn')?.addEventListener('click', () => this.openAddSectionModal());
         document.getElementById('createFolderBtn')?.addEventListener('click', () => this.openCreateFolderModal());
         
+        // Backup and restore buttons
+        document.getElementById('backupLibraryBtn')?.addEventListener('click', () => this.backupLibrary());
+        document.getElementById('restoreLibraryBtn')?.addEventListener('click', () => {
+            document.getElementById('restoreLibraryInput')?.click();
+        });
+        document.getElementById('restoreLibraryInput')?.addEventListener('change', (e) => this.handleRestoreFile(e));
+        
         document.getElementById('modalSaveBtn')?.addEventListener('click', () => this.saveFromModal());
         
         document.getElementById('modalImportBtn')?.addEventListener('click', () => {
@@ -796,5 +803,64 @@ class SavedSectionsManager {
                 CustomModal.open('addSectionModal');
             }
         }, 100);
+    }
+    
+    backupLibrary() {
+        try {
+            const libraryData = this.sectionsManager.exportLibraryData();
+            FileManager.exportLibraryBackup(libraryData);
+            CustomModal.alert('Library backup downloaded successfully!');
+        } catch (error) {
+            console.error('Error creating backup:', error);
+            CustomModal.alert('Error creating backup. Please check the console for details.');
+        }
+    }
+    
+    async handleRestoreFile(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        // Reset file input
+        e.target.value = '';
+        
+        // Validate file
+        const fileValidation = FileManager.validateBackupFile(file);
+        if (!fileValidation.valid) {
+            await CustomModal.alert(fileValidation.message);
+            return;
+        }
+        
+        try {
+            // Read and parse JSON
+            const data = await FileManager.readJSONFile(file);
+            
+            // Show confirmation
+            const sectionsCount = data.sections?.length || 0;
+            const foldersCount = data.folders?.length || 0;
+            const confirmed = await CustomModal.confirm(
+                `This will replace your current library with the backup.\n\n` +
+                `Backup contains: ${sectionsCount} items and ${foldersCount} folders.\n\n` +
+                `Are you sure you want to continue?`,
+                'Restore Library'
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            // Import data
+            this.sectionsManager.importLibraryData(data);
+            
+            // Reset navigation
+            this.currentFolderId = null;
+            
+            // Re-render
+            this.renderSavedSections();
+            
+            await CustomModal.alert('Library restored successfully!');
+        } catch (error) {
+            console.error('Error restoring backup:', error);
+            await CustomModal.alert(`Error restoring backup: ${error.message}`);
+        }
     }
 }
