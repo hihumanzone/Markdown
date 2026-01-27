@@ -1107,7 +1107,7 @@ class SaveToLibraryController {
         
         // Create new section
         const newSection = {
-            id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9),
+            id: Date.now().toString() + '-' + Math.random().toString(36).substring(2, 11),
             title: finalTitle,
             content: rawMarkdown,
             createdAt: new Date().toISOString(),
