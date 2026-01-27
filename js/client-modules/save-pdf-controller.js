@@ -17,11 +17,26 @@ class SavePdfController {
             alert('Switch to the rendered view before exporting to PDF.'); 
             return;
         }
+        
+        // Prompt for filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        const defaultFilename = `markdown-export-${timestamp}`;
+        
+        const filename = prompt('Enter filename for PDF export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename;
+        
+        // Set document title so browser's "Save as PDF" dialog uses it
+        const originalTitle = document.title;
+        document.title = sanitizedFilename;
+        
         this.controlsPanel.style.display = 'none';
         setTimeout(() => { 
             window.print(); 
             setTimeout(() => { 
                 this.controlsPanel.style.display = ''; 
+                document.title = originalTitle; // Restore original title
             }, 150); 
         }, 30);
     }

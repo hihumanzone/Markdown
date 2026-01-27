@@ -439,6 +439,11 @@ class RenderedPageBuilder {
                     max-width: 100% !important;
                 }
                 body.markdown-body.full-width { max-width: 100% !important; }
+                body.markdown-body hr {
+                    background-color: #000 !important;
+                    height: 1px !important;
+                    border: none !important;
+                }
                 body.markdown-body table,
                 body.markdown-body th,
                 body.markdown-body td,
@@ -888,11 +893,26 @@ class SavePdfController {
             alert('Switch to the rendered view before exporting to PDF.'); 
             return;
         }
+        
+        // Prompt for filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        
+        const filename = prompt('Enter filename for PDF export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
+        
+        // Set document title so browser's "Save as PDF" dialog uses it
+        const originalTitle = document.title;
+        document.title = sanitizedFilename;
+        
         this.controlsPanel.style.display = 'none';
         setTimeout(() => { 
             window.print(); 
             setTimeout(() => { 
                 this.controlsPanel.style.display = ''; 
+                document.title = originalTitle; // Restore original title
             }, 150); 
         }, 30);
     }
@@ -915,12 +935,20 @@ class ExportMarkdownController {
     
     exportMarkdown() {
         const rawMarkdown = window.__APP_DATA__.rawMarkdown;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        
+        const filename = prompt('Enter filename for Markdown export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
+        const finalFilename = sanitizedFilename.endsWith('.md') ? sanitizedFilename : \`\${sanitizedFilename}.md\`;
+        
         const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
         link.href = url; 
-        link.download = \`markdown-export-\${timestamp}.md\`;
+        link.download = finalFilename;
         document.body.appendChild(link); 
         link.click();
         document.body.removeChild(link); 
@@ -976,6 +1004,16 @@ class ExportImageController {
             return;
         }
 
+        // Prompt for filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        
+        const filename = prompt('Enter filename for image export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
+        const finalFilename = sanitizedFilename.endsWith('.png') ? sanitizedFilename : \`\${sanitizedFilename}.png\`;
+
         const originalBtnText = this.btn.textContent;
         const originalControlsDisplay = this.controlsPanel.style.display;
         const originalScrollX = window.scrollX;
@@ -1009,8 +1047,7 @@ class ExportImageController {
             });
 
             const link = document.createElement('a');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-            link.download = \`markdown-export-\${timestamp}.png\`;
+            link.download = finalFilename;
             link.href = canvas.toDataURL('image/png');
             document.body.appendChild(link);
             link.click();

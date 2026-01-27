@@ -527,3 +527,21 @@ button:disabled {
 .color-btn {
     font-size: 0.6rem;
 }
+
+/* Mobile responsive styles for library actions */
+@media (max-width: 480px) {
+    .library-actions {
+        flex-wrap: wrap;
+    }
+    
+    .library-action-btn {
+        flex: 1 1 calc(50% - 0.25rem);
+        min-width: 0;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.5rem;
+    }
+    
+    .library-action-btn .btn-icon {
+        font-size: 0.85rem;
+    }
+}
