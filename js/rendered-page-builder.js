@@ -439,6 +439,11 @@ class RenderedPageBuilder {
                     max-width: 100% !important;
                 }
                 body.markdown-body.full-width { max-width: 100% !important; }
+                body.markdown-body hr {
+                    background-color: #000 !important;
+                    height: 1px !important;
+                    border: none !important;
+                }
                 body.markdown-body table,
                 body.markdown-body th,
                 body.markdown-body td,
@@ -472,6 +477,123 @@ class RenderedPageBuilder {
                     content: none !important;
                 }
             }
+            /* Custom Modal Styles */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                align-items: center;
+                justify-content: center;
+            }
+            .modal-overlay.active {
+                display: flex;
+            }
+            .modal-content {
+                background: #fff;
+                border-radius: 8px;
+                padding: 24px;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            body.markdown-body.dark-theme .modal-content {
+                background: #21262d;
+                color: #c9d1d9;
+            }
+            body.markdown-body.high-contrast-theme .modal-content {
+                background: #111;
+                color: #fff;
+                border: 2px solid #555;
+            }
+            .modal-header {
+                margin-bottom: 16px;
+            }
+            .modal-title {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin: 0;
+            }
+            .modal-body {
+                margin-bottom: 20px;
+            }
+            .modal-message {
+                margin-bottom: 12px;
+            }
+            .modal-input {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #d1d5da;
+                border-radius: 4px;
+                font-size: 14px;
+                font-family: inherit;
+                box-sizing: border-box;
+            }
+            body.markdown-body.dark-theme .modal-input {
+                background: #0d1117;
+                color: #c9d1d9;
+                border-color: #30363d;
+            }
+            body.markdown-body.high-contrast-theme .modal-input {
+                background: #000;
+                color: #fff;
+                border-color: #555;
+            }
+            .modal-input:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            .modal-footer {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+            }
+            .modal-btn {
+                padding: 8px 16px;
+                border: 1px solid #d1d5da;
+                border-radius: 4px;
+                background: #f6f8fa;
+                color: #24292e;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .modal-btn:hover {
+                background: #eef1f4;
+            }
+            .modal-btn.modal-btn-primary {
+                background: #3b82f6;
+                color: #fff;
+                border-color: #3b82f6;
+            }
+            .modal-btn.modal-btn-primary:hover {
+                background: #2563eb;
+            }
+            body.markdown-body.dark-theme .modal-btn {
+                background: #21262d;
+                color: #c9d1d9;
+                border-color: #30363d;
+            }
+            body.markdown-body.dark-theme .modal-btn:hover {
+                background: #30363d;
+            }
+            body.markdown-body.dark-theme .modal-btn.modal-btn-primary {
+                background: #3b82f6;
+                color: #fff;
+            }
+            body.markdown-body.high-contrast-theme .modal-btn {
+                background: #111;
+                color: #fff;
+                border-color: #555;
+            }
+            body.markdown-body.high-contrast-theme .modal-btn:hover {
+                background: #222;
+            }
         </style>`;
     }
     
@@ -491,12 +613,29 @@ class RenderedPageBuilder {
                 <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
                 <button id="exportImageBtn" class="fc-button" title="Export rendered content as a high-quality PNG image">Export Image</button>
                 <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
+                <button id="saveToLibraryBtn" class="fc-button" title="Save this content to your library">Save to Library</button>
+            </div>
+            <div id="promptModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="promptModalTitle">Input Required</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p class="modal-message" id="promptModalMessage"></p>
+                        <input type="text" class="modal-input" id="promptModalInput" />
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn" id="promptModalCancel">Cancel</button>
+                        <button class="modal-btn modal-btn-primary" id="promptModalConfirm">OK</button>
+                    </div>
+                </div>
             </div>
         `;
     }
     
     static getClientScriptIncludes() {
         const scripts = [
+            this.getCustomModalScript(),
             this.getKatexRendererScript(),
             this.getThemeControllerScript(),
             this.getFullWidthControllerScript(),
@@ -508,6 +647,7 @@ class RenderedPageBuilder {
             this.getSavePdfControllerScript(),
             this.getExportMarkdownControllerScript(),
             this.getExportImageControllerScript(),
+            this.getSaveToLibraryControllerScript(),
             this.getListItemControllerScript(),
             this.getUIControllerScript(),
             this.getClientMainScript()
@@ -516,6 +656,78 @@ class RenderedPageBuilder {
         return `<script>
             ${scripts.join('\n\n')}
         <\/script>`;
+    }
+
+    static getCustomModalScript() {
+        return `
+class CustomModal {
+    static prompt(message, defaultValue = '', title = 'Input Required') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('promptModal');
+            const titleEl = document.getElementById('promptModalTitle');
+            const messageEl = document.getElementById('promptModalMessage');
+            const inputEl = document.getElementById('promptModalInput');
+            const confirmBtn = document.getElementById('promptModalConfirm');
+            const cancelBtn = document.getElementById('promptModalCancel');
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            inputEl.value = defaultValue;
+            
+            const cleanup = () => {
+                confirmBtn.removeEventListener('click', confirmHandler);
+                cancelBtn.removeEventListener('click', cancelHandler);
+                inputEl.removeEventListener('keydown', keyHandler);
+                modal.classList.remove('active');
+            };
+            
+            const confirmHandler = () => {
+                const value = inputEl.value.trim();
+                cleanup();
+                resolve(value || null);
+            };
+            
+            const cancelHandler = () => {
+                cleanup();
+                resolve(null);
+            };
+            
+            const keyHandler = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    confirmHandler();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelHandler();
+                }
+            };
+            
+            confirmBtn.addEventListener('click', confirmHandler);
+            cancelBtn.addEventListener('click', cancelHandler);
+            inputEl.addEventListener('keydown', keyHandler);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) cancelHandler();
+            });
+            
+            modal.classList.add('active');
+            setTimeout(() => inputEl.focus(), 100);
+        });
+    }
+    
+    // Utility functions for file exports
+    static generateTimestamp() {
+        return new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+    }
+    
+    static sanitizeFilename(filename, fallback) {
+        const sanitized = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_');
+        return sanitized || fallback;
+    }
+    
+    static ensureExtension(filename, extension) {
+        return filename.endsWith(extension) ? filename : \`\${filename}\${extension}\`;
+    }
+}`;
     }
 
     static getFullWidthControllerScript() {
@@ -883,16 +1095,31 @@ class SavePdfController {
         } 
     }
     
-    saveAsPdf() {
+    async saveAsPdf() {
         if (this.rawContainer && this.rawContainer.style.display !== 'none') {
             alert('Switch to the rendered view before exporting to PDF.'); 
             return;
         }
+        
+        // Prompt for filename using utility functions
+        const timestamp = CustomModal.generateTimestamp();
+        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        
+        const filename = await CustomModal.prompt('Enter filename for PDF export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
+        
+        // Set document title so browser's "Save as PDF" dialog uses it
+        const originalTitle = document.title;
+        document.title = sanitizedFilename;
+        
         this.controlsPanel.style.display = 'none';
         setTimeout(() => { 
             window.print(); 
             setTimeout(() => { 
                 this.controlsPanel.style.display = ''; 
+                document.title = originalTitle; // Restore original title
             }, 150); 
         }, 30);
     }
@@ -913,14 +1140,22 @@ class ExportMarkdownController {
         }
     }
     
-    exportMarkdown() {
+    async exportMarkdown() {
         const rawMarkdown = window.__APP_DATA__.rawMarkdown;
+        const timestamp = CustomModal.generateTimestamp();
+        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        
+        const filename = await CustomModal.prompt('Enter filename for Markdown export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
+        const finalFilename = CustomModal.ensureExtension(sanitizedFilename, '.md');
+        
         const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
         link.href = url; 
-        link.download = \`markdown-export-\${timestamp}.md\`;
+        link.download = finalFilename;
         document.body.appendChild(link); 
         link.click();
         document.body.removeChild(link); 
@@ -976,6 +1211,16 @@ class ExportImageController {
             return;
         }
 
+        // Prompt for filename using utility functions
+        const timestamp = CustomModal.generateTimestamp();
+        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        
+        const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
+        const finalFilename = CustomModal.ensureExtension(sanitizedFilename, '.png');
+
         const originalBtnText = this.btn.textContent;
         const originalControlsDisplay = this.controlsPanel.style.display;
         const originalScrollX = window.scrollX;
@@ -1009,8 +1254,7 @@ class ExportImageController {
             });
 
             const link = document.createElement('a');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-            link.download = \`markdown-export-\${timestamp}.png\`;
+            link.download = finalFilename;
             link.href = canvas.toDataURL('image/png');
             document.body.appendChild(link);
             link.click();
@@ -1024,6 +1268,81 @@ class ExportImageController {
             this.btn.disabled = false;
             window.scrollTo(originalScrollX, originalScrollY);
         }
+    }
+}`;
+    }
+    
+    static getSaveToLibraryControllerScript() {
+        return `
+class SaveToLibraryController {
+    constructor() {
+        this.btn = document.getElementById('saveToLibraryBtn');
+        this.notificationElement = document.getElementById('copy-notification');
+        this.init();
+    }
+    
+    init() {
+        if (this.btn) {
+            this.btn.addEventListener('click', () => this.saveToLibrary());
+        }
+    }
+    
+    async saveToLibrary() {
+        const rawMarkdown = window.__APP_DATA__.rawMarkdown;
+        if (!rawMarkdown || !rawMarkdown.trim()) {
+            this.showNotification('No content to save.', true);
+            return;
+        }
+        
+        const defaultTitle = 'Saved from Renderer - ' + new Date().toLocaleString();
+        const title = await CustomModal.prompt('Enter a title for this library item:', defaultTitle);
+        if (title === null) return; // User cancelled
+        
+        const finalTitle = title.trim() || defaultTitle;
+        
+        // Get existing library data
+        const libraryKey = 'markdownSavedSections';
+        let sections = [];
+        try {
+            const stored = localStorage.getItem(libraryKey);
+            sections = stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            sections = [];
+        }
+        
+        // Create new section
+        const newSection = {
+            id: Date.now().toString() + '-' + Math.random().toString(36).substring(2, 11),
+            title: finalTitle,
+            content: rawMarkdown,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            color: null,
+            folderId: null
+        };
+        
+        sections.push(newSection);
+        localStorage.setItem(libraryKey, JSON.stringify(sections));
+        
+        this.showNotification('Saved to library! Refresh the main page to see it.');
+    }
+    
+    showNotification(message, isError = false) {
+        if (!this.notificationElement) {
+            alert(message);
+            return;
+        }
+        this.notificationElement.textContent = message;
+        this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
+        this.notificationElement.style.color = 'white';
+        if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
+            this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+            this.notificationElement.style.color = '#0d1117';
+        }
+        this.notificationElement.style.display = 'block';
+        setTimeout(() => { 
+            this.notificationElement.style.display = 'none'; 
+        }, isError ? 3500 : 3000);
     }
 }`;
     }
@@ -1302,6 +1621,7 @@ class UIController {
         this.savePdfController = new SavePdfController();
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
+        this.saveToLibraryController = new SaveToLibraryController();
         
         window.uiController = this;
     }
@@ -1356,6 +1676,14 @@ class UIController {
     
     function initializeUI() {
         window.markdownRendererUI = new UIController();
+        
+        // Make all links open in new tab
+        document.querySelectorAll('#content-container a').forEach(link => {
+            if (link.href && !link.hasAttribute('target')) {
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
     }
     
     if (document.readyState === 'loading') {

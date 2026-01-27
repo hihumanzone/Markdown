@@ -43,6 +43,16 @@ class ExportImageController {
             return;
         }
 
+        // Prompt for filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        const defaultFilename = `markdown-export-${timestamp}`;
+        
+        const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
+        if (filename === null) return; // User cancelled
+        
+        const sanitizedFilename = filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename;
+        const finalFilename = sanitizedFilename.endsWith('.png') ? sanitizedFilename : `${sanitizedFilename}.png`;
+
         const originalBtnText = this.btn.textContent;
         const originalControlsDisplay = this.controlsPanel.style.display;
         const originalScrollX = window.scrollX;
@@ -76,8 +86,7 @@ class ExportImageController {
             });
 
             const link = document.createElement('a');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-            link.download = `markdown-export-${timestamp}.png`;
+            link.download = finalFilename;
             link.href = canvas.toDataURL('image/png');
             document.body.appendChild(link);
             link.click();
