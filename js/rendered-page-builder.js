@@ -712,6 +712,20 @@ class CustomModal {
             setTimeout(() => inputEl.focus(), 100);
         });
     }
+    
+    // Utility functions for file exports
+    static generateTimestamp() {
+        return new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+    }
+    
+    static sanitizeFilename(filename, fallback) {
+        const sanitized = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_');
+        return sanitized || fallback;
+    }
+    
+    static ensureExtension(filename, extension) {
+        return filename.endsWith(extension) ? filename : \`\${filename}\${extension}\`;
+    }
 }`;
     }
 
@@ -1086,14 +1100,14 @@ class SavePdfController {
             return;
         }
         
-        // Prompt for filename
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        // Prompt for filename using utility functions
+        const timestamp = CustomModal.generateTimestamp();
         const defaultFilename = \`markdown-export-\${timestamp}\`;
         
         const filename = await CustomModal.prompt('Enter filename for PDF export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
-        const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
+        const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
         
         // Set document title so browser's "Save as PDF" dialog uses it
         const originalTitle = document.title;
@@ -1127,14 +1141,14 @@ class ExportMarkdownController {
     
     async exportMarkdown() {
         const rawMarkdown = window.__APP_DATA__.rawMarkdown;
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        const timestamp = CustomModal.generateTimestamp();
         const defaultFilename = \`markdown-export-\${timestamp}\`;
         
         const filename = await CustomModal.prompt('Enter filename for Markdown export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
-        const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
-        const finalFilename = sanitizedFilename.endsWith('.md') ? sanitizedFilename : \`\${sanitizedFilename}.md\`;
+        const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
+        const finalFilename = CustomModal.ensureExtension(sanitizedFilename, '.md');
         
         const blob = new Blob([rawMarkdown], { type: 'text/markdown;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -1196,15 +1210,15 @@ class ExportImageController {
             return;
         }
 
-        // Prompt for filename
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
+        // Prompt for filename using utility functions
+        const timestamp = CustomModal.generateTimestamp();
         const defaultFilename = \`markdown-export-\${timestamp}\`;
         
         const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
-        const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
-        const finalFilename = sanitizedFilename.endsWith('.png') ? sanitizedFilename : \`\${sanitizedFilename}.png\`;
+        const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
+        const finalFilename = CustomModal.ensureExtension(sanitizedFilename, '.png');
 
         const originalBtnText = this.btn.textContent;
         const originalControlsDisplay = this.controlsPanel.style.display;
