@@ -496,6 +496,7 @@ class RenderedPageBuilder {
                 <button id="saveAsPdfBtn" title="Save / Print as PDF (Ctrl/Cmd + P)" class="fc-button">Save PDF</button>
                 <button id="exportImageBtn" class="fc-button" title="Export rendered content as a high-quality PNG image">Export Image</button>
                 <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
+                <button id="saveToLibraryBtn" class="fc-button" title="Save this content to your library">Save to Library</button>
             </div>
         `;
     }
@@ -513,6 +514,7 @@ class RenderedPageBuilder {
             this.getSavePdfControllerScript(),
             this.getExportMarkdownControllerScript(),
             this.getExportImageControllerScript(),
+            this.getSaveToLibraryControllerScript(),
             this.getListItemControllerScript(),
             this.getUIControllerScript(),
             this.getClientMainScript()
@@ -1065,6 +1067,81 @@ class ExportImageController {
 }`;
     }
     
+    static getSaveToLibraryControllerScript() {
+        return `
+class SaveToLibraryController {
+    constructor() {
+        this.btn = document.getElementById('saveToLibraryBtn');
+        this.notificationElement = document.getElementById('copy-notification');
+        this.init();
+    }
+    
+    init() {
+        if (this.btn) {
+            this.btn.addEventListener('click', () => this.saveToLibrary());
+        }
+    }
+    
+    saveToLibrary() {
+        const rawMarkdown = window.__APP_DATA__.rawMarkdown;
+        if (!rawMarkdown || !rawMarkdown.trim()) {
+            this.showNotification('No content to save.', true);
+            return;
+        }
+        
+        const defaultTitle = 'Saved from Renderer - ' + new Date().toLocaleString();
+        const title = prompt('Enter a title for this library item:', defaultTitle);
+        if (title === null) return; // User cancelled
+        
+        const finalTitle = title.trim() || defaultTitle;
+        
+        // Get existing library data
+        const libraryKey = 'markdown-renderer-sections';
+        let sections = [];
+        try {
+            const stored = localStorage.getItem(libraryKey);
+            sections = stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            sections = [];
+        }
+        
+        // Create new section
+        const newSection = {
+            id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9),
+            title: finalTitle,
+            content: rawMarkdown,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            color: null,
+            folderId: null
+        };
+        
+        sections.push(newSection);
+        localStorage.setItem(libraryKey, JSON.stringify(sections));
+        
+        this.showNotification('Saved to library! Refresh the main page to see it.');
+    }
+    
+    showNotification(message, isError = false) {
+        if (!this.notificationElement) {
+            alert(message);
+            return;
+        }
+        this.notificationElement.textContent = message;
+        this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
+        this.notificationElement.style.color = 'white';
+        if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
+            this.notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+            this.notificationElement.style.color = '#0d1117';
+        }
+        this.notificationElement.style.display = 'block';
+        setTimeout(() => { 
+            this.notificationElement.style.display = 'none'; 
+        }, isError ? 3500 : 3000);
+    }
+}`;
+    }
+    
     static getListItemControllerScript() {
         return `
 class ListItemController {
@@ -1339,6 +1416,7 @@ class UIController {
         this.savePdfController = new SavePdfController();
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
+        this.saveToLibraryController = new SaveToLibraryController();
         
         window.uiController = this;
     }
