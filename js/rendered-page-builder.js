@@ -531,6 +531,7 @@ class RenderedPageBuilder {
                 border-radius: 4px;
                 font-size: 14px;
                 font-family: inherit;
+                box-sizing: border-box;
             }
             body.markdown-body.dark-theme .modal-input {
                 background: #0d1117;
