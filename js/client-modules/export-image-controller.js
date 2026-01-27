@@ -47,7 +47,7 @@ class ExportImageController {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
         const defaultFilename = `markdown-export-${timestamp}`;
         
-        const filename = prompt('Enter filename for image export:', defaultFilename);
+        const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename;

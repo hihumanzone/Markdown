@@ -477,6 +477,122 @@ class RenderedPageBuilder {
                     content: none !important;
                 }
             }
+            /* Custom Modal Styles */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                align-items: center;
+                justify-content: center;
+            }
+            .modal-overlay.active {
+                display: flex;
+            }
+            .modal-content {
+                background: #fff;
+                border-radius: 8px;
+                padding: 24px;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            body.markdown-body.dark-theme .modal-content {
+                background: #21262d;
+                color: #c9d1d9;
+            }
+            body.markdown-body.high-contrast-theme .modal-content {
+                background: #111;
+                color: #fff;
+                border: 2px solid #555;
+            }
+            .modal-header {
+                margin-bottom: 16px;
+            }
+            .modal-title {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin: 0;
+            }
+            .modal-body {
+                margin-bottom: 20px;
+            }
+            .modal-message {
+                margin-bottom: 12px;
+            }
+            .modal-input {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #d1d5da;
+                border-radius: 4px;
+                font-size: 14px;
+                font-family: inherit;
+            }
+            body.markdown-body.dark-theme .modal-input {
+                background: #0d1117;
+                color: #c9d1d9;
+                border-color: #30363d;
+            }
+            body.markdown-body.high-contrast-theme .modal-input {
+                background: #000;
+                color: #fff;
+                border-color: #555;
+            }
+            .modal-input:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            .modal-footer {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+            }
+            .modal-btn {
+                padding: 8px 16px;
+                border: 1px solid #d1d5da;
+                border-radius: 4px;
+                background: #f6f8fa;
+                color: #24292e;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .modal-btn:hover {
+                background: #eef1f4;
+            }
+            .modal-btn.modal-btn-primary {
+                background: #3b82f6;
+                color: #fff;
+                border-color: #3b82f6;
+            }
+            .modal-btn.modal-btn-primary:hover {
+                background: #2563eb;
+            }
+            body.markdown-body.dark-theme .modal-btn {
+                background: #21262d;
+                color: #c9d1d9;
+                border-color: #30363d;
+            }
+            body.markdown-body.dark-theme .modal-btn:hover {
+                background: #30363d;
+            }
+            body.markdown-body.dark-theme .modal-btn.modal-btn-primary {
+                background: #3b82f6;
+                color: #fff;
+            }
+            body.markdown-body.high-contrast-theme .modal-btn {
+                background: #111;
+                color: #fff;
+                border-color: #555;
+            }
+            body.markdown-body.high-contrast-theme .modal-btn:hover {
+                background: #222;
+            }
         </style>`;
     }
     
@@ -498,11 +614,27 @@ class RenderedPageBuilder {
                 <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
                 <button id="saveToLibraryBtn" class="fc-button" title="Save this content to your library">Save to Library</button>
             </div>
+            <div id="promptModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="promptModalTitle">Input Required</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p class="modal-message" id="promptModalMessage"></p>
+                        <input type="text" class="modal-input" id="promptModalInput" />
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn" id="promptModalCancel">Cancel</button>
+                        <button class="modal-btn modal-btn-primary" id="promptModalConfirm">OK</button>
+                    </div>
+                </div>
+            </div>
         `;
     }
     
     static getClientScriptIncludes() {
         const scripts = [
+            this.getCustomModalScript(),
             this.getKatexRendererScript(),
             this.getThemeControllerScript(),
             this.getFullWidthControllerScript(),
@@ -523,6 +655,64 @@ class RenderedPageBuilder {
         return `<script>
             ${scripts.join('\n\n')}
         <\/script>`;
+    }
+
+    static getCustomModalScript() {
+        return `
+class CustomModal {
+    static prompt(message, defaultValue = '', title = 'Input Required') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('promptModal');
+            const titleEl = document.getElementById('promptModalTitle');
+            const messageEl = document.getElementById('promptModalMessage');
+            const inputEl = document.getElementById('promptModalInput');
+            const confirmBtn = document.getElementById('promptModalConfirm');
+            const cancelBtn = document.getElementById('promptModalCancel');
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            inputEl.value = defaultValue;
+            
+            const cleanup = () => {
+                confirmBtn.removeEventListener('click', confirmHandler);
+                cancelBtn.removeEventListener('click', cancelHandler);
+                inputEl.removeEventListener('keydown', keyHandler);
+                modal.classList.remove('active');
+            };
+            
+            const confirmHandler = () => {
+                const value = inputEl.value.trim();
+                cleanup();
+                resolve(value || null);
+            };
+            
+            const cancelHandler = () => {
+                cleanup();
+                resolve(null);
+            };
+            
+            const keyHandler = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    confirmHandler();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelHandler();
+                }
+            };
+            
+            confirmBtn.addEventListener('click', confirmHandler);
+            cancelBtn.addEventListener('click', cancelHandler);
+            inputEl.addEventListener('keydown', keyHandler);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) cancelHandler();
+            });
+            
+            modal.classList.add('active');
+            setTimeout(() => inputEl.focus(), 100);
+        });
+    }
+}`;
     }
 
     static getFullWidthControllerScript() {
@@ -890,7 +1080,7 @@ class SavePdfController {
         } 
     }
     
-    saveAsPdf() {
+    async saveAsPdf() {
         if (this.rawContainer && this.rawContainer.style.display !== 'none') {
             alert('Switch to the rendered view before exporting to PDF.'); 
             return;
@@ -900,7 +1090,7 @@ class SavePdfController {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
         const defaultFilename = \`markdown-export-\${timestamp}\`;
         
-        const filename = prompt('Enter filename for PDF export:', defaultFilename);
+        const filename = await CustomModal.prompt('Enter filename for PDF export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
@@ -935,12 +1125,12 @@ class ExportMarkdownController {
         }
     }
     
-    exportMarkdown() {
+    async exportMarkdown() {
         const rawMarkdown = window.__APP_DATA__.rawMarkdown;
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
         const defaultFilename = \`markdown-export-\${timestamp}\`;
         
-        const filename = prompt('Enter filename for Markdown export:', defaultFilename);
+        const filename = await CustomModal.prompt('Enter filename for Markdown export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
@@ -1010,7 +1200,7 @@ class ExportImageController {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
         const defaultFilename = \`markdown-export-\${timestamp}\`;
         
-        const filename = prompt('Enter filename for image export:', defaultFilename);
+        const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_') || defaultFilename;
@@ -1082,7 +1272,7 @@ class SaveToLibraryController {
         }
     }
     
-    saveToLibrary() {
+    async saveToLibrary() {
         const rawMarkdown = window.__APP_DATA__.rawMarkdown;
         if (!rawMarkdown || !rawMarkdown.trim()) {
             this.showNotification('No content to save.', true);
@@ -1090,13 +1280,13 @@ class SaveToLibraryController {
         }
         
         const defaultTitle = 'Saved from Renderer - ' + new Date().toLocaleString();
-        const title = prompt('Enter a title for this library item:', defaultTitle);
+        const title = await CustomModal.prompt('Enter a title for this library item:', defaultTitle);
         if (title === null) return; // User cancelled
         
         const finalTitle = title.trim() || defaultTitle;
         
         // Get existing library data
-        const libraryKey = 'markdown-renderer-sections';
+        const libraryKey = 'markdownSavedSections';
         let sections = [];
         try {
             const stored = localStorage.getItem(libraryKey);
@@ -1471,6 +1661,14 @@ class UIController {
     
     function initializeUI() {
         window.markdownRendererUI = new UIController();
+        
+        // Make all links open in new tab
+        document.querySelectorAll('#content-container a').forEach(link => {
+            if (link.href && !link.hasAttribute('target')) {
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
     }
     
     if (document.readyState === 'loading') {

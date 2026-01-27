@@ -12,7 +12,7 @@ class SavePdfController {
         } 
     }
     
-    saveAsPdf() {
+    async saveAsPdf() {
         if (this.rawContainer && this.rawContainer.style.display !== 'none') {
             alert('Switch to the rendered view before exporting to PDF.'); 
             return;
@@ -22,7 +22,7 @@ class SavePdfController {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
         const defaultFilename = `markdown-export-${timestamp}`;
         
-        const filename = prompt('Enter filename for PDF export:', defaultFilename);
+        const filename = await CustomModal.prompt('Enter filename for PDF export:', defaultFilename);
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename;
