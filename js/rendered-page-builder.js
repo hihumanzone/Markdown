@@ -397,6 +397,8 @@ class RenderedPageBuilder {
                 position: relative;
             }
             .katex-display {
+                display: block;
+                text-align: center;
                 margin: 1em 0;
                 overflow-x: auto;
                 overflow-y: hidden;
