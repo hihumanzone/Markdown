@@ -149,9 +149,16 @@ class ListItemParser {
 }
 
 class MathProcessor {
+    static normalizeBlockDollarMath(markdownText) {
+        return markdownText.replace(
+            /(^|\n)\$\$\s*\n([\s\S]*?)\n\$\$(?=\n|$)/g,
+            '$1\\[\n$2\n\\]'
+        );
+    }
+
     static preserveMathExpressions(markdownText) {
         const mathExpressions = [];
-        let tempText = markdownText;
+        let tempText = this.normalizeBlockDollarMath(markdownText);
         CONFIG.MATH_PATTERNS.forEach((pattern) => {
             tempText = tempText.replace(pattern.regex, (match, content) => {
                 if (content.trim() === "") return match;
