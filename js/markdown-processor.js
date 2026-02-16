@@ -151,7 +151,11 @@ class ListItemParser {
 class MathProcessor {
     static preserveMathExpressions(markdownText) {
         const mathExpressions = [];
-        let tempText = markdownText;
+        const normalizedText = markdownText.replace(
+            /(^|\n)\$\$\s*\n([\s\S]*?)\n\$\$(?=\n|$)/g,
+            '$1\\\\[\n$2\n\\\\]'
+        );
+        let tempText = normalizedText;
         CONFIG.MATH_PATTERNS.forEach((pattern) => {
             tempText = tempText.replace(pattern.regex, (match, content) => {
                 if (content.trim() === "") return match;
