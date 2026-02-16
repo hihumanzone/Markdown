@@ -153,7 +153,7 @@ class MathProcessor {
         const mathExpressions = [];
         const normalizedText = markdownText.replace(
             /(^|\n)\$\$\s*\n([\s\S]*?)\n\$\$(?=\n|$)/g,
-            '$1\\\\[\n$2\n\\\\]'
+            '$1\\[\n$2\n\\]'
         );
         let tempText = normalizedText;
         CONFIG.MATH_PATTERNS.forEach((pattern) => {
