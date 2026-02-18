@@ -20,6 +20,7 @@ class RenderedPageBuilder {
     <script>
         window.__APP_DATA__ = {
             rawMarkdown: ${JSON.stringify(rawMarkdown)},
+            documentTitle: ${JSON.stringify(title)},
             listItems: ${JSON.stringify(listItems)},
             flatListItems: ${JSON.stringify(flatListItems)},
             config: ${JSON.stringify(CONFIG)}
@@ -524,7 +525,19 @@ class RenderedPageBuilder {
                 margin-bottom: 20px;
             }
             .modal-message {
-                margin-bottom: 12px;
+                margin-bottom: 8px;
+            }
+            .modal-helper {
+                margin: 0 0 8px 0;
+                color: #6b7280;
+                font-size: 12px;
+            }
+            .modal-preview {
+                margin: 8px 0 0 0;
+                color: #6b7280;
+                font-size: 12px;
+                min-height: 16px;
+                word-break: break-all;
             }
             .modal-input {
                 width: 100%;
@@ -554,6 +567,14 @@ class RenderedPageBuilder {
                 display: flex;
                 gap: 8px;
                 justify-content: flex-end;
+            }
+            body.markdown-body.dark-theme .modal-helper,
+            body.markdown-body.dark-theme .modal-preview {
+                color: #8b949e;
+            }
+            body.markdown-body.high-contrast-theme .modal-helper,
+            body.markdown-body.high-contrast-theme .modal-preview {
+                color: #ccc;
             }
             .modal-btn {
                 padding: 8px 16px;
@@ -620,15 +641,17 @@ class RenderedPageBuilder {
             <div id="promptModal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title" id="promptModalTitle">Input Required</h3>
+                        <h3 class="modal-title" id="promptModalTitle">Choose File Name</h3>
                     </div>
                     <div class="modal-body">
                         <p class="modal-message" id="promptModalMessage"></p>
+                        <p class="modal-helper" id="promptModalHelper">Tip: keep it short and descriptive.</p>
                         <input type="text" class="modal-input" id="promptModalInput" />
+                        <p class="modal-preview" id="promptModalPreview"></p>
                     </div>
                     <div class="modal-footer">
                         <button class="modal-btn" id="promptModalCancel">Cancel</button>
-                        <button class="modal-btn modal-btn-primary" id="promptModalConfirm">OK</button>
+                        <button class="modal-btn modal-btn-primary" id="promptModalConfirm">Save</button>
                     </div>
                 </div>
             </div>
@@ -663,39 +686,59 @@ class RenderedPageBuilder {
     static getCustomModalScript() {
         return `
 class CustomModal {
-    static prompt(message, defaultValue = '', title = 'Input Required') {
+    static prompt(message, defaultValue = '', title = 'Choose File Name', options = {}) {
         return new Promise((resolve) => {
             const modal = document.getElementById('promptModal');
             const titleEl = document.getElementById('promptModalTitle');
             const messageEl = document.getElementById('promptModalMessage');
+            const helperEl = document.getElementById('promptModalHelper');
+            const previewEl = document.getElementById('promptModalPreview');
             const inputEl = document.getElementById('promptModalInput');
             const confirmBtn = document.getElementById('promptModalConfirm');
             const cancelBtn = document.getElementById('promptModalCancel');
-            
+
+            const extensionHint = options.extension || '';
             titleEl.textContent = title;
             messageEl.textContent = message;
+            helperEl.textContent = extensionHint
+                ? 'Tip: extension ' + extensionHint + ' will be added automatically if missing.'
+                : 'Tip: keep it short and descriptive.';
             inputEl.value = defaultValue;
-            
+
+            const updatePreview = () => {
+                const rawValue = inputEl.value.trim() || defaultValue;
+                const sanitized = this.sanitizeFilename(rawValue, defaultValue);
+                const finalValue = extensionHint ? this.ensureExtension(sanitized, extensionHint) : sanitized;
+                previewEl.textContent = 'Final file: ' + finalValue;
+            };
+
             const cleanup = () => {
                 confirmBtn.removeEventListener('click', confirmHandler);
                 cancelBtn.removeEventListener('click', cancelHandler);
                 inputEl.removeEventListener('keydown', keyHandler);
-                modal.classList.remove('active');
+                inputEl.removeEventListener('input', updatePreview);
+                modal.removeEventListener('click', overlayHandler);
             };
-            
+
             const confirmHandler = () => {
                 const value = inputEl.value.trim();
                 cleanup();
-                resolve(value || null);
+                modal.classList.remove('active');
+                resolve(value || defaultValue);
             };
-            
+
             const cancelHandler = () => {
                 cleanup();
+                modal.classList.remove('active');
                 resolve(null);
             };
-            
+
+            const overlayHandler = (e) => {
+                if (e.target === modal) cancelHandler();
+            };
+
             const keyHandler = (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
                     e.preventDefault();
                     confirmHandler();
                 } else if (e.key === 'Escape') {
@@ -703,31 +746,65 @@ class CustomModal {
                     cancelHandler();
                 }
             };
-            
+
             confirmBtn.addEventListener('click', confirmHandler);
             cancelBtn.addEventListener('click', cancelHandler);
             inputEl.addEventListener('keydown', keyHandler);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) cancelHandler();
-            });
-            
+            inputEl.addEventListener('input', updatePreview);
+            modal.addEventListener('click', overlayHandler);
+
+            updatePreview();
             modal.classList.add('active');
-            setTimeout(() => inputEl.focus(), 100);
+            setTimeout(() => {
+                inputEl.focus();
+                const dotIndex = inputEl.value.lastIndexOf('.');
+                if (dotIndex > 0) {
+                    inputEl.setSelectionRange(0, dotIndex);
+                } else {
+                    inputEl.select();
+                }
+            }, 100);
         });
     }
-    
-    // Utility functions for file exports
-    static generateTimestamp() {
-        return new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-    }
-    
+
     static sanitizeFilename(filename, fallback) {
-        const sanitized = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_');
+        const sanitized = filename.trim().replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^[-_.]+|[-_.]+$/g, '');
         return sanitized || fallback;
     }
-    
+
     static ensureExtension(filename, extension) {
-        return filename.endsWith(extension) ? filename : \`\${filename}\${extension}\`;
+        return filename.toLowerCase().endsWith(extension) ? filename : filename + extension;
+    }
+
+    static extractTitleFromMarkdown(markdown = '') {
+        const headingMatch = markdown.match(/^#\s+(.+)$/m);
+        if (headingMatch && headingMatch[1]) {
+            return headingMatch[1].trim();
+        }
+        return '';
+    }
+
+    static toSlug(value = '') {
+        return value
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-');
+    }
+
+    static getBaseFilename() {
+        const fromMarkdown = this.extractTitleFromMarkdown(window.__APP_DATA__?.rawMarkdown || '');
+        const fromDocTitle = (window.__APP_DATA__?.documentTitle || document.title || '').trim();
+        const raw = fromMarkdown || fromDocTitle || 'document';
+        const slug = this.toSlug(raw);
+        return slug || 'document';
+    }
+
+    static buildDefaultFilename(kind = '') {
+        const base = this.getBaseFilename();
+        if (!kind) return base;
+        return base + '-' + kind;
     }
 }`;
     }
@@ -1104,10 +1181,9 @@ class SavePdfController {
         }
         
         // Prompt for filename using utility functions
-        const timestamp = CustomModal.generateTimestamp();
-        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        const defaultFilename = CustomModal.buildDefaultFilename('pdf');
         
-        const filename = await CustomModal.prompt('Enter filename for PDF export:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your PDF file:', defaultFilename, 'Save as PDF', { extension: '.pdf' });
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
@@ -1144,10 +1220,9 @@ class ExportMarkdownController {
     
     async exportMarkdown() {
         const rawMarkdown = window.__APP_DATA__.rawMarkdown;
-        const timestamp = CustomModal.generateTimestamp();
-        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        const defaultFilename = CustomModal.buildDefaultFilename('markdown');
         
-        const filename = await CustomModal.prompt('Enter filename for Markdown export:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your Markdown file:', defaultFilename, 'Export Markdown', { extension: '.md' });
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
@@ -1214,10 +1289,9 @@ class ExportImageController {
         }
 
         // Prompt for filename using utility functions
-        const timestamp = CustomModal.generateTimestamp();
-        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        const defaultFilename = CustomModal.buildDefaultFilename('image');
         
-        const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your image file:', defaultFilename, 'Export Image', { extension: '.png' });
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
