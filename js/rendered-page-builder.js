@@ -20,6 +20,7 @@ class RenderedPageBuilder {
     <script>
         window.__APP_DATA__ = {
             rawMarkdown: ${JSON.stringify(rawMarkdown)},
+            documentTitle: ${JSON.stringify(title)},
             listItems: ${JSON.stringify(listItems)},
             flatListItems: ${JSON.stringify(flatListItems)},
             config: ${JSON.stringify(CONFIG)}
@@ -275,16 +276,6 @@ class RenderedPageBuilder {
             body.markdown-body.high-contrast-theme #raw-markdown{
                 background:#000!important;color:#fff!important;border-color:#fff!important
             }
-            body.markdown-body.high-contrast-theme .fc-panel{
-                background:rgba(0,0,0,.92);box-shadow:0 2px 10px rgba(255,255,255,.35)
-            }
-            body.markdown-body.high-contrast-theme .fc-button{
-                background:#111;color:#fff;border:1px solid #555
-            }
-            body.markdown-body.high-contrast-theme .fc-button:hover{
-                background:#222;border-color:#777
-            }
-            body.markdown-body.high-contrast-theme .fc-display{color:#fff}
             body.markdown-body.high-contrast-theme #copy-notification{
                 background:rgba(255,255,255,.9);color:#000
             }
@@ -292,67 +283,102 @@ class RenderedPageBuilder {
                 background:rgba(8,136,255,.25)!important
             }
             .fc-panel {
+                --fc-panel-bg: rgba(255, 255, 255, 0.88);
+                --fc-panel-border: rgba(209, 213, 218, 0.9);
+                --fc-panel-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
+                --fc-button-bg: #f6f8fa;
+                --fc-button-border: #d1d5da;
+                --fc-button-text: #24292e;
+                --fc-button-hover-bg: #eef1f4;
+                --fc-button-hover-border: #bec4cb;
+                --fc-button-focus-ring: rgba(59, 130, 246, 0.24);
+                --fc-display-bg: rgba(59, 130, 246, 0.08);
+                --fc-display-text: #1f2937;
                 position: fixed;
-                top: 10px;
-                right: 10px;
-                padding: 8px;
-                border-radius: 6px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                top: 12px;
+                right: 12px;
+                padding: 10px;
+                border-radius: 12px;
+                border: 1px solid var(--fc-panel-border);
+                box-shadow: var(--fc-panel-shadow);
                 z-index: 1000;
                 display: flex;
                 align-items: center;
                 gap: 6px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                font-size: 13px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(5px);
-                -webkit-backdrop-filter: blur(5px);
-                transition: background-color 0.3s ease, box-shadow 0.3s ease;
                 flex-wrap: wrap;
                 justify-content: flex-end;
+                background: var(--fc-panel-bg);
+                backdrop-filter: blur(10px) saturate(130%);
+                -webkit-backdrop-filter: blur(10px) saturate(130%);
+                transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                font-size: 13px;
             }
             .fc-button {
-                padding: 5px 10px;
+                min-height: 30px;
+                padding: 6px 10px;
                 cursor: pointer;
-                background-color: #f6f8fa;
-                color: #24292e;
-                border: 1px solid #d1d5da;
-                border-radius: 4px;
-                transition: background-color 0.2s ease, border-color 0.2s ease;
+                background-color: var(--fc-button-bg);
+                color: var(--fc-button-text);
+                border: 1px solid var(--fc-button-border);
+                border-radius: 8px;
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
                 font-size: 12px;
-                line-height: 1.5;
+                font-weight: 500;
+                line-height: 1.3;
             }
             .fc-button:hover:not(:disabled) {
-                background-color: #eef1f4;
-                border-color: #c0c5cb;
+                background-color: var(--fc-button-hover-bg);
+                border-color: var(--fc-button-hover-border);
+            }
+            .fc-button:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 3px var(--fc-button-focus-ring);
+                border-color: #3b82f6;
+            }
+            .fc-button:active:not(:disabled) {
+                transform: translateY(1px);
             }
             .fc-button:disabled {
-                 opacity: 0.6;
+                 opacity: 0.58;
                  cursor: not-allowed;
             }
             .fc-display {
-                color: #24292e;
-                padding: 0 8px;
-                min-width: 45px;
+                color: var(--fc-display-text);
+                background: var(--fc-display-bg);
+                border: 1px solid transparent;
+                border-radius: 999px;
+                padding: 4px 10px;
+                min-width: 52px;
                 text-align: center;
-                font-weight: 500;
+                font-weight: 600;
                 font-size: 12px;
             }
             body.markdown-body.dark-theme .fc-panel {
-                background: rgba(22, 27, 34, 0.9);
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+                --fc-panel-bg: rgba(22, 27, 34, 0.88);
+                --fc-panel-border: rgba(48, 54, 61, 0.95);
+                --fc-panel-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+                --fc-button-bg: #21262d;
+                --fc-button-border: #30363d;
+                --fc-button-text: #c9d1d9;
+                --fc-button-hover-bg: #30363d;
+                --fc-button-hover-border: #4b5563;
+                --fc-button-focus-ring: rgba(88, 166, 255, 0.3);
+                --fc-display-bg: rgba(88, 166, 255, 0.16);
+                --fc-display-text: #dce7f3;
             }
-            body.markdown-body.dark-theme .fc-button {
-                background-color: #21262d;
-                color: #c9d1d9;
-                border: 1px solid #30363d;
-            }
-            body.markdown-body.dark-theme .fc-button:hover:not(:disabled) {
-                background-color: #30363d;
-                border-color: #484f58;
-            }
-            body.markdown-body.dark-theme .fc-display {
-                color: #c9d1d9;
+            body.markdown-body.high-contrast-theme .fc-panel {
+                --fc-panel-bg: rgba(0, 0, 0, 0.94);
+                --fc-panel-border: #666;
+                --fc-panel-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 8px 20px rgba(0, 0, 0, 0.6);
+                --fc-button-bg: #111;
+                --fc-button-border: #666;
+                --fc-button-text: #fff;
+                --fc-button-hover-bg: #222;
+                --fc-button-hover-border: #8a8a8a;
+                --fc-button-focus-ring: rgba(8, 136, 255, 0.45);
+                --fc-display-bg: rgba(8, 136, 255, 0.2);
+                --fc-display-text: #fff;
             }
             .list-item-highlight {
                 background-color: rgba(3, 102, 214, 0.1) !important;
@@ -410,13 +436,22 @@ class RenderedPageBuilder {
                 .fc-panel {
                     flex-direction: column;
                     align-items: stretch;
-                    top: 5px;
-                    right: 5px;
+                    top: 8px;
+                    right: 8px;
                     gap: 4px;
-                    width: 130px;
+                    width: min(176px, calc(100vw - 16px));
+                    padding: 8px;
                 }
-                .fc-button, .fc-display {
+                .fc-button,
+                .fc-display {
+                    width: 100%;
                     text-align: center;
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .fc-panel,
+                .fc-button {
+                    transition: none !important;
                 }
             }
             @media print {
@@ -481,12 +516,20 @@ class RenderedPageBuilder {
             }
             /* Custom Modal Styles */
             .modal-overlay {
+                --modal-surface: #fff;
+                --modal-text: #24292e;
+                --modal-muted: #6b7280;
+                --modal-border: #d1d5da;
+                --modal-input-surface: #fff;
+                --modal-btn-surface: #f6f8fa;
+                --modal-btn-hover: #eef1f4;
+                --modal-primary: #3b82f6;
+                --modal-primary-hover: #2563eb;
+                --modal-shadow: 0 10px 28px rgba(0, 0, 0, 0.26);
                 display: none;
                 position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+                inset: 0;
+                padding: 1rem;
                 background: rgba(0, 0, 0, 0.5);
                 z-index: 10000;
                 align-items: center;
@@ -495,22 +538,37 @@ class RenderedPageBuilder {
             .modal-overlay.active {
                 display: flex;
             }
-            .modal-content {
-                background: #fff;
-                border-radius: 8px;
-                padding: 24px;
-                max-width: 500px;
-                width: 90%;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            body.markdown-body.dark-theme .modal-overlay {
+                --modal-surface: #21262d;
+                --modal-text: #c9d1d9;
+                --modal-muted: #8b949e;
+                --modal-border: #30363d;
+                --modal-input-surface: #0d1117;
+                --modal-btn-surface: #21262d;
+                --modal-btn-hover: #30363d;
+                --modal-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
             }
-            body.markdown-body.dark-theme .modal-content {
-                background: #21262d;
-                color: #c9d1d9;
+            body.markdown-body.high-contrast-theme .modal-overlay {
+                --modal-surface: #111;
+                --modal-text: #fff;
+                --modal-muted: #ccc;
+                --modal-border: #555;
+                --modal-input-surface: #000;
+                --modal-btn-surface: #111;
+                --modal-btn-hover: #222;
+            }
+            .modal-content {
+                background: var(--modal-surface);
+                color: var(--modal-text);
+                border: 1px solid var(--modal-border);
+                border-radius: 10px;
+                padding: 22px;
+                max-width: 500px;
+                width: min(500px, 100%);
+                box-shadow: var(--modal-shadow);
             }
             body.markdown-body.high-contrast-theme .modal-content {
-                background: #111;
-                color: #fff;
-                border: 2px solid #555;
+                border-width: 2px;
             }
             .modal-header {
                 margin-bottom: 16px;
@@ -524,31 +582,36 @@ class RenderedPageBuilder {
                 margin-bottom: 20px;
             }
             .modal-message {
-                margin-bottom: 12px;
+                margin-bottom: 8px;
+            }
+            .modal-helper {
+                margin: 0 0 8px 0;
+                color: var(--modal-muted);
+                font-size: 12px;
+            }
+            .modal-preview {
+                margin: 8px 0 0 0;
+                color: var(--modal-muted);
+                font-size: 12px;
+                min-height: 16px;
+                word-break: break-all;
             }
             .modal-input {
                 width: 100%;
                 padding: 8px 12px;
-                border: 1px solid #d1d5da;
-                border-radius: 4px;
+                border: 1px solid var(--modal-border);
+                border-radius: 6px;
                 font-size: 14px;
                 font-family: inherit;
+                background: var(--modal-input-surface);
+                color: var(--modal-text);
                 box-sizing: border-box;
-            }
-            body.markdown-body.dark-theme .modal-input {
-                background: #0d1117;
-                color: #c9d1d9;
-                border-color: #30363d;
-            }
-            body.markdown-body.high-contrast-theme .modal-input {
-                background: #000;
-                color: #fff;
-                border-color: #555;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
             }
             .modal-input:focus {
                 outline: none;
-                border-color: #3b82f6;
-                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                border-color: var(--modal-primary);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
             }
             .modal-footer {
                 display: flex;
@@ -557,44 +620,45 @@ class RenderedPageBuilder {
             }
             .modal-btn {
                 padding: 8px 16px;
-                border: 1px solid #d1d5da;
-                border-radius: 4px;
-                background: #f6f8fa;
-                color: #24292e;
+                border: 1px solid var(--modal-border);
+                border-radius: 6px;
+                background: var(--modal-btn-surface);
+                color: var(--modal-text);
                 cursor: pointer;
                 font-size: 14px;
                 font-weight: 500;
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
             }
             .modal-btn:hover {
-                background: #eef1f4;
+                background: var(--modal-btn-hover);
+            }
+            .modal-btn:focus-visible,
+            .modal-input:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+            }
+            .modal-btn:active {
+                transform: translateY(1px);
             }
             .modal-btn.modal-btn-primary {
-                background: #3b82f6;
+                background: var(--modal-primary);
                 color: #fff;
-                border-color: #3b82f6;
+                border-color: var(--modal-primary);
             }
             .modal-btn.modal-btn-primary:hover {
-                background: #2563eb;
+                background: var(--modal-primary-hover);
+                border-color: var(--modal-primary-hover);
             }
-            body.markdown-body.dark-theme .modal-btn {
-                background: #21262d;
-                color: #c9d1d9;
-                border-color: #30363d;
-            }
-            body.markdown-body.dark-theme .modal-btn:hover {
-                background: #30363d;
-            }
-            body.markdown-body.dark-theme .modal-btn.modal-btn-primary {
-                background: #3b82f6;
-                color: #fff;
-            }
-            body.markdown-body.high-contrast-theme .modal-btn {
-                background: #111;
-                color: #fff;
-                border-color: #555;
-            }
-            body.markdown-body.high-contrast-theme .modal-btn:hover {
-                background: #222;
+            @media (max-width: 600px) {
+                .modal-content {
+                    padding: 18px;
+                }
+                .modal-footer {
+                    flex-direction: column-reverse;
+                }
+                .modal-btn {
+                    width: 100%;
+                }
             }
         </style>`;
     }
@@ -620,15 +684,17 @@ class RenderedPageBuilder {
             <div id="promptModal" class="modal-overlay">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title" id="promptModalTitle">Input Required</h3>
+                        <h3 class="modal-title" id="promptModalTitle">Choose File Name</h3>
                     </div>
                     <div class="modal-body">
                         <p class="modal-message" id="promptModalMessage"></p>
+                        <p class="modal-helper" id="promptModalHelper">Tip: keep it short and descriptive.</p>
                         <input type="text" class="modal-input" id="promptModalInput" />
+                        <p class="modal-preview" id="promptModalPreview"></p>
                     </div>
                     <div class="modal-footer">
                         <button class="modal-btn" id="promptModalCancel">Cancel</button>
-                        <button class="modal-btn modal-btn-primary" id="promptModalConfirm">OK</button>
+                        <button class="modal-btn modal-btn-primary" id="promptModalConfirm">Save</button>
                     </div>
                 </div>
             </div>
@@ -663,39 +729,59 @@ class RenderedPageBuilder {
     static getCustomModalScript() {
         return `
 class CustomModal {
-    static prompt(message, defaultValue = '', title = 'Input Required') {
+    static prompt(message, defaultValue = '', title = 'Choose File Name', options = {}) {
         return new Promise((resolve) => {
             const modal = document.getElementById('promptModal');
             const titleEl = document.getElementById('promptModalTitle');
             const messageEl = document.getElementById('promptModalMessage');
+            const helperEl = document.getElementById('promptModalHelper');
+            const previewEl = document.getElementById('promptModalPreview');
             const inputEl = document.getElementById('promptModalInput');
             const confirmBtn = document.getElementById('promptModalConfirm');
             const cancelBtn = document.getElementById('promptModalCancel');
-            
+
+            const extensionHint = options.extension || '';
             titleEl.textContent = title;
             messageEl.textContent = message;
+            helperEl.textContent = extensionHint
+                ? 'Tip: extension ' + extensionHint + ' will be added automatically if missing.'
+                : 'Tip: keep it short and descriptive.';
             inputEl.value = defaultValue;
-            
+
+            const updatePreview = () => {
+                const rawValue = inputEl.value.trim() || defaultValue;
+                const sanitized = this.sanitizeFilename(rawValue, defaultValue);
+                const finalValue = extensionHint ? this.ensureExtension(sanitized, extensionHint) : sanitized;
+                previewEl.textContent = 'Final file: ' + finalValue;
+            };
+
             const cleanup = () => {
                 confirmBtn.removeEventListener('click', confirmHandler);
                 cancelBtn.removeEventListener('click', cancelHandler);
                 inputEl.removeEventListener('keydown', keyHandler);
-                modal.classList.remove('active');
+                inputEl.removeEventListener('input', updatePreview);
+                modal.removeEventListener('click', overlayHandler);
             };
-            
+
             const confirmHandler = () => {
                 const value = inputEl.value.trim();
                 cleanup();
-                resolve(value || null);
+                modal.classList.remove('active');
+                resolve(value || defaultValue);
             };
-            
+
             const cancelHandler = () => {
                 cleanup();
+                modal.classList.remove('active');
                 resolve(null);
             };
-            
+
+            const overlayHandler = (e) => {
+                if (e.target === modal) cancelHandler();
+            };
+
             const keyHandler = (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
                     e.preventDefault();
                     confirmHandler();
                 } else if (e.key === 'Escape') {
@@ -703,31 +789,65 @@ class CustomModal {
                     cancelHandler();
                 }
             };
-            
+
             confirmBtn.addEventListener('click', confirmHandler);
             cancelBtn.addEventListener('click', cancelHandler);
             inputEl.addEventListener('keydown', keyHandler);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) cancelHandler();
-            });
-            
+            inputEl.addEventListener('input', updatePreview);
+            modal.addEventListener('click', overlayHandler);
+
+            updatePreview();
             modal.classList.add('active');
-            setTimeout(() => inputEl.focus(), 100);
+            setTimeout(() => {
+                inputEl.focus();
+                const dotIndex = inputEl.value.lastIndexOf('.');
+                if (dotIndex > 0) {
+                    inputEl.setSelectionRange(0, dotIndex);
+                } else {
+                    inputEl.select();
+                }
+            }, 100);
         });
     }
-    
-    // Utility functions for file exports
-    static generateTimestamp() {
-        return new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-    }
-    
+
     static sanitizeFilename(filename, fallback) {
-        const sanitized = filename.trim().replace(/[<>:"/\\\\|?*]/g, '_');
+        const sanitized = filename.trim().replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^[-_.]+|[-_.]+$/g, '');
         return sanitized || fallback;
     }
-    
+
     static ensureExtension(filename, extension) {
-        return filename.endsWith(extension) ? filename : \`\${filename}\${extension}\`;
+        return filename.toLowerCase().endsWith(extension) ? filename : filename + extension;
+    }
+
+    static extractTitleFromMarkdown(markdown = '') {
+        const headingMatch = markdown.match(/^#\s+(.+)$/m);
+        if (headingMatch && headingMatch[1]) {
+            return headingMatch[1].trim();
+        }
+        return '';
+    }
+
+    static toSlug(value = '') {
+        return value
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-');
+    }
+
+    static getBaseFilename() {
+        const fromMarkdown = this.extractTitleFromMarkdown(window.__APP_DATA__?.rawMarkdown || '');
+        const fromDocTitle = (window.__APP_DATA__?.documentTitle || document.title || '').trim();
+        const raw = fromMarkdown || fromDocTitle || 'document';
+        const slug = this.toSlug(raw);
+        return slug || 'document';
+    }
+
+    static buildDefaultFilename(kind = '') {
+        const base = this.getBaseFilename();
+        if (!kind) return base;
+        return base + '-' + kind;
     }
 }`;
     }
@@ -1104,10 +1224,9 @@ class SavePdfController {
         }
         
         // Prompt for filename using utility functions
-        const timestamp = CustomModal.generateTimestamp();
-        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        const defaultFilename = CustomModal.buildDefaultFilename('pdf');
         
-        const filename = await CustomModal.prompt('Enter filename for PDF export:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your PDF file:', defaultFilename, 'Save as PDF', { extension: '.pdf' });
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
@@ -1144,10 +1263,9 @@ class ExportMarkdownController {
     
     async exportMarkdown() {
         const rawMarkdown = window.__APP_DATA__.rawMarkdown;
-        const timestamp = CustomModal.generateTimestamp();
-        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        const defaultFilename = CustomModal.buildDefaultFilename('markdown');
         
-        const filename = await CustomModal.prompt('Enter filename for Markdown export:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your Markdown file:', defaultFilename, 'Export Markdown', { extension: '.md' });
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
@@ -1214,10 +1332,9 @@ class ExportImageController {
         }
 
         // Prompt for filename using utility functions
-        const timestamp = CustomModal.generateTimestamp();
-        const defaultFilename = \`markdown-export-\${timestamp}\`;
+        const defaultFilename = CustomModal.buildDefaultFilename('image');
         
-        const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your image file:', defaultFilename, 'Export Image', { extension: '.png' });
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);

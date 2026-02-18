@@ -7,6 +7,7 @@ class SavedSectionsManager {
         this.currentActiveSection = null;
         this.currentEditingSection = null;
         this.currentFolderId = null; // Current folder being viewed
+        this.activeColorPopover = null;
         this.selectedColorLabel = 'none'; // Currently selected color for new items
         this.init();
     }
@@ -73,6 +74,15 @@ class SavedSectionsManager {
                 }
             }
         });
+
+        document.addEventListener('click', (e) => this.handleOutsideColorPopoverClick(e));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeColorPopover();
+            }
+        });
+        window.addEventListener('resize', () => this.closeColorPopover());
+        window.addEventListener('scroll', () => this.closeColorPopover(), true);
         
         // Folder modal events
         document.getElementById('folderModalSaveBtn')?.addEventListener('click', () => this.saveFolder());
@@ -120,7 +130,9 @@ class SavedSectionsManager {
         CustomModal.open('addSectionModal');
     }
     
-    renderColorPicker(containerId) {
+    renderColorPicker(containerId, selectedColor = this.selectedColorLabel, onSelect = (id) => {
+        this.selectedColorLabel = id;
+    }) {
         const container = document.getElementById(containerId);
         if (!container) return;
         
@@ -130,7 +142,7 @@ class SavedSectionsManager {
         colorLabels.forEach(color => {
             const colorBtn = document.createElement('button');
             colorBtn.type = 'button';
-            colorBtn.className = 'color-picker-btn' + (this.selectedColorLabel === color.id ? ' selected' : '');
+            colorBtn.className = 'color-picker-btn' + (selectedColor === color.id ? ' selected' : '');
             colorBtn.title = color.name;
             colorBtn.setAttribute('aria-label', `Select ${color.name} color`);
             colorBtn.setAttribute('data-color-id', color.id);
@@ -144,7 +156,7 @@ class SavedSectionsManager {
             }
             
             colorBtn.addEventListener('click', () => {
-                this.selectedColorLabel = color.id;
+                onSelect(color.id);
                 container.querySelectorAll('.color-picker-btn').forEach(btn => btn.classList.remove('selected'));
                 colorBtn.classList.add('selected');
             });
@@ -337,6 +349,7 @@ class SavedSectionsManager {
     }
     
     renderSavedSections() {
+        this.closeColorPopover();
         const container = this.dom.savedSectionsList;
         
         if (!this.clearContainer(container)) return;
@@ -490,7 +503,8 @@ class SavedSectionsManager {
         actionsDiv.className = 'section-actions';
         
         const renameBtn = this.createActionButton('✎', 'Edit item', 'rename-btn');
-        const colorBtn = this.createActionButton('●', 'Change color', 'color-btn');
+        const colorBtn = this.createActionButton('●', 'Change color label', 'color-btn');
+        this.updateColorButtonAppearance(colorBtn, section.colorLabel);
         const exportBtn = this.createActionButton('↓', 'Export as .md file', 'export-btn');
         const deleteBtn = this.createActionButton('✕', 'Delete item', 'delete-btn');
         
@@ -527,30 +541,164 @@ class SavedSectionsManager {
         }
     }
     
-    async showColorPicker(section) {
-        // Create a simple color selection modal
-        const colorLabels = this.sectionsManager.getColorLabels();
-        const currentColor = section.colorLabel || 'none';
-        
-        // Use the prompt modal with custom content for color picking
-        const colorNames = colorLabels.map(c => c.name).join(', ');
-        const result = await CustomModal.prompt(
-            `Current: ${this.sectionsManager.getColorById(currentColor).name}\nEnter color (${colorNames}):`,
-            '',
-            'Change Color'
-        );
-        
-        if (result) {
-            const color = colorLabels.find(c => c.name.toLowerCase() === result.toLowerCase());
-            if (color) {
-                this.sectionsManager.setSectionColor(section.id, color.id);
-                this.renderSavedSections();
-            } else {
-                await CustomModal.alert('Invalid color. Please try again.');
-            }
+    async showColorPicker(section, triggerButton) {
+        if (!triggerButton) return;
+
+        const selectedColor = section.colorLabel || 'none';
+
+        if (this.activeColorPopover?.sectionId === section.id) {
+            this.closeColorPopover();
+            return;
+        }
+
+        this.closeColorPopover();
+
+        const popover = document.createElement('div');
+        popover.className = 'color-popover';
+        popover.setAttribute('role', 'dialog');
+        popover.setAttribute('aria-label', `Change color label for ${section.title}`);
+        popover.setAttribute('data-section-id', section.id);
+
+        const header = document.createElement('div');
+        header.className = 'color-popover-header';
+
+        const title = document.createElement('div');
+        title.className = 'color-popover-title';
+        title.textContent = section.title;
+        title.title = section.title;
+
+        const currentColor = document.createElement('div');
+        currentColor.className = 'color-popover-current';
+        currentColor.textContent = `Current: ${this.sectionsManager.getColorById(selectedColor).name}`;
+
+        header.appendChild(title);
+        header.appendChild(currentColor);
+
+        const picker = document.createElement('div');
+        picker.className = 'color-picker';
+
+        popover.appendChild(header);
+        popover.appendChild(picker);
+        document.body.appendChild(popover);
+
+        this.activeColorPopover = {
+            sectionId: section.id,
+            triggerButton,
+            popover
+        };
+
+        this.renderColorPickerInContainer(picker, selectedColor, (colorId) => {
+            this.sectionsManager.setSectionColor(section.id, colorId);
+            this.closeColorPopover();
+            this.renderSavedSections();
+        });
+
+        this.positionColorPopover(triggerButton, popover);
+        const firstSwatch = popover.querySelector('.color-picker-btn');
+        if (firstSwatch) {
+            firstSwatch.focus();
         }
     }
-    
+
+    renderColorPickerInContainer(container, selectedColor, onSelect) {
+        if (!container) return;
+
+        container.innerHTML = '';
+        const colorLabels = this.sectionsManager.getColorLabels();
+
+        colorLabels.forEach(color => {
+            const colorBtn = document.createElement('button');
+            colorBtn.type = 'button';
+            colorBtn.className = 'color-picker-btn' + (selectedColor === color.id ? ' selected' : '');
+            colorBtn.title = color.name;
+            colorBtn.setAttribute('aria-label', `Apply ${color.name} color`);
+            colorBtn.setAttribute('data-color-id', color.id);
+
+            if (color.id === 'none') {
+                colorBtn.innerHTML = '✕';
+                colorBtn.style.backgroundColor = 'var(--surface-color)';
+                colorBtn.style.border = '2px dashed var(--border-color)';
+            } else {
+                colorBtn.style.backgroundColor = color.color;
+            }
+
+            colorBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                onSelect(color.id);
+            });
+
+            container.appendChild(colorBtn);
+        });
+    }
+
+    positionColorPopover(triggerButton, popover) {
+        if (!triggerButton || !popover) return;
+
+        const triggerRect = triggerButton.getBoundingClientRect();
+        const popoverRect = popover.getBoundingClientRect();
+        const spacing = 8;
+
+        let top = window.scrollY + triggerRect.bottom + spacing;
+        const left = Math.max(
+            window.scrollX + 8,
+            Math.min(
+                window.scrollX + window.innerWidth - popoverRect.width - 8,
+                window.scrollX + triggerRect.right - popoverRect.width
+            )
+        );
+
+        if (top + popoverRect.height > window.scrollY + window.innerHeight - 8) {
+            top = window.scrollY + triggerRect.top - popoverRect.height - spacing;
+        }
+
+        popover.style.top = `${Math.max(window.scrollY + 8, top)}px`;
+        popover.style.left = `${left}px`;
+    }
+
+    handleOutsideColorPopoverClick(event) {
+        if (!this.activeColorPopover?.popover) return;
+
+        const { popover, triggerButton } = this.activeColorPopover;
+        const target = event.target;
+
+        if (popover.contains(target) || triggerButton?.contains(target)) {
+            return;
+        }
+
+        this.closeColorPopover();
+    }
+
+    closeColorPopover() {
+        if (!this.activeColorPopover) return;
+
+        const { popover } = this.activeColorPopover;
+        if (popover && popover.parentNode) {
+            popover.parentNode.removeChild(popover);
+        }
+
+        this.activeColorPopover = null;
+    }
+
+    updateColorButtonAppearance(button, colorId = 'none') {
+        if (!button) return;
+
+        const color = this.sectionsManager.getColorById(colorId || 'none');
+        button.classList.toggle('has-color', color.id !== 'none');
+        button.style.removeProperty('background-color');
+
+        if (color.id === 'none') {
+            button.textContent = '●';
+            button.setAttribute('aria-label', 'Change color label (currently No Color)');
+            button.title = 'Change color label (currently No Color)';
+            return;
+        }
+
+        button.textContent = '';
+        button.style.backgroundColor = color.color;
+        button.setAttribute('aria-label', `Change color label (currently ${color.name})`);
+        button.title = `Change color label (currently ${color.name})`;
+    }
+
     createActionButton(text, title, className) {
         const button = document.createElement('button');
         button.className = `action-btn ${className}`;
@@ -581,7 +729,7 @@ class SavedSectionsManager {
         
         colorBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.showColorPicker(section);
+            this.showColorPicker(section, colorBtn);
         });
         
         exportBtn?.addEventListener('click', (e) => {

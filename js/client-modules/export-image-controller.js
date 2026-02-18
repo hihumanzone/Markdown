@@ -44,10 +44,9 @@ class ExportImageController {
         }
 
         // Prompt for filename
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -4);
-        const defaultFilename = `markdown-export-${timestamp}`;
+        const defaultFilename = this.getDefaultFilename('image');
         
-        const filename = await CustomModal.prompt('Enter filename for image export:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your image file:', defaultFilename);
         if (filename === null) return; // User cancelled
         
         const sanitizedFilename = filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename;
@@ -100,5 +99,12 @@ class ExportImageController {
             this.btn.disabled = false;
             window.scrollTo(originalScrollX, originalScrollY);
         }
+    }
+
+
+    getDefaultFilename(kind) {
+        const title = (window.__APP_DATA__?.documentTitle || document.title || 'document').toLowerCase();
+        const base = title.replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-') || 'document';
+        return `${base}-${kind}`;
     }
 }

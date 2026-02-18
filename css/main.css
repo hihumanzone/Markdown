@@ -258,16 +258,30 @@ button:disabled {
     cursor: pointer;
     border-radius: 3px;
     font-size: 0.75rem;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 }
 
+.action-btn.has-color {
+    border-color: var(--border-color);
+}
+
 .action-btn:hover {
     background-color: var(--bg-color);
     border-color: var(--primary-color);
+}
+
+.action-btn:focus-visible {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-focus-shadow);
+}
+
+.action-btn:active {
+    transform: translateY(1px);
 }
 
 .section-item:not(.active) .action-btn {
@@ -514,8 +528,14 @@ button:disabled {
 }
 
 .color-picker-btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.08);
     box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.color-picker-btn:focus-visible {
+    outline: none;
+    border-color: var(--text-color);
+    box-shadow: 0 0 0 2px var(--primary-focus-shadow);
 }
 
 .color-picker-btn.selected {
@@ -526,6 +546,59 @@ button:disabled {
 /* Color button in actions */
 .color-btn {
     font-size: 0.6rem;
+}
+
+.color-popover {
+    position: absolute;
+    z-index: 1200;
+    min-width: 220px;
+    max-width: min(300px, calc(100vw - 1rem));
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--surface-color);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    backdrop-filter: blur(2px);
+    animation: popover-in 0.16s ease-out;
+}
+
+.color-popover-header {
+    margin-bottom: 0.5rem;
+}
+
+.color-popover-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.color-popover-current {
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
+    color: var(--text-muted-color);
+}
+
+@keyframes popover-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .color-popover,
+    .action-btn,
+    .color-picker-btn {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 /* Mobile responsive styles for library actions */
@@ -558,6 +631,11 @@ button:disabled {
 }
 
 @media (max-width: 480px) {
+    .color-popover {
+        min-width: min(220px, calc(100vw - 1rem));
+        max-width: calc(100vw - 1rem);
+    }
+
     .library-actions {
         flex-wrap: wrap;
     }
