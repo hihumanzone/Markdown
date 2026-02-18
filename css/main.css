@@ -265,6 +265,10 @@ button:disabled {
     flex-shrink: 0;
 }
 
+.action-btn.has-color {
+    border-color: var(--border-color);
+}
+
 .action-btn:hover {
     background-color: var(--bg-color);
     border-color: var(--primary-color);
@@ -526,6 +530,13 @@ button:disabled {
 /* Color button in actions */
 .color-btn {
     font-size: 0.6rem;
+}
+
+.color-modal-summary {
+    margin: 0 0 0.75rem;
+    color: var(--text-muted-color);
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 /* Mobile responsive styles for library actions */

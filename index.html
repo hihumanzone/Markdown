@@ -245,6 +245,27 @@ Don't write something like $E=mc^2$ across multiple lines.
         </div>
     </div>
 
+    <!-- Color Label Modal -->
+    <div id="colorModal" class="modal-overlay" role="dialog" aria-labelledby="colorModalTitle" aria-modal="true">
+        <div class="modal-container modal-container-small">
+            <div class="modal-header">
+                <h3 class="modal-title" id="colorModalTitle">Change Color Label</h3>
+                <button class="modal-close" data-close-modal="colorModal" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p class="color-modal-summary">
+                    Item: <strong id="colorModalSectionName"></strong><br>
+                    Current color: <strong id="colorModalCurrentColor">No Color</strong>
+                </p>
+                <div id="colorModalPicker" class="color-picker" aria-label="Select new color label"></div>
+            </div>
+            <div class="modal-actions" role="group" aria-label="Color modal actions">
+                <button class="modal-button modal-button-secondary" data-close-modal="colorModal">Cancel</button>
+                <button id="colorModalApplyBtn" class="modal-button modal-button-primary">Apply Color</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Create Folder Modal -->
     <div id="createFolderModal" class="modal-overlay" role="dialog" aria-labelledby="createFolderModalTitle" aria-modal="true">
         <div class="modal-container modal-container-small">

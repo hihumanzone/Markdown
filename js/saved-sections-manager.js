@@ -6,6 +6,7 @@ class SavedSectionsManager {
         this.historyManager = new HistoryManager();
         this.currentActiveSection = null;
         this.currentEditingSection = null;
+        this.currentColorEditingSection = null;
         this.currentFolderId = null; // Current folder being viewed
         this.selectedColorLabel = 'none'; // Currently selected color for new items
         this.init();
@@ -58,6 +59,7 @@ class SavedSectionsManager {
         });
         
         document.getElementById('editModalSaveBtn')?.addEventListener('click', () => this.saveFromEditModal());
+        document.getElementById('colorModalApplyBtn')?.addEventListener('click', () => this.applyColorFromModal());
         
         document.getElementById('editModalSectionTitle')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -71,6 +73,13 @@ class SavedSectionsManager {
                     e.preventDefault();
                     this.saveFromEditModal();
                 }
+            }
+        });
+
+        document.getElementById('colorModal')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.applyColorFromModal();
             }
         });
         
@@ -120,7 +129,9 @@ class SavedSectionsManager {
         CustomModal.open('addSectionModal');
     }
     
-    renderColorPicker(containerId) {
+    renderColorPicker(containerId, selectedColor = this.selectedColorLabel, onSelect = (id) => {
+        this.selectedColorLabel = id;
+    }) {
         const container = document.getElementById(containerId);
         if (!container) return;
         
@@ -130,7 +141,7 @@ class SavedSectionsManager {
         colorLabels.forEach(color => {
             const colorBtn = document.createElement('button');
             colorBtn.type = 'button';
-            colorBtn.className = 'color-picker-btn' + (this.selectedColorLabel === color.id ? ' selected' : '');
+            colorBtn.className = 'color-picker-btn' + (selectedColor === color.id ? ' selected' : '');
             colorBtn.title = color.name;
             colorBtn.setAttribute('aria-label', `Select ${color.name} color`);
             colorBtn.setAttribute('data-color-id', color.id);
@@ -144,7 +155,7 @@ class SavedSectionsManager {
             }
             
             colorBtn.addEventListener('click', () => {
-                this.selectedColorLabel = color.id;
+                onSelect(color.id);
                 container.querySelectorAll('.color-picker-btn').forEach(btn => btn.classList.remove('selected'));
                 colorBtn.classList.add('selected');
             });
@@ -490,7 +501,8 @@ class SavedSectionsManager {
         actionsDiv.className = 'section-actions';
         
         const renameBtn = this.createActionButton('✎', 'Edit item', 'rename-btn');
-        const colorBtn = this.createActionButton('●', 'Change color', 'color-btn');
+        const colorBtn = this.createActionButton('●', 'Change color label', 'color-btn');
+        this.updateColorButtonAppearance(colorBtn, section.colorLabel);
         const exportBtn = this.createActionButton('↓', 'Export as .md file', 'export-btn');
         const deleteBtn = this.createActionButton('✕', 'Delete item', 'delete-btn');
         
@@ -528,27 +540,58 @@ class SavedSectionsManager {
     }
     
     async showColorPicker(section) {
-        // Create a simple color selection modal
-        const colorLabels = this.sectionsManager.getColorLabels();
-        const currentColor = section.colorLabel || 'none';
-        
-        // Use the prompt modal with custom content for color picking
-        const colorNames = colorLabels.map(c => c.name).join(', ');
-        const result = await CustomModal.prompt(
-            `Current: ${this.sectionsManager.getColorById(currentColor).name}\nEnter color (${colorNames}):`,
-            '',
-            'Change Color'
-        );
-        
-        if (result) {
-            const color = colorLabels.find(c => c.name.toLowerCase() === result.toLowerCase());
-            if (color) {
-                this.sectionsManager.setSectionColor(section.id, color.id);
-                this.renderSavedSections();
-            } else {
-                await CustomModal.alert('Invalid color. Please try again.');
-            }
+        this.currentColorEditingSection = section;
+        this.selectedColorLabel = section.colorLabel || 'none';
+
+        const sectionName = document.getElementById('colorModalSectionName');
+        const colorName = document.getElementById('colorModalCurrentColor');
+        if (sectionName) {
+            sectionName.textContent = section.title;
         }
+        if (colorName) {
+            colorName.textContent = this.sectionsManager.getColorById(this.selectedColorLabel).name;
+        }
+
+        this.renderColorPicker('colorModalPicker', this.selectedColorLabel, (colorId) => {
+            this.selectedColorLabel = colorId;
+            const currentColorName = document.getElementById('colorModalCurrentColor');
+            if (currentColorName) {
+                currentColorName.textContent = this.sectionsManager.getColorById(colorId).name;
+            }
+        });
+
+        CustomModal.open('colorModal');
+    }
+
+    updateColorButtonAppearance(button, colorId = 'none') {
+        if (!button) return;
+
+        const color = this.sectionsManager.getColorById(colorId || 'none');
+        button.classList.toggle('has-color', color.id !== 'none');
+        button.style.removeProperty('background-color');
+
+        if (color.id === 'none') {
+            button.textContent = '●';
+            button.setAttribute('aria-label', 'Change color label (currently No Color)');
+            button.title = 'Change color label (currently No Color)';
+            return;
+        }
+
+        button.textContent = '';
+        button.style.backgroundColor = color.color;
+        button.setAttribute('aria-label', `Change color label (currently ${color.name})`);
+        button.title = `Change color label (currently ${color.name})`;
+    }
+
+    applyColorFromModal() {
+        if (!this.currentColorEditingSection) {
+            return;
+        }
+
+        this.sectionsManager.setSectionColor(this.currentColorEditingSection.id, this.selectedColorLabel || 'none');
+        this.currentColorEditingSection = null;
+        CustomModal.close('colorModal');
+        this.renderSavedSections();
     }
     
     createActionButton(text, title, className) {
