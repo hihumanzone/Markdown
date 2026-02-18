@@ -6,8 +6,8 @@ class SavedSectionsManager {
         this.historyManager = new HistoryManager();
         this.currentActiveSection = null;
         this.currentEditingSection = null;
-        this.currentColorEditingSection = null;
         this.currentFolderId = null; // Current folder being viewed
+        this.activeColorPopover = null;
         this.selectedColorLabel = 'none'; // Currently selected color for new items
         this.init();
     }
@@ -59,7 +59,6 @@ class SavedSectionsManager {
         });
         
         document.getElementById('editModalSaveBtn')?.addEventListener('click', () => this.saveFromEditModal());
-        document.getElementById('colorModalApplyBtn')?.addEventListener('click', () => this.applyColorFromModal());
         
         document.getElementById('editModalSectionTitle')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -76,12 +75,14 @@ class SavedSectionsManager {
             }
         });
 
-        document.getElementById('colorModal')?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.applyColorFromModal();
+        document.addEventListener('click', (e) => this.handleOutsideColorPopoverClick(e));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeColorPopover();
             }
         });
+        window.addEventListener('resize', () => this.closeColorPopover());
+        window.addEventListener('scroll', () => this.closeColorPopover(), true);
         
         // Folder modal events
         document.getElementById('folderModalSaveBtn')?.addEventListener('click', () => this.saveFolder());
@@ -348,6 +349,7 @@ class SavedSectionsManager {
     }
     
     renderSavedSections() {
+        this.closeColorPopover();
         const container = this.dom.savedSectionsList;
         
         if (!this.clearContainer(container)) return;
@@ -539,28 +541,142 @@ class SavedSectionsManager {
         }
     }
     
-    async showColorPicker(section) {
-        this.currentColorEditingSection = section;
-        this.selectedColorLabel = section.colorLabel || 'none';
+    async showColorPicker(section, triggerButton) {
+        if (!triggerButton) return;
 
-        const sectionName = document.getElementById('colorModalSectionName');
-        const colorName = document.getElementById('colorModalCurrentColor');
-        if (sectionName) {
-            sectionName.textContent = section.title;
-        }
-        if (colorName) {
-            colorName.textContent = this.sectionsManager.getColorById(this.selectedColorLabel).name;
+        const selectedColor = section.colorLabel || 'none';
+
+        if (this.activeColorPopover?.sectionId === section.id) {
+            this.closeColorPopover();
+            return;
         }
 
-        this.renderColorPicker('colorModalPicker', this.selectedColorLabel, (colorId) => {
-            this.selectedColorLabel = colorId;
-            const currentColorName = document.getElementById('colorModalCurrentColor');
-            if (currentColorName) {
-                currentColorName.textContent = this.sectionsManager.getColorById(colorId).name;
-            }
+        this.closeColorPopover();
+
+        const popover = document.createElement('div');
+        popover.className = 'color-popover';
+        popover.setAttribute('role', 'dialog');
+        popover.setAttribute('aria-label', `Change color label for ${section.title}`);
+        popover.setAttribute('data-section-id', section.id);
+
+        const header = document.createElement('div');
+        header.className = 'color-popover-header';
+
+        const title = document.createElement('div');
+        title.className = 'color-popover-title';
+        title.textContent = section.title;
+        title.title = section.title;
+
+        const currentColor = document.createElement('div');
+        currentColor.className = 'color-popover-current';
+        currentColor.textContent = `Current: ${this.sectionsManager.getColorById(selectedColor).name}`;
+
+        header.appendChild(title);
+        header.appendChild(currentColor);
+
+        const picker = document.createElement('div');
+        picker.className = 'color-picker';
+
+        popover.appendChild(header);
+        popover.appendChild(picker);
+        document.body.appendChild(popover);
+
+        this.activeColorPopover = {
+            sectionId: section.id,
+            triggerButton,
+            popover
+        };
+
+        this.renderColorPickerInContainer(picker, selectedColor, (colorId) => {
+            this.sectionsManager.setSectionColor(section.id, colorId);
+            this.closeColorPopover();
+            this.renderSavedSections();
         });
 
-        CustomModal.open('colorModal');
+        this.positionColorPopover(triggerButton, popover);
+        const firstSwatch = popover.querySelector('.color-picker-btn');
+        if (firstSwatch) {
+            firstSwatch.focus();
+        }
+    }
+
+    renderColorPickerInContainer(container, selectedColor, onSelect) {
+        if (!container) return;
+
+        container.innerHTML = '';
+        const colorLabels = this.sectionsManager.getColorLabels();
+
+        colorLabels.forEach(color => {
+            const colorBtn = document.createElement('button');
+            colorBtn.type = 'button';
+            colorBtn.className = 'color-picker-btn' + (selectedColor === color.id ? ' selected' : '');
+            colorBtn.title = color.name;
+            colorBtn.setAttribute('aria-label', `Apply ${color.name} color`);
+            colorBtn.setAttribute('data-color-id', color.id);
+
+            if (color.id === 'none') {
+                colorBtn.innerHTML = '✕';
+                colorBtn.style.backgroundColor = 'var(--surface-color)';
+                colorBtn.style.border = '2px dashed var(--border-color)';
+            } else {
+                colorBtn.style.backgroundColor = color.color;
+            }
+
+            colorBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                onSelect(color.id);
+            });
+
+            container.appendChild(colorBtn);
+        });
+    }
+
+    positionColorPopover(triggerButton, popover) {
+        if (!triggerButton || !popover) return;
+
+        const triggerRect = triggerButton.getBoundingClientRect();
+        const popoverRect = popover.getBoundingClientRect();
+        const spacing = 8;
+
+        let top = window.scrollY + triggerRect.bottom + spacing;
+        const left = Math.max(
+            window.scrollX + 8,
+            Math.min(
+                window.scrollX + window.innerWidth - popoverRect.width - 8,
+                window.scrollX + triggerRect.right - popoverRect.width
+            )
+        );
+
+        if (top + popoverRect.height > window.scrollY + window.innerHeight - 8) {
+            top = window.scrollY + triggerRect.top - popoverRect.height - spacing;
+        }
+
+        popover.style.top = `${Math.max(window.scrollY + 8, top)}px`;
+        popover.style.left = `${left}px`;
+    }
+
+    handleOutsideColorPopoverClick(event) {
+        if (!this.activeColorPopover?.popover) return;
+
+        const { popover, triggerButton } = this.activeColorPopover;
+        const target = event.target;
+
+        if (popover.contains(target) || triggerButton?.contains(target)) {
+            return;
+        }
+
+        this.closeColorPopover();
+    }
+
+    closeColorPopover() {
+        if (!this.activeColorPopover) return;
+
+        const { popover } = this.activeColorPopover;
+        if (popover && popover.parentNode) {
+            popover.parentNode.removeChild(popover);
+        }
+
+        this.activeColorPopover = null;
     }
 
     updateColorButtonAppearance(button, colorId = 'none') {
@@ -583,17 +699,6 @@ class SavedSectionsManager {
         button.title = `Change color label (currently ${color.name})`;
     }
 
-    applyColorFromModal() {
-        if (!this.currentColorEditingSection) {
-            return;
-        }
-
-        this.sectionsManager.setSectionColor(this.currentColorEditingSection.id, this.selectedColorLabel || 'none');
-        this.currentColorEditingSection = null;
-        CustomModal.close('colorModal');
-        this.renderSavedSections();
-    }
-    
     createActionButton(text, title, className) {
         const button = document.createElement('button');
         button.className = `action-btn ${className}`;
@@ -624,7 +729,7 @@ class SavedSectionsManager {
         
         colorBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.showColorPicker(section);
+            this.showColorPicker(section, colorBtn);
         });
         
         exportBtn?.addEventListener('click', (e) => {

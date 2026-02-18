@@ -532,11 +532,35 @@ button:disabled {
     font-size: 0.6rem;
 }
 
-.color-modal-summary {
-    margin: 0 0 0.75rem;
+.color-popover {
+    position: absolute;
+    z-index: 1200;
+    min-width: 220px;
+    max-width: min(300px, calc(100vw - 1rem));
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--surface-color);
+    box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.color-popover-header {
+    margin-bottom: 0.5rem;
+}
+
+.color-popover-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.color-popover-current {
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
     color: var(--text-muted-color);
-    font-size: 0.9rem;
-    line-height: 1.5;
 }
 
 /* Mobile responsive styles for library actions */
