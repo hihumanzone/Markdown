@@ -176,8 +176,7 @@ class MarkdownRendererApp {
             const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
             let html = marked.parse(tempText);
             html = MathProcessor.restoreMathExpressions(html, mathExpressions);
-            const listItems = ListItemParser.parse(markdownText);
-            const flatListItems = ListItemParser.parseFlat(markdownText);
+            const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
             const fullPageHtml = RenderedPageBuilder.build(
                 html,
                 markdownText,
@@ -203,8 +202,7 @@ class MarkdownRendererApp {
         }
         
         const basicHtml = FallbackRenderer.renderToHtml(markdownText);
-        const listItems = ListItemParser.parse(markdownText);
-        const flatListItems = ListItemParser.parseFlat(markdownText);
+        const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
         const fullPageHtml = RenderedPageBuilder.build(
             basicHtml,
             markdownText,
