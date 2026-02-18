@@ -276,16 +276,6 @@ class RenderedPageBuilder {
             body.markdown-body.high-contrast-theme #raw-markdown{
                 background:#000!important;color:#fff!important;border-color:#fff!important
             }
-            body.markdown-body.high-contrast-theme .fc-panel{
-                background:rgba(0,0,0,.92);box-shadow:0 2px 10px rgba(255,255,255,.35)
-            }
-            body.markdown-body.high-contrast-theme .fc-button{
-                background:#111;color:#fff;border:1px solid #555
-            }
-            body.markdown-body.high-contrast-theme .fc-button:hover{
-                background:#222;border-color:#777
-            }
-            body.markdown-body.high-contrast-theme .fc-display{color:#fff}
             body.markdown-body.high-contrast-theme #copy-notification{
                 background:rgba(255,255,255,.9);color:#000
             }
@@ -293,67 +283,102 @@ class RenderedPageBuilder {
                 background:rgba(8,136,255,.25)!important
             }
             .fc-panel {
+                --fc-panel-bg: rgba(255, 255, 255, 0.88);
+                --fc-panel-border: rgba(209, 213, 218, 0.9);
+                --fc-panel-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
+                --fc-button-bg: #f6f8fa;
+                --fc-button-border: #d1d5da;
+                --fc-button-text: #24292e;
+                --fc-button-hover-bg: #eef1f4;
+                --fc-button-hover-border: #bec4cb;
+                --fc-button-focus-ring: rgba(59, 130, 246, 0.24);
+                --fc-display-bg: rgba(59, 130, 246, 0.08);
+                --fc-display-text: #1f2937;
                 position: fixed;
-                top: 10px;
-                right: 10px;
-                padding: 8px;
-                border-radius: 6px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                top: 12px;
+                right: 12px;
+                padding: 10px;
+                border-radius: 12px;
+                border: 1px solid var(--fc-panel-border);
+                box-shadow: var(--fc-panel-shadow);
                 z-index: 1000;
                 display: flex;
                 align-items: center;
                 gap: 6px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                font-size: 13px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(5px);
-                -webkit-backdrop-filter: blur(5px);
-                transition: background-color 0.3s ease, box-shadow 0.3s ease;
                 flex-wrap: wrap;
                 justify-content: flex-end;
+                background: var(--fc-panel-bg);
+                backdrop-filter: blur(10px) saturate(130%);
+                -webkit-backdrop-filter: blur(10px) saturate(130%);
+                transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                font-size: 13px;
             }
             .fc-button {
-                padding: 5px 10px;
+                min-height: 30px;
+                padding: 6px 10px;
                 cursor: pointer;
-                background-color: #f6f8fa;
-                color: #24292e;
-                border: 1px solid #d1d5da;
-                border-radius: 4px;
-                transition: background-color 0.2s ease, border-color 0.2s ease;
+                background-color: var(--fc-button-bg);
+                color: var(--fc-button-text);
+                border: 1px solid var(--fc-button-border);
+                border-radius: 8px;
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
                 font-size: 12px;
-                line-height: 1.5;
+                font-weight: 500;
+                line-height: 1.3;
             }
             .fc-button:hover:not(:disabled) {
-                background-color: #eef1f4;
-                border-color: #c0c5cb;
+                background-color: var(--fc-button-hover-bg);
+                border-color: var(--fc-button-hover-border);
+            }
+            .fc-button:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 3px var(--fc-button-focus-ring);
+                border-color: #3b82f6;
+            }
+            .fc-button:active:not(:disabled) {
+                transform: translateY(1px);
             }
             .fc-button:disabled {
-                 opacity: 0.6;
+                 opacity: 0.58;
                  cursor: not-allowed;
             }
             .fc-display {
-                color: #24292e;
-                padding: 0 8px;
-                min-width: 45px;
+                color: var(--fc-display-text);
+                background: var(--fc-display-bg);
+                border: 1px solid transparent;
+                border-radius: 999px;
+                padding: 4px 10px;
+                min-width: 52px;
                 text-align: center;
-                font-weight: 500;
+                font-weight: 600;
                 font-size: 12px;
             }
             body.markdown-body.dark-theme .fc-panel {
-                background: rgba(22, 27, 34, 0.9);
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+                --fc-panel-bg: rgba(22, 27, 34, 0.88);
+                --fc-panel-border: rgba(48, 54, 61, 0.95);
+                --fc-panel-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+                --fc-button-bg: #21262d;
+                --fc-button-border: #30363d;
+                --fc-button-text: #c9d1d9;
+                --fc-button-hover-bg: #30363d;
+                --fc-button-hover-border: #4b5563;
+                --fc-button-focus-ring: rgba(88, 166, 255, 0.3);
+                --fc-display-bg: rgba(88, 166, 255, 0.16);
+                --fc-display-text: #dce7f3;
             }
-            body.markdown-body.dark-theme .fc-button {
-                background-color: #21262d;
-                color: #c9d1d9;
-                border: 1px solid #30363d;
-            }
-            body.markdown-body.dark-theme .fc-button:hover:not(:disabled) {
-                background-color: #30363d;
-                border-color: #484f58;
-            }
-            body.markdown-body.dark-theme .fc-display {
-                color: #c9d1d9;
+            body.markdown-body.high-contrast-theme .fc-panel {
+                --fc-panel-bg: rgba(0, 0, 0, 0.94);
+                --fc-panel-border: #666;
+                --fc-panel-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 8px 20px rgba(0, 0, 0, 0.6);
+                --fc-button-bg: #111;
+                --fc-button-border: #666;
+                --fc-button-text: #fff;
+                --fc-button-hover-bg: #222;
+                --fc-button-hover-border: #8a8a8a;
+                --fc-button-focus-ring: rgba(8, 136, 255, 0.45);
+                --fc-display-bg: rgba(8, 136, 255, 0.2);
+                --fc-display-text: #fff;
             }
             .list-item-highlight {
                 background-color: rgba(3, 102, 214, 0.1) !important;
@@ -411,13 +436,22 @@ class RenderedPageBuilder {
                 .fc-panel {
                     flex-direction: column;
                     align-items: stretch;
-                    top: 5px;
-                    right: 5px;
+                    top: 8px;
+                    right: 8px;
                     gap: 4px;
-                    width: 130px;
+                    width: min(176px, calc(100vw - 16px));
+                    padding: 8px;
                 }
-                .fc-button, .fc-display {
+                .fc-button,
+                .fc-display {
+                    width: 100%;
                     text-align: center;
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .fc-panel,
+                .fc-button {
+                    transition: none !important;
                 }
             }
             @media print {
