@@ -9,35 +9,37 @@ class ListItemParser {
     }
 
     static parse(markdownText) {
-        const listItems = [];
-        const lines = markdownText.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const listMatch = this._getListMatch(line);
-            if (listMatch) {
-                const listItem = this._parseListItem(lines, i, listMatch);
-                listItems.push(listItem.item);
-                i = listItem.nextIndex - 1;
-            }
-        }
-        return listItems;
+        return this.parseAll(markdownText).nested;
     }
 
     static parseFlat(markdownText) {
-        const items = [];
+        return this.parseAll(markdownText).flat;
+    }
+
+    static parseAll(markdownText) {
+        const nested = [];
+        const flat = [];
         const lines = markdownText.split('\n');
+
         for (let i = 0; i < lines.length; i++) {
-            const match = this._getListMatch(lines[i]);
-            if (!match) continue;
-            const endIdx = this._findItemBlockEnd(lines, i, match);
-            const content = this._buildItemContent(lines, i, endIdx, match);
-            items.push({
-                content: content.trimEnd(),
-                indent: match.indent,
-                isOrdered: match.isOrdered
+            const listMatch = this._getListMatch(lines[i]);
+            if (!listMatch) {
+                continue;
+            }
+
+            const parsedItem = this._parseListItem(lines, i, listMatch);
+            nested.push(parsedItem.item);
+
+            flat.push({
+                content: this._buildFlatContent(lines, i, parsedItem.nextIndex, listMatch),
+                indent: listMatch.indent,
+                isOrdered: listMatch.isOrdered
             });
+
+            i = parsedItem.nextIndex - 1;
         }
-        return items;
+
+        return { nested, flat };
     }
 
     static _getListMatch(line) {
@@ -102,30 +104,7 @@ class ListItemParser {
         };
     }
 
-    static _findItemBlockEnd(lines, startIndex, listMatch) {
-        const baseIndentation = lines[startIndex].indexOf(listMatch.content);
-        let idx = startIndex + 1;
-        while (idx < lines.length) {
-            const nextLine = lines[idx];
-            const trimmed = nextLine.trim();
-            if (trimmed === '') { idx++; continue; }
-            const nextMatch = this._getListMatch(nextLine);
-            if (nextMatch) {
-                if (nextMatch.indent <= listMatch.indent) break;
-                idx++;
-                continue;
-            }
-            const leadingWhitespaceLength = (nextLine.match(/^\s*/) || [''])[0].length;
-            if (leadingWhitespaceLength >= baseIndentation) {
-                idx++;
-            } else {
-                break;
-            }
-        }
-        return idx;
-    }
-
-    static _buildItemContent(lines, startIndex, endIndex, listMatch) {
+    static _buildFlatContent(lines, startIndex, endIndex, listMatch) {
         const baseIndentation = lines[startIndex].indexOf(listMatch.content);
         let content = listMatch.content;
         for (let i = startIndex + 1; i < endIndex; i++) {
@@ -144,7 +123,7 @@ class ListItemParser {
                 content += '\n' + line.trimEnd();
             }
         }
-        return content;
+        return content.trimEnd();
     }
 }
 
