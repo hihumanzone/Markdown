@@ -65,6 +65,10 @@ class RenderedPageBuilder {
                 background-color: #ffffff;
                 color: #24292e;
             }
+            body.markdown-body #content-container {
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
             body.markdown-body a {
                 color: #0366d6;
                 text-decoration: none;
@@ -125,6 +129,12 @@ class RenderedPageBuilder {
                 overflow: auto;
                 padding: 16px;
                 margin: 16px 0;
+            }
+            body.markdown-body pre,
+            body.markdown-body code,
+            body.markdown-body #raw-markdown {
+                overflow-wrap: normal;
+                word-break: normal;
             }
             body.markdown-body pre code {
                 background-color: transparent;
