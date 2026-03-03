@@ -66,13 +66,9 @@ body {
 }
 
 .main-content {
-    max-width: 1200px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: clamp(1.5rem, 4vw, 3rem) 1.25rem 2.5rem;
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-    gap: var(--space-6);
-    align-items: start;
 }
 
 h1 {
@@ -671,16 +667,9 @@ button:disabled {
 }
 
 /* Mobile responsive styles for library actions */
-@media (max-width: 900px) {
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-}
-
 @media (max-width: 768px) {
     .main-content {
         padding: 1.25rem 0.875rem;
-        gap: 1rem;
     }
 
     h1 {
