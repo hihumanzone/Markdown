@@ -1,15 +1,16 @@
 class MarkedLoader {
+    static CDN_SRC = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+
     constructor() {
         this.fallbackWarningLogged = false;
         this.loadPromise = null;
     }
 
     async ensureAvailable() {
-        if (typeof marked !== 'undefined') {
-            return true;
-        }
+        if (typeof marked !== 'undefined') return true;
+
         if (!this.loadPromise) {
-            this.loadPromise = this.injectScript('https://cdn.jsdelivr.net/npm/marked/marked.min.js');
+            this.loadPromise = this.injectScript(MarkedLoader.CDN_SRC);
         }
 
         try {
@@ -37,15 +38,24 @@ class MarkedLoader {
         return new Promise((resolve, reject) => {
             const existing = document.querySelector(`script[src="${src}"]`);
             if (existing) {
-                existing.addEventListener('load', resolve, { once: true });
-                existing.addEventListener('error', reject, { once: true });
+                if (existing.getAttribute('data-loaded') === 'true') {
+                    resolve();
+                    return;
+                }
+                existing.addEventListener('load', () => resolve(), { once: true });
+                existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
                 return;
             }
 
             const script = document.createElement('script');
             script.src = src;
             script.async = true;
-            script.onload = () => resolve();
+            script.crossOrigin = 'anonymous';
+            script.referrerPolicy = 'no-referrer';
+            script.onload = () => {
+                script.setAttribute('data-loaded', 'true');
+                resolve();
+            };
             script.onerror = () => reject(new Error(`Failed to load ${src}`));
             document.head.appendChild(script);
         });

@@ -13,18 +13,18 @@
     <link rel="stylesheet" href="css/themes.css">
     <link rel="stylesheet" href="css/modals.css">
 </head>
-<body>
+<body class="app">
     <a class="skip-link" href="#markdownInput">Skip to markdown editor</a>
     <div id="statusLiveRegion" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
-    <main class="main-content" role="main">
-        <section class="main-area" aria-labelledby="appTitle">
+    <main class="app__layout main-content" role="main">
+        <section class="app__editor main-area" aria-labelledby="appTitle">
             <h1 id="appTitle">Markdown & LaTeX Renderer</h1>
             <p class="app-subtitle">Write, organize, and render polished Markdown with seamless math support in a faster, cleaner workspace.</p>
-            <div class="input-section">
+            <article class="editor-card input-section">
                 <h2>Markdown Input</h2>
                 <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
                 <p id="editorHelpText" class="field-help">Tip: press Ctrl/Cmd + Enter to render, Ctrl/Cmd + L to focus editor.</p>
-                <textarea id="markdownInput" aria-label="Markdown input area" placeholder="Type or paste Markdown here..." role="textbox" aria-multiline="true">
+                <textarea id="markdownInput" aria-label="Markdown input area" placeholder="Type or paste Markdown here..." aria-multiline="true">
 # Hello World
 This is **bold** and _italic_.
 `inline code`
@@ -61,7 +61,7 @@ $$
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
                 </textarea>
-                <div class="button-group" role="toolbar" aria-label="Markdown actions">
+                <div class="editor-card__actions button-group" role="toolbar" aria-label="Markdown actions">
                     <button id="renderMarkdownBtn" class="button-primary" title="Render the markdown content" aria-label="Render Markdown">Render Markdown</button>
                     <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render" aria-label="Paste and Render">Paste & Render</button>
                     <button id="quickSaveBtn" class="button-secondary" title="Save current content to library" aria-label="Quick Save to Library">💾 Save to Library</button>
@@ -70,10 +70,10 @@ Don't write something like $E=mc^2$ across multiple lines.
                     <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file" aria-label="Import File">Import File</button>
                     <button id="themeToggleBtn" class="button-secondary" title="Toggle theme (Ctrl/Cmd + T)" aria-label="Toggle Theme">Dark Theme</button>
                 </div>
-            </div>
+            </article>
         </section>
-        <aside class="workspace-panel" role="complementary" aria-label="Library and history panel">
-            <div class="library-sections">
+        <aside class="app__workspace workspace-panel" role="complementary" aria-label="Library and history panel" aria-labelledby="libraryHeading historyHeading">
+            <section class="panel panel--library library-sections">
                 <h3 id="libraryHeading">My Library</h3>
                 <div class="library-actions">
                     <button id="addSectionBtn" class="modal-button modal-button-primary library-action-btn" aria-label="Add new item to library" title="Add new item">
@@ -93,16 +93,16 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <div id="savedSectionsList" class="sections-list" role="list" aria-labelledby="libraryHeading">
                     <div class="empty-state">No saved sections yet</div>
                 </div>
-            </div>
-            <div class="recent-history" style="margin-top: 1.5rem;">
+            </section>
+            <section class="panel panel--history recent-history">
                 <h3 id="historyHeading">Recent History</h3>
                 <div id="historyList" class="history-list" role="list" aria-labelledby="historyHeading">
                     <div class="empty-state">No recent history</div>
                 </div>
-            </div>
+            </section>
         </aside>
-        <section class="info" aria-label="Application help">
-            <p><strong>How it works:</strong></p>
+        <section class="app__info info" aria-label="Application help">
+            <h2 class="info__title">How it works</h2>
             <ul>
                 <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
                 <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>

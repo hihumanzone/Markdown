@@ -1,4 +1,6 @@
 class MarkdownRendererApp {
+    static MIN_HISTORY_CONTENT_LENGTH = 10;
+
     constructor() {
         /** @type {AppDOM} */
         this.dom = {};
@@ -16,39 +18,97 @@ class MarkdownRendererApp {
             this.a11y = new AccessibilityController(this.dom);
             this.a11y.init();
 
-            this.setupMarked();
-            this.bindEventListeners();
             this.bindStateSync();
+            this.bindEventListeners();
             this.initCurrentContentManager();
             this.initializeSavedSectionsManager();
+            this.setupMarked();
         });
     }
 
     initializeSavedSectionsManager() {
-        const initManager = () => {
-            this.savedSectionsManager = new SavedSectionsManager(this.dom, this);
+        const initialize = () => {
+            try {
+                this.savedSectionsManager = new SavedSectionsManager(this.dom, this);
+            } catch (error) {
+                console.error('Failed to initialize SavedSectionsManager', error);
+                this.stateStore.setState({ lastError: 'Failed to initialize library manager.' });
+            }
         };
 
         if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(initManager, { timeout: 500 });
-        } else {
-            setTimeout(initManager, 0);
+            window.requestIdleCallback(initialize, { timeout: 500 });
+            return;
         }
+
+        setTimeout(initialize, 0);
     }
 
     bindStateSync() {
         this.stateStore.subscribe((state) => {
-            const busy = state.isRendering;
-            if (this.dom.renderButton) this.dom.renderButton.disabled = busy;
-            if (this.dom.pasteAndRenderButton) this.dom.pasteAndRenderButton.disabled = busy;
-            if (this.dom.markdownInput) this.dom.markdownInput.setAttribute('data-has-content', String(state.inputLength > 0));
+            const isBusy = state.isRendering;
+            if (this.dom.renderButton) {
+                this.dom.renderButton.disabled = isBusy;
+                this.dom.renderButton.setAttribute('aria-busy', String(isBusy));
+            }
+            if (this.dom.pasteAndRenderButton) {
+                this.dom.pasteAndRenderButton.disabled = isBusy;
+            }
+            if (this.dom.markdownInput) {
+                this.dom.markdownInput.setAttribute('data-has-content', String(state.inputLength > 0));
+            }
         });
     }
 
-    async setupMarked() {
-        const isLoaded = await this.markedLoader.ensureAvailable();
-        const isConfigured = isLoaded && this.markedLoader.configure();
+    bindEventListeners() {
+        this.dom.renderButton?.addEventListener('click', () => {
+            this.handleRender();
+        });
 
+        this.dom.pasteAndRenderButton?.addEventListener('click', () => {
+            this.handlePasteAndRender();
+        });
+
+        this.dom.clearButton?.addEventListener('click', () => {
+            this.handleClear();
+        });
+
+        this.dom.importBtn?.addEventListener('click', () => {
+            this.dom.importFileInput?.click();
+        });
+
+        this.dom.markdownInput?.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                this.handleRender();
+            }
+        });
+
+        this.dom.markdownInput?.addEventListener('input', (event) => {
+            const value = event.target instanceof HTMLTextAreaElement ? event.target.value : '';
+            this.stateStore.setState({ inputLength: value.length });
+        });
+    }
+
+    initCurrentContentManager() {
+        if (!this.dom.markdownInput) return;
+
+        this.currentContentManager.restoreContent(this.dom.markdownInput);
+        this.currentContentManager.setupAutoSave(this.dom.markdownInput);
+        this.stateStore.setState({ inputLength: this.dom.markdownInput.value.length });
+    }
+
+    async setupMarked() {
+        const markedReady = await this.markedLoader.ensureAvailable();
+        const isConfigured = markedReady && this.markedLoader.configure();
+        this.updateRenderButtonsAvailability(isConfigured);
+
+        if (!isConfigured) {
+            console.error('Marked.js is unavailable - fallback mode enabled');
+        }
+    }
+
+    updateRenderButtonsAvailability(isConfigured) {
         if (this.dom.renderButton) {
             this.dom.renderButton.disabled = false;
             this.dom.renderButton.title = isConfigured
@@ -62,74 +122,67 @@ class MarkdownRendererApp {
                 ? 'Paste from clipboard and render'
                 : 'Paste from clipboard and render (using fallback renderer)';
         }
-
-        if (!isConfigured) {
-            console.error('Marked.js is unavailable - fallback mode enabled');
-        }
     }
 
-    bindEventListeners() {
-        this.dom.renderButton?.addEventListener('click', () => this.handleRender());
-        this.dom.pasteAndRenderButton?.addEventListener('click', () => this.handlePasteAndRender());
-        this.dom.clearButton?.addEventListener('click', () => this.handleClear());
-        this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput?.click());
-
-        this.dom.markdownInput?.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                this.handleRender();
-            }
-        });
-
-        this.dom.markdownInput?.addEventListener('input', (event) => {
-            const value = event.target?.value || '';
-            this.stateStore.setState({ inputLength: value.length });
-        });
+    getInputValue() {
+        return this.dom.markdownInput?.value ?? '';
     }
 
-    initCurrentContentManager() {
+    setInputValue(value) {
         if (!this.dom.markdownInput) return;
+        this.dom.markdownInput.value = value;
+        this.stateStore.setState({ inputLength: value.length });
+    }
 
-        this.currentContentManager.restoreContent(this.dom.markdownInput);
-        this.currentContentManager.setupAutoSave(this.dom.markdownInput);
-        this.stateStore.setState({ inputLength: this.dom.markdownInput.value.length });
+    createHistoryItem(markdownText) {
+        return {
+            id: `temp_${Date.now()}`,
+            title: this.extractTitle(markdownText) || 'Untitled',
+            content: markdownText,
+            viewedAt: new Date().toISOString(),
+            titleAutoGenerated: true
+        };
     }
 
     async handleRender(skipHistoryUpdate = false) {
-        const markdownText = this.dom.markdownInput?.value || '';
+        const markdownText = this.getInputValue();
         if (!markdownText.trim()) {
             await CustomModal.alert('Please enter some markdown content to render.');
             return;
         }
 
-        if (!skipHistoryUpdate && markdownText.trim().length > 10) {
-            const extractedTitle = this.extractTitle(markdownText);
-            const historyItem = {
-                id: 'temp_' + Date.now(),
-                title: extractedTitle || 'Untitled',
-                content: markdownText,
-                viewedAt: new Date().toISOString(),
-                titleAutoGenerated: true
-            };
-            this.savedSectionsManager?.addToHistory(historyItem);
+        if (!skipHistoryUpdate && markdownText.trim().length > MarkdownRendererApp.MIN_HISTORY_CONTENT_LENGTH) {
+            this.savedSectionsManager?.addToHistory(this.createHistoryItem(markdownText));
         }
 
-        this.stateStore.setState({ isRendering: true });
+        this.stateStore.setState({ isRendering: true, lastError: null });
         this.a11y?.announce('Rendering markdown in a new tab');
 
         try {
             await this.renderMarkdown(markdownText);
+        } catch (error) {
+            await this.handleRenderError(error);
         } finally {
             this.stateStore.setState({ isRendering: false });
         }
+    }
+
+    async handleRenderError(error) {
+        console.error('Error during markdown rendering:', error);
+        const message = error instanceof Error && error.message.includes('marked')
+            ? 'The Markdown library failed to load properly. Please refresh the page and ensure you have an internet connection.'
+            : 'An error occurred while rendering the markdown. Please check the console for details.';
+
+        this.stateStore.setState({ lastError: message });
+        await CustomModal.alert(message);
     }
 
     extractTitle(content) {
         const lines = content.split('\n');
         for (const line of lines) {
             const trimmed = line.trim();
-            if (trimmed.startsWith('# ')) return trimmed.substring(2).trim();
-            if (trimmed.startsWith('## ')) return trimmed.substring(3).trim();
+            if (trimmed.startsWith('# ')) return trimmed.slice(2).trim();
+            if (trimmed.startsWith('## ')) return trimmed.slice(3).trim();
             if (trimmed && !trimmed.startsWith('#') && trimmed.length < 100) return trimmed;
         }
         return null;
@@ -143,63 +196,54 @@ class MarkdownRendererApp {
 
         try {
             const text = await navigator.clipboard.readText();
-            if (this.dom.markdownInput) {
-                this.dom.markdownInput.value = text;
-                this.stateStore.setState({ inputLength: text.length });
-            }
+            this.setInputValue(text);
             this.currentContentManager.saveCurrentContent(text);
-            this.handleRender();
-        } catch (err) {
-            console.error('Failed to read clipboard:', err);
+            await this.handleRender();
+        } catch (error) {
+            console.error('Failed to read clipboard:', error);
             await CustomModal.alert('Failed to read from clipboard. Please check permissions or paste manually.');
         }
     }
 
     async handleClear() {
-        if (this.dom.markdownInput?.value) {
+        if (this.getInputValue()) {
             const confirmed = await CustomModal.confirm('Are you sure you want to clear the input?', 'Clear Content');
             if (!confirmed) return;
         }
 
-        if (this.dom.markdownInput) {
-            this.dom.markdownInput.value = '';
-            this.dom.markdownInput.focus();
-        }
+        this.setInputValue('');
+        this.dom.markdownInput?.focus();
         this.currentContentManager.clearCurrentContent();
-        this.stateStore.setState({ inputLength: 0 });
         this.a11y?.announce('Markdown input cleared');
     }
 
     async renderMarkdown(markdownText) {
-        try {
-            const markedAvailable = await this.markedLoader.ensureAvailable();
-            const canUseMarked = markedAvailable && this.markedLoader.configure();
+        const markedAvailable = await this.markedLoader.ensureAvailable();
+        const canUseMarked = markedAvailable && this.markedLoader.configure();
 
-            if (!canUseMarked) {
-                this.stateStore.setState({ renderMode: 'fallback' });
-                await this.renderWithFallback(markdownText);
-                return;
-            }
-
-            this.stateStore.setState({ renderMode: 'full' });
-            const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
-            let html = marked.parse(tempText);
-            html = MathProcessor.restoreMathExpressions(html, mathExpressions);
-            const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
-            const fullPageHtml = RenderedPageBuilder.build(html, markdownText, 'Rendered Markdown & LaTeX', listItems, flatListItems);
-            await this.openInNewTab(fullPageHtml);
-        } catch (error) {
-            console.error('Error during markdown rendering:', error);
-            const message = error.message?.includes('marked')
-                ? 'The Markdown library failed to load properly. Please refresh the page and ensure you have an internet connection.'
-                : 'An error occurred while rendering the markdown. Please check the console for details.';
-            await CustomModal.alert(message);
+        if (!canUseMarked) {
+            this.stateStore.setState({ renderMode: 'fallback' });
+            await this.renderWithFallback(markdownText);
+            return;
         }
+
+        this.stateStore.setState({ renderMode: 'full' });
+        const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
+        let html = marked.parse(tempText);
+        html = MathProcessor.restoreMathExpressions(html, mathExpressions);
+        const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
+        const fullPageHtml = RenderedPageBuilder.build(
+            html,
+            markdownText,
+            'Rendered Markdown & LaTeX',
+            listItems,
+            flatListItems
+        );
+        await this.openInNewTab(fullPageHtml);
     }
 
     async renderWithFallback(markdownText) {
         if (!this.markedLoader.fallbackWarningLogged) {
-            console.error('Marked.js library is not loaded, using basic fallback');
             await CustomModal.alert('The Markdown library failed to load due to network restrictions. Using basic fallback renderer with limited features. For full functionality, please refresh the page with a stable internet connection.');
             this.markedLoader.fallbackWarningLogged = true;
         }
@@ -217,29 +261,34 @@ class MarkdownRendererApp {
     }
 
     async openInNewTab(htmlContent) {
-        try {
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-            const newTab = window.open(blobUrl, '_blank');
+        let blobUrl = null;
 
-            if (newTab) {
-                newTab.focus();
+        try {
+            blobUrl = URL.createObjectURL(new Blob([htmlContent], { type: 'text/html' }));
+            const newTab = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+
+            if (!newTab) {
+                throw new Error('Popup blocked');
+            }
+
+            newTab.focus();
+            setTimeout(() => {
+                if (blobUrl) URL.revokeObjectURL(blobUrl);
+            }, 60_000);
+        } catch (error) {
+            if (blobUrl) URL.revokeObjectURL(blobUrl);
+            console.error('Error creating/opening blob URL:', error);
+
+            const fallbackTab = window.open('', '_blank', 'noopener,noreferrer');
+            if (fallbackTab) {
+                fallbackTab.document.open();
+                fallbackTab.document.write(htmlContent);
+                fallbackTab.document.close();
+                fallbackTab.focus();
                 return;
             }
 
-            URL.revokeObjectURL(blobUrl);
             await CustomModal.alert('Failed to open new tab. Please check your pop-up blocker settings.');
-        } catch (error) {
-            console.error('Error creating blob URL:', error);
-            const newTab = window.open('', '_blank');
-            if (newTab) {
-                newTab.document.open();
-                newTab.document.write(htmlContent);
-                newTab.document.close();
-                newTab.focus();
-            } else {
-                await CustomModal.alert('Failed to open new tab. Please check your pop-up blocker settings.');
-            }
         }
     }
 }
