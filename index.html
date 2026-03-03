@@ -14,13 +14,16 @@
     <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
-    <div class="main-content">
-        <div class="main-area">
-            <h1>Markdown & LaTeX Renderer</h1>
+    <a class="skip-link" href="#markdownInput">Skip to markdown editor</a>
+    <div id="statusLiveRegion" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+    <main class="main-content" role="main">
+        <section class="main-area" aria-labelledby="appTitle">
+            <h1 id="appTitle">Markdown & LaTeX Renderer</h1>
             <p class="app-subtitle">Write, organize, and render polished Markdown with seamless math support in a faster, cleaner workspace.</p>
             <div class="input-section">
                 <h2>Markdown Input</h2>
                 <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
+                <p id="editorHelpText" class="field-help">Tip: press Ctrl/Cmd + Enter to render, Ctrl/Cmd + L to focus editor.</p>
                 <textarea id="markdownInput" aria-label="Markdown input area" placeholder="Type or paste Markdown here..." role="textbox" aria-multiline="true">
 # Hello World
 This is **bold** and _italic_.
@@ -68,8 +71,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                     <button id="themeToggleBtn" class="button-secondary" title="Toggle theme (Ctrl/Cmd + T)" aria-label="Toggle Theme">Dark Theme</button>
                 </div>
             </div>
-        </div>
-        <div class="workspace-panel" role="complementary" aria-label="Library and history panel">
+        </section>
+        <aside class="workspace-panel" role="complementary" aria-label="Library and history panel">
             <div class="library-sections">
                 <h3 id="libraryHeading">My Library</h3>
                 <div class="library-actions">
@@ -97,8 +100,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                     <div class="empty-state">No recent history</div>
                 </div>
             </div>
-        </div>
-        <div class="info">
+        </aside>
+        <section class="info" aria-label="Application help">
             <p><strong>How it works:</strong></p>
             <ul>
                 <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
@@ -121,8 +124,8 @@ Don't write something like $E=mc^2$ across multiple lines.
                 <li><kbd>Enter</kbd> - Activate buttons and save modal content</li>
                 <li><kbd>Escape</kbd> - Close active modals</li>
             </ul>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <!-- Custom Modals -->
     <!-- Add Section Modal -->
@@ -271,23 +274,26 @@ Don't write something like $E=mc^2$ across multiple lines.
     </div>
 
     <!-- External Dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
     
     <!-- Application JavaScript -->
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/current-content-manager.js"></script>
-    <script src="js/fallback-renderer.js"></script>
-    <script src="js/history-manager.js"></script>
-    <script src="js/sections-manager.js"></script>
-    <script src="js/file-manager.js"></script>
-    <script src="js/modal-manager.js"></script>
-    <script src="js/markdown-processor.js"></script>
-    <script src="js/rendered-page-builder.js"></script>
-    <script src="js/saved-sections-manager.js"></script>
-    <script src="js/theme-controller.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/main.js"></script>
+    <script defer src="js/config.js"></script>
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/current-content-manager.js"></script>
+    <script defer src="js/fallback-renderer.js"></script>
+    <script defer src="js/history-manager.js"></script>
+    <script defer src="js/sections-manager.js"></script>
+    <script defer src="js/file-manager.js"></script>
+    <script defer src="js/modal-manager.js"></script>
+    <script defer src="js/markdown-processor.js"></script>
+    <script defer src="js/rendered-page-builder.js"></script>
+    <script defer src="js/saved-sections-manager.js"></script>
+    <script defer src="js/theme-controller.js"></script>
+    <script defer src="js/ui-dom-registry.js"></script>
+    <script defer src="js/ui-state-store.js"></script>
+    <script defer src="js/accessibility-controller.js"></script>
+    <script defer src="js/marked-loader.js"></script>
+    <script defer src="js/app.js"></script>
+    <script defer src="js/main.js"></script>
 </body>
 </html>
