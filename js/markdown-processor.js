@@ -128,16 +128,23 @@ class ListItemParser {
 }
 
 class MathProcessor {
-    static normalizeBlockDollarMath(markdownText) {
-        return markdownText.replace(
+    static normalizeBlockMathDelimiters(markdownText) {
+        let normalizedText = markdownText.replace(
             /(^|\n)\$\$\s*\n([\s\S]*?)\n\$\$(?=\n|$)/g,
             '$1\\[\n$2\n\\]'
         );
+
+        normalizedText = normalizedText.replace(
+            /(^|\n)\[\s*\n([\s\S]*?)\n\](?=\n|$)/g,
+            '$1\\[\n$2\n\\]'
+        );
+
+        return normalizedText;
     }
 
     static preserveMathExpressions(markdownText) {
         const mathExpressions = [];
-        let tempText = this.normalizeBlockDollarMath(markdownText);
+        let tempText = this.normalizeBlockMathDelimiters(markdownText);
         CONFIG.MATH_PATTERNS.forEach((pattern) => {
             tempText = tempText.replace(pattern.regex, (match, content) => {
                 if (content.trim() === "") return match;
