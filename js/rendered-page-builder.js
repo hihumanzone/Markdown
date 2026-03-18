@@ -487,14 +487,14 @@ class RenderedPageBuilder {
                 }
                 body.markdown-body.full-width { max-width: 100% !important; }
                 body.markdown-body hr {
-                    background-color: #000 !important;
-                    height: 1px !important;
-                    border: none !important;
+                    height: 0 !important;
+                    border: 0 !important;
+                    border-top: 1px solid #000 !important;
+                    margin: 24px 0 !important;
                 }
                 body.markdown-body table,
                 body.markdown-body th,
                 body.markdown-body td,
-                body.markdown-body hr,
                 body.markdown-body blockquote,
                 body.markdown-body h1,
                 body.markdown-body h2 {

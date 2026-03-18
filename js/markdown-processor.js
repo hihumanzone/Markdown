@@ -129,14 +129,16 @@ class ListItemParser {
 
 class MathProcessor {
     static normalizeBlockMathDelimiters(markdownText) {
+        // Handle $$ ... $$ with possible indentation
         let normalizedText = markdownText.replace(
-            /(^|\n)\$\$\s*\n([\s\S]*?)\n\$\$(?=\n|$)/g,
-            '$1\\[\n$2\n\\]'
+            /(^|\n)([ \t]*)\$\$\s*\n([\s\S]*?)\n[ \t]*\$\$(?=\n|$)/g,
+            '$1$2\\[\n$3\n$2\\]'
         );
 
+        // Handle [ ... ] with possible indentation
         normalizedText = normalizedText.replace(
-            /(^|\n)\[\s*\n([\s\S]*?)\n\](?=\n|$)/g,
-            '$1\\[\n$2\n\\]'
+            /(^|\n)([ \t]*)\[\s*\n([\s\S]*?)\n[ \t]*\](?=\n|$)/g,
+            '$1$2\\[\n$3\n$2\\]'
         );
 
         return normalizedText;
