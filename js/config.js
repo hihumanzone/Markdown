@@ -11,7 +11,6 @@ const CONFIG = {
         { regex: /\\\[([\s\S]*?)\\\]/g, open: '\\[', close: '\\]' },
         { regex: /\$([^$\n]+?)\$/g, open: '$', close: '$' },
         { regex: /\\\((.+?)\\\)/g, open: '\\(', close: '\\)' },
-        { regex: /\(((?:[^()\n]+|\([^()\n]*\))+)\)/g, open: '\\(', close: '\\)' },
     ],
     FONT_SIZE: {
         BASE: 16,
