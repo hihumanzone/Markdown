@@ -1,12 +1,10 @@
 class ListItemParser {
-    static get LIST_MARKER_REGEX() {
-        return {
-            UNORDERED: /^(\s*)[-*+]\s+(.*)$/,
-            ORDERED: /^(\s*)\d+\.\s+(.*)$/,
-            ANY_UNORDERED: /^\s*[-*+]\s+/,
-            ANY_ORDERED: /^\s*\d+\.\s+/
-        };
-    }
+    static LIST_MARKER_REGEX = {
+        UNORDERED: /^(\s*)[-*+]\s+(.*)$/,
+        ORDERED: /^(\s*)\d+\.\s+(.*)$/,
+        ANY_UNORDERED: /^\s*[-*+]\s+/,
+        ANY_ORDERED: /^\s*\d+\.\s+/
+    };
 
     static parse(markdownText) {
         return this.parseAll(markdownText).nested;
@@ -44,14 +42,21 @@ class ListItemParser {
 
     static _getListMatch(line) {
         const unorderedMatch = line.match(this.LIST_MARKER_REGEX.UNORDERED);
-        const orderedMatch = line.match(this.LIST_MARKER_REGEX.ORDERED);
-        if (unorderedMatch || orderedMatch) {
-            const match = unorderedMatch || orderedMatch;
+        if (unorderedMatch) {
             return {
-                match,
-                content: match[2],
-                indent: match[1].length,
-                isOrdered: !!orderedMatch
+                match: unorderedMatch,
+                content: unorderedMatch[2],
+                indent: unorderedMatch[1].length,
+                isOrdered: false
+            };
+        }
+        const orderedMatch = line.match(this.LIST_MARKER_REGEX.ORDERED);
+        if (orderedMatch) {
+            return {
+                match: orderedMatch,
+                content: orderedMatch[2],
+                indent: orderedMatch[1].length,
+                isOrdered: true
             };
         }
         return null;
@@ -128,16 +133,19 @@ class ListItemParser {
 }
 
 class MathProcessor {
+    static BLOCK_MATH_DOLLAR_REGEX = /(^|\n)([ \t]*)\$\$\s*\n([\s\S]*?)\n[ \t]*\$\$(?=\n|$)/g;
+    static BLOCK_MATH_BRACKET_REGEX = /(^|\n)([ \t]*)\[\s*\n([\s\S]*?)\n[ \t]*\](?=\n|$)/g;
+
     static normalizeBlockMathDelimiters(markdownText) {
         // Handle $$ ... $$ with possible indentation
         let normalizedText = markdownText.replace(
-            /(^|\n)([ \t]*)\$\$\s*\n([\s\S]*?)\n[ \t]*\$\$(?=\n|$)/g,
+            this.BLOCK_MATH_DOLLAR_REGEX,
             '$1$2\\[\n$3\n$2\\]'
         );
 
         // Handle [ ... ] with possible indentation
         normalizedText = normalizedText.replace(
-            /(^|\n)([ \t]*)\[\s*\n([\s\S]*?)\n[ \t]*\](?=\n|$)/g,
+            this.BLOCK_MATH_BRACKET_REGEX,
             '$1$2\\[\n$3\n$2\\]'
         );
 
