@@ -133,29 +133,21 @@ class ListItemParser {
 }
 
 class MathProcessor {
-    static BLOCK_MATH_DOLLAR_REGEX = /(^|\n)([ \t]*)\$\$\s*\n([\s\S]*?)\n[ \t]*\$\$(?=\n|$)/g;
-    static BLOCK_MATH_BRACKET_REGEX = /(^|\n)([ \t]*)\[\s*\n([\s\S]*?)\n[ \t]*\](?=\n|$)/g;
+    static BLOCK_MATH_COMBINED_REGEX = /(^|\n)([ \t]*)(?:\$\$\s*\n([\s\S]*?)\n[ \t]*\$\$|\[\s*\n([\s\S]*?)\n[ \t]*\])(?=\n|$)/g;
 
     static normalizeBlockMathDelimiters(markdownText) {
-        // Handle $$ ... $$ with possible indentation
-        let normalizedText = markdownText.replace(
-            this.BLOCK_MATH_DOLLAR_REGEX,
-            '$1$2\\[\n$3\n$2\\]'
-        );
-
-        // Handle [ ... ] with possible indentation
-        normalizedText = normalizedText.replace(
-            this.BLOCK_MATH_BRACKET_REGEX,
-            '$1$2\\[\n$3\n$2\\]'
-        );
-
-        return normalizedText;
+        return markdownText.replace(this.BLOCK_MATH_COMBINED_REGEX, (match, p1, p2, p3, p4) => {
+            return p1 + p2 + '\\[' + '\n' + (p3 !== undefined ? p3 : p4) + '\n' + p2 + '\\]';
+        });
     }
 
     static preserveMathExpressions(markdownText) {
         const mathExpressions = [];
         let tempText = this.normalizeBlockMathDelimiters(markdownText);
-        CONFIG.MATH_PATTERNS.forEach((pattern) => {
+
+        const patterns = CONFIG.MATH_PATTERNS;
+        for (let i = 0; i < patterns.length; i++) {
+            const pattern = patterns[i];
             tempText = tempText.replace(pattern.regex, (match, content) => {
                 if (content.trim() === "") return match;
                 const placeholder = `%%MATH_PLACEHOLDER_${mathExpressions.length}%%`;
@@ -167,16 +159,18 @@ class MathProcessor {
                 });
                 return placeholder;
             });
-        });
+        }
+
         return { tempText, mathExpressions };
     }
 
     static restoreMathExpressions(html, mathExpressions) {
-        let restoredHtml = html;
-        mathExpressions.forEach(item => {
-            const preservedKatexString = item.originalOpen + item.content + item.originalClose;
-            restoredHtml = restoredHtml.replace(item.placeholder, preservedKatexString);
-        });
-        return restoredHtml;
+        const map = {};
+        for (let i = 0; i < mathExpressions.length; i++) {
+            const item = mathExpressions[i];
+            map[item.placeholder] = item.originalOpen + item.content + item.originalClose;
+        }
+        const regex = /%%MATH_PLACEHOLDER_\d+%%/g;
+        return html.replace(regex, match => map[match] || match);
     }
 }
