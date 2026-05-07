@@ -24,13 +24,10 @@ class FallbackRenderer {
     }
     
     static processHeaders(html) {
-        return html
-            .replace(/^#{6}\s+(.*$)/gim, '<h6>$1</h6>')
-            .replace(/^#{5}\s+(.*$)/gim, '<h5>$1</h5>')
-            .replace(/^#{4}\s+(.*$)/gim, '<h4>$1</h4>')
-            .replace(/^#{3}\s+(.*$)/gim, '<h3>$1</h3>')
-            .replace(/^#{2}\s+(.*$)/gim, '<h2>$1</h2>')
-            .replace(/^#{1}\s+(.*$)/gim, '<h1>$1</h1>');
+        return html.replace(/^#{1,6}\s+(.*)$/gim, function(match, content) {
+            var level = match.match(/^#+/)[0].length;
+            return '<h' + level + '>' + content + '</h' + level + '>';
+        });
     }
     
     static processHorizontalRules(html) {
@@ -106,8 +103,8 @@ class FallbackRenderer {
         
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            const unorderedMatch = line.match(ListItemParser.LIST_MARKER_REGEX.UNORDERED);
-            const orderedMatch = line.match(ListItemParser.LIST_MARKER_REGEX.ORDERED);
+            const unorderedMatch = line.match(ListItemParser._UNORDERED);
+            const orderedMatch = line.match(ListItemParser._ORDERED);
             
             if (unorderedMatch || orderedMatch) {
                 const match = unorderedMatch || orderedMatch;
@@ -198,15 +195,20 @@ class FallbackRenderer {
     
     static processParagraphs(html) {
         const paragraphs = html.split(/\n\s*\n/);
-        return paragraphs.map(para => {
-            para = para.trim();
-            if (!para) return '';
-            
-            if (para.match(/^<(h[1-6]|hr|blockquote|ul|ol|li|pre|div)/)) {
-                return para.replace(/\n/g, '<br>');
+        const result = [];
+        for (let i = 0; i < paragraphs.length; i++) {
+            const para = paragraphs[i].trim();
+            if (!para) continue;
+            const firstChar = para.charAt(0);
+            if (firstChar === '<') {
+                const tagMatch = para.match(/^<(h[1-6]|hr|blockquote|ul|ol|li|pre|div)/);
+                if (tagMatch) {
+                    result.push(para.replace(/\n/g, '<br>'));
+                    continue;
+                }
             }
-            
-            return '<p>' + para.replace(/\n/g, '<br>') + '</p>';
-        }).filter(para => para).join('\n');
+            result.push('<p>' + para.replace(/\n/g, '<br>') + '</p>');
+        }
+        return result.join('\n');
     }
 }

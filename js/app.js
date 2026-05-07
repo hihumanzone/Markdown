@@ -221,6 +221,7 @@ class MarkdownRendererApp {
             const newTab = window.open(blobUrl, '_blank');
             if (newTab) {
                 newTab.focus();
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
             } else {
                 URL.revokeObjectURL(blobUrl);
                 await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");

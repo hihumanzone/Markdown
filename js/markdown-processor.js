@@ -1,10 +1,7 @@
 class ListItemParser {
-    static LIST_MARKER_REGEX = {
-        UNORDERED: /^(\s*)[-*+]\s+(.*)$/,
-        ORDERED: /^(\s*)\d+\.\s+(.*)$/,
-        ANY_UNORDERED: /^\s*[-*+]\s+/,
-        ANY_ORDERED: /^\s*\d+\.\s+/
-    };
+    static _UNORDERED = /^(\s*)[-*+]\s+(.*)$/;
+    static _ORDERED = /^(\s*)\d+\.\s+(.*)$/;
+    static _LEADING_WS = /^\s*/;
 
     static parse(markdownText) {
         return this.parseAll(markdownText).nested;
@@ -18,159 +15,124 @@ class ListItemParser {
         const nested = [];
         const flat = [];
         const lines = markdownText.split('\n');
+        const len = lines.length;
 
-        for (let i = 0; i < lines.length; i++) {
-            const listMatch = this._getListMatch(lines[i]);
-            if (!listMatch) {
-                continue;
+        for (let i = 0; i < len; i++) {
+            const line = lines[i];
+            const unorderedMatch = line.match(ListItemParser._UNORDERED);
+            let orderedMatch = null;
+            if (!unorderedMatch) {
+                orderedMatch = line.match(ListItemParser._ORDERED);
+            }
+            if (!unorderedMatch && !orderedMatch) continue;
+
+            const match = unorderedMatch || orderedMatch;
+            const content = match[2];
+            const indent = match[1].length;
+            const isOrdered = !!orderedMatch;
+            const baseIndent = line.indexOf(content);
+
+            let fullContent = content;
+            const rawLines = [line];
+            let flatContent = content;
+            let currentIndex = i + 1;
+
+            while (currentIndex < len) {
+                const nextLine = lines[currentIndex];
+                const nextTrimmed = nextLine.trim();
+
+                if (nextTrimmed === '') {
+                    rawLines.push(nextLine);
+                    fullContent += '\n';
+                    flatContent += '\n';
+                    currentIndex++;
+                    continue;
+                }
+
+                let hasListMarker = false;
+                let subListMatch = nextLine.match(ListItemParser._UNORDERED);
+                if (!subListMatch) {
+                    const subListMatchOrdered = nextLine.match(ListItemParser._ORDERED);
+                    if (subListMatchOrdered) {
+                        subListMatch = subListMatchOrdered;
+                        hasListMarker = true;
+                    }
+                } else {
+                    hasListMarker = true;
+                }
+
+                if (hasListMarker) {
+                    const subIndent = subListMatch[1].length;
+                    if (subIndent <= indent) break;
+                    rawLines.push(nextLine);
+                    fullContent += '\n' + nextLine;
+                    flatContent += '\n' + nextLine;
+                    currentIndex++;
+                    continue;
+                }
+
+                const leadingWsLen = (nextLine.match(ListItemParser._LEADING_WS) || [''])[0].length;
+                if (leadingWsLen >= baseIndent) {
+                    rawLines.push(nextLine);
+                    fullContent += '\n' + nextLine.substring(baseIndent);
+                    flatContent += '\n' + nextLine.substring(baseIndent);
+                    currentIndex++;
+                } else {
+                    break;
+                }
             }
 
-            const parsedItem = this._parseListItem(lines, i, listMatch);
-            nested.push(parsedItem.item);
-
-            flat.push({
-                content: this._buildFlatContent(lines, i, parsedItem.nextIndex, listMatch),
-                indent: listMatch.indent,
-                isOrdered: listMatch.isOrdered
+            nested.push({
+                content: fullContent.replace(/\s+$/, ''),
+                rawContent: rawLines.join('\n').replace(/\s+$/, ''),
+                indent: indent,
+                isOrdered: isOrdered
             });
 
-            i = parsedItem.nextIndex - 1;
+            flat.push({
+                content: flatContent.replace(/\s+$/, ''),
+                indent: indent,
+                isOrdered: isOrdered
+            });
+
+            i = currentIndex - 1;
         }
 
-        return { nested, flat };
-    }
-
-    static _getListMatch(line) {
-        const unorderedMatch = line.match(this.LIST_MARKER_REGEX.UNORDERED);
-        if (unorderedMatch) {
-            return {
-                match: unorderedMatch,
-                content: unorderedMatch[2],
-                indent: unorderedMatch[1].length,
-                isOrdered: false
-            };
-        }
-        const orderedMatch = line.match(this.LIST_MARKER_REGEX.ORDERED);
-        if (orderedMatch) {
-            return {
-                match: orderedMatch,
-                content: orderedMatch[2],
-                indent: orderedMatch[1].length,
-                isOrdered: true
-            };
-        }
-        return null;
-    }
-
-    static _parseListItem(lines, startIndex, listMatch) {
-        const baseIndentation = lines[startIndex].indexOf(listMatch.content);
-        let fullContent = listMatch.content;
-        let currentIndex = startIndex + 1;
-        const rawContentLines = [lines[startIndex]];
-
-        while (currentIndex < lines.length) {
-            const nextLine = lines[currentIndex];
-            const nextTrimmed = nextLine.trim();
-
-            if (nextTrimmed === '') {
-                rawContentLines.push(nextLine);
-                fullContent += '\n';
-                currentIndex++;
-                continue;
-            }
-
-            const nextListMatch = this._getListMatch(nextLine);
-            if (nextListMatch) {
-                if (nextListMatch.indent <= listMatch.indent) break;
-                rawContentLines.push(nextLine);
-                fullContent += '\n' + nextLine;
-                currentIndex++;
-                continue;
-            }
-
-            const leadingWhitespaceLength = (nextLine.match(/^\s*/) || [''])[0].length;
-            if (leadingWhitespaceLength >= baseIndentation) {
-                rawContentLines.push(nextLine);
-                fullContent += '\n' + nextLine.substring(baseIndentation);
-                currentIndex++;
-            } else {
-                break;
-            }
-        }
-
-        return {
-            item: {
-                content: fullContent.trimEnd(),
-                rawContent: rawContentLines.join('\n').trimEnd(),
-                indent: listMatch.indent,
-                isOrdered: listMatch.isOrdered
-            },
-            nextIndex: currentIndex
-        };
-    }
-
-    static _buildFlatContent(lines, startIndex, endIndex, listMatch) {
-        const baseIndentation = lines[startIndex].indexOf(listMatch.content);
-        let content = listMatch.content;
-        for (let i = startIndex + 1; i < endIndex; i++) {
-            const line = lines[i];
-            const trimmed = line.trim();
-            if (trimmed === '') { content += '\n'; continue; }
-            const nextMatch = this._getListMatch(line);
-            if (nextMatch && nextMatch.indent > listMatch.indent) {
-                content += '\n' + line;
-                continue;
-            }
-            const leadingWhitespaceLength = (line.match(/^\s*/) || [''])[0].length;
-            if (leadingWhitespaceLength >= baseIndentation) {
-                content += '\n' + line.substring(baseIndentation);
-            } else {
-                content += '\n' + line.trimEnd();
-            }
-        }
-        return content.trimEnd();
+        return { nested: nested, flat: flat };
     }
 }
 
 class MathProcessor {
-    static BLOCK_MATH_COMBINED_REGEX = /(^|\n)([ \t]*)(?:\$\$\s*\n([\s\S]*?)\n[ \t]*\$\$|\[\s*\n([\s\S]*?)\n[ \t]*\])(?=\n|$)/g;
-
-    static normalizeBlockMathDelimiters(markdownText) {
-        return markdownText.replace(this.BLOCK_MATH_COMBINED_REGEX, (match, p1, p2, p3, p4) => {
-            return p1 + p2 + '\\[' + '\n' + (p3 !== undefined ? p3 : p4) + '\n' + p2 + '\\]';
-        });
-    }
-
     static preserveMathExpressions(markdownText) {
         const mathExpressions = [];
-        let tempText = this.normalizeBlockMathDelimiters(markdownText);
-
+        let tempText = markdownText.replace(
+            /(^|\n)([ \t]*)\[\s*\n([\s\S]*?)\n[ \t]*\](?=\n|$)/g,
+            '$1$2\\[\n$3\n$2\\]'
+        );
         const patterns = CONFIG.MATH_PATTERNS;
-        for (let i = 0; i < patterns.length; i++) {
-            const pattern = patterns[i];
-            tempText = tempText.replace(pattern.regex, (match, content) => {
-                if (content.trim() === "") return match;
-                const placeholder = `%%MATH_PLACEHOLDER_${mathExpressions.length}%%`;
-                mathExpressions.push({
-                    placeholder,
-                    content,
-                    originalOpen: pattern.open,
-                    originalClose: pattern.close
-                });
+
+        for (let p = 0; p < patterns.length; p++) {
+            const pat = patterns[p];
+            tempText = tempText.replace(patterns[p].regex, function(match) {
+                const content = match.slice(pat.open.length, match.length - pat.close.length);
+                if (!content || content.trim() === '') return match;
+                const placeholder = '%%MATH_PLACEHOLDER_' + mathExpressions.length + '%%';
+                mathExpressions.push({ placeholder: placeholder, content: content, originalOpen: pat.open, originalClose: pat.close });
                 return placeholder;
             });
         }
 
-        return { tempText, mathExpressions };
+        return { tempText: tempText, mathExpressions: mathExpressions };
     }
 
     static restoreMathExpressions(html, mathExpressions) {
+        if (mathExpressions.length === 0) return html;
         const map = {};
         for (let i = 0; i < mathExpressions.length; i++) {
             const item = mathExpressions[i];
             map[item.placeholder] = item.originalOpen + item.content + item.originalClose;
         }
         const regex = /%%MATH_PLACEHOLDER_\d+%%/g;
-        return html.replace(regex, match => map[match] || match);
+        return html.replace(regex, function(match) { return map[match] || match; });
     }
 }

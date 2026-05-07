@@ -1,37 +1,41 @@
 class RenderedPageBuilder {
+    static _cachedStyles = null;
+    static _cachedScripts = null;
+    static _cachedControls = null;
+    static _cachedConfigJSON = null;
+
+    static _getStyles() {
+        if (this._cachedStyles) return this._cachedStyles;
+        this._cachedStyles = this.getStyles();
+        return this._cachedStyles;
+    }
+
+    static _getClientScriptIncludes() {
+        if (this._cachedScripts) return this._cachedScripts;
+        this._cachedScripts = this.getClientScriptIncludes();
+        this.getStyles = null;
+        this.getClientScriptIncludes = null;
+        return this._cachedScripts;
+    }
+
+    static _getControls() {
+        if (this._cachedControls) return this._cachedControls;
+        this._cachedControls = this.getControls();
+        return this._cachedControls;
+    }
+
+    static _getConfigJSON() {
+        if (this._cachedConfigJSON) return this._cachedConfigJSON;
+        this._cachedConfigJSON = JSON.stringify(CONFIG);
+        return this._cachedConfigJSON;
+    }
+
     static build(content, rawMarkdown, title, listItems, flatListItems) {
-        return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <link rel="stylesheet" href="${CONFIG.CDN.katexCSS}">
-    ${this.getStyles()}
-</head>
-<body class="markdown-body">
-    ${this.getControls()}
-    <div id="content-container">${content}</div>
-    <div id="raw-container" style="display: none;">
-        <pre id="raw-markdown">${Utils.escapeHtml(rawMarkdown)}</pre>
-    </div>
-    <div id="copy-notification">Copied to clipboard!</div>
-    <script>
-        window.__APP_DATA__ = {
-            rawMarkdown: ${JSON.stringify(rawMarkdown)},
-            documentTitle: ${JSON.stringify(title)},
-            listItems: ${JSON.stringify(listItems)},
-            flatListItems: ${JSON.stringify(flatListItems)},
-            config: ${JSON.stringify(CONFIG)}
-        };
-    <\/script>
-    <script defer src="${CONFIG.CDN.katexJS}"><\/script>
-    <script defer src="${CONFIG.CDN.katexAutoRenderJS}"><\/script>
-    <script defer src="${CONFIG.CDN.html2canvas}"><\/script>
-    ${this.getClientScriptIncludes()}
-</body>
-</html>`;
+        var katexCSS = CONFIG.CDN.katexCSS;
+        var katexJS = CONFIG.CDN.katexJS;
+        var katexAuto = CONFIG.CDN.katexAutoRenderJS;
+        var h2c = CONFIG.CDN.html2canvas;
+        return '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + title + '</title>\n    <link rel="stylesheet" href="' + katexCSS + '">\n' + this._getStyles() + '\n</head>\n<body class="markdown-body">\n' + this._getControls() + '\n    <div id="content-container">' + content + '</div>\n    <div id="raw-container" style="display: none;">\n        <pre id="raw-markdown">' + Utils.escapeHtml(rawMarkdown) + '</pre>\n    </div>\n    <div id="copy-notification">Copied to clipboard!</div>\n    <script>\n        window.__APP_DATA__ = {\n            rawMarkdown: ' + JSON.stringify(rawMarkdown) + ',\n            documentTitle: ' + JSON.stringify(title) + ',\n            listItems: ' + JSON.stringify(listItems) + ',\n            flatListItems: ' + JSON.stringify(flatListItems) + ',\n            config: ' + this._getConfigJSON() + '\n        };\n    <\/script>\n    <script defer src="' + katexJS + '"><\/script>\n    <script defer src="' + katexAuto + '"><\/script>\n    <script defer src="' + h2c + '"><\/script>\n' + this._getClientScriptIncludes() + '\n</body>\n</html>';
     }
     
     static getStyles() {
@@ -905,14 +909,35 @@ class KatexRenderer {
     init() {
         if (typeof renderMathInElement === 'function') { 
             this.render(); 
-        } else { 
-            const interval = setInterval(() => { 
-                if (typeof renderMathInElement === 'function') { 
-                    clearInterval(interval); 
-                    this.render(); 
-                }
-            }, 100); 
+        } else {
+            var script = document.querySelector('script[src*="auto-render"]');
+            if (script) {
+                var self = this;
+                var onLoad = function() {
+                    script.removeEventListener('load', onLoad);
+                    self.render();
+                };
+                script.addEventListener('load', onLoad);
+                setTimeout(function() {
+                    if (typeof renderMathInElement !== 'function') {
+                        script.removeEventListener('load', onLoad);
+                        self._poll();
+                    }
+                }, 3000);
+            } else {
+                this._poll();
+            }
         }
+    }
+
+    _poll() {
+        var self = this;
+        var interval = setInterval(function() { 
+            if (typeof renderMathInElement === 'function') { 
+                clearInterval(interval); 
+                self.render(); 
+            }
+        }, 200); 
     }
     
     render() {
@@ -1028,9 +1053,19 @@ class FontSizeController {
 class CollapsibleController {
     constructor() {
         this.toggleButton = document.getElementById('toggleCollapseBtn');
-        this.controlsToToggle = Array.from(document.querySelectorAll('#font-controls > *:not(#toggleCollapseBtn)'));
+        if (!this.toggleButton) return;
+        this.controlsToToggle = this._getControlsToToggle();
         this.lsKey = window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.CONTROLS_COLLAPSED; 
         this.init();
+    }
+
+    _getControlsToToggle() {
+        var children = document.getElementById('font-controls').children;
+        var result = [];
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].id !== 'toggleCollapseBtn') result.push(children[i]);
+        }
+        return result;
     }
     
     init() {
@@ -1040,14 +1075,14 @@ class CollapsibleController {
     }
     
     toggle() {
-        const current = this.controlsToToggle[0].style.display === 'none';
+        var current = this.controlsToToggle[0].style.display === 'none';
         this.applyState(!current);
     }
     
     applyState(collapsed) {
-        this.controlsToToggle.forEach(control => { 
-            control.style.display = collapsed ? 'none' : ''; 
-        });
+        for (var i = 0; i < this.controlsToToggle.length; i++) {
+            this.controlsToToggle[i].style.display = collapsed ? 'none' : '';
+        }
         this.toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
         this.toggleButton.title = collapsed ? 'Expand Controls' : 'Collapse Controls';
         localStorage.setItem(this.lsKey, JSON.stringify(collapsed));
@@ -1495,30 +1530,31 @@ class ListItemController {
 
     init() {
         if (!this.contentContainer || !this.notificationElement) return;
-        const setup = () => {
-            if (this.setupTimeout) clearTimeout(this.setupTimeout);
-            this.setupTimeout = setTimeout(() => this.attachInitialListeners(), 300);
+        var self = this;
+        var setup = function() {
+            if (self.setupTimeout) clearTimeout(self.setupTimeout);
+            self.setupTimeout = setTimeout(function() { self.attachInitialListeners(); }, 300);
         };
         setTimeout(setup, 500);
-        const observer = new MutationObserver(setup);
-        observer.observe(this.contentContainer, { childList: true, subtree: true });
+        var observer = new MutationObserver(setup);
+        observer.observe(this.contentContainer, { childList: true, subtree: false });
     }
 
     attachInitialListeners() {
         if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return;
         
-        const isEnabled = this.isLongPressCopyEnabled();
-        const allLis = Array.from(this.contentContainer.querySelectorAll('li'));
-        allLis.forEach((li, index) => {
-            if (li.dataset.listCopyInitialized === 'true' || li.dataset.listCopyInitialized === 'false') return;
-            this.initializeListItem(li, index, isEnabled);
-        });
+        var isEnabled = this.isLongPressCopyEnabled();
+        var allLis = this.contentContainer.querySelectorAll('li');
+        for (var i = 0; i < allLis.length; i++) {
+            var li = allLis[i];
+            if (li.dataset.listCopyInitialized === 'true' || li.dataset.listCopyInitialized === 'false') continue;
+            this.initializeListItem(li, i, isEnabled);
+        }
     }
 
     isLongPressCopyEnabled() {
         if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return false;
-        
-        const savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
+        var savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
         return savedSetting !== null ? savedSetting === 'true' : true;
     }
 
@@ -1527,7 +1563,7 @@ class ListItemController {
         li.dataset.listCopyInitialized = enabled.toString();
         
         try {
-            const listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
+            var listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
             if (Array.isArray(listData) && listData[index]) {
                 li.dataset.rawListContent = listData[index].content || '';
             }
@@ -1536,8 +1572,9 @@ class ListItemController {
         this.cleanupListItemEventListeners(li);
         
         if (enabled) {
-            const mousedownHandler = (e) => { if (e.button === 0) this.handleStart(li, e); };
-            const touchstartHandler = (e) => this.handleStart(li, e);
+            var self = this;
+            var mousedownHandler = function(e) { if (e.button === 0) self.handleStart(li, e); };
+            var touchstartHandler = function(e) { self.handleStart(li, e); };
             
             li.addEventListener('mousedown', mousedownHandler);
             li.addEventListener('touchstart', touchstartHandler, { passive: true });
@@ -1574,19 +1611,18 @@ class ListItemController {
     }
 
     updateLongPressCopyState(enabled) {
-        const allLis = Array.from(this.contentContainer.querySelectorAll('li'));
+        var allLis = this.contentContainer.querySelectorAll('li');
         
-        allLis.forEach((li, index) => {
+        for (var i = 0; i < allLis.length; i++) {
+            var li = allLis[i];
             if (this.longPressElement === li) {
                 this.handleEnd();
             }
             
             this.cleanupListItemEventListeners(li);
-            
-            this.initializeListItem(li, index, enabled);
-            
+            this.initializeListItem(li, i, enabled);
             li.classList.remove('list-item-highlight');
-        });
+        }
     }
 
     cleanupListItemEventListeners(li) {
@@ -1600,8 +1636,6 @@ class ListItemController {
             delete li._longPressHandlers;
         }
     }
-
-
 
     handleStart(element, event) {
         this.handleEnd();
@@ -1622,9 +1656,10 @@ class ListItemController {
 
         element.classList.add('list-item-highlight');
         
-        this.longPressTimer = setTimeout(async () => {
-            if (this.longPressElement === element) {
-                await this.copyListContent(element);
+        var self = this;
+        this.longPressTimer = setTimeout(function() {
+            if (self.longPressElement === element) {
+                self.copyListContent(element);
             }
         }, window.__APP_DATA__.config.LONG_PRESS_DURATION);
     }
@@ -1633,9 +1668,9 @@ class ListItemController {
         if (!this.longPressTimer) return;
 
         if (event.touches.length > 0) {
-            const touch = event.touches[0];
-            const deltaX = Math.abs(touch.clientX - this.touchStartX);
-            const deltaY = Math.abs(touch.clientY - this.touchStartY);
+            var touch = event.touches[0];
+            var deltaX = Math.abs(touch.clientX - this.touchStartX);
+            var deltaY = Math.abs(touch.clientY - this.touchStartY);
         
             if (deltaX > 10 || deltaY > 10) {
                 this.handleEnd();
@@ -1664,11 +1699,14 @@ class ListItemController {
 
     async copyListContent(element) {
         try {
-            let textToCopy = element.dataset.rawListContent;
+            var textToCopy = element.dataset.rawListContent;
             if (!textToCopy) {
-                const allLis = Array.from(this.contentContainer.querySelectorAll('li'));
-                const recomputedIndex = allLis.indexOf(element);
-                const listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
+                var allLis = this.contentContainer.querySelectorAll('li');
+                var recomputedIndex = -1;
+                for (var r = 0; r < allLis.length; r++) {
+                    if (allLis[r] === element) { recomputedIndex = r; break; }
+                }
+                var listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
                 if (recomputedIndex > -1 && listData[recomputedIndex]) {
                     textToCopy = listData[recomputedIndex].content;
                 }
@@ -1688,7 +1726,7 @@ class ListItemController {
     }
 
     async copyElementText(element) {
-        const textContent = (element.innerText || element.textContent || "").trim();
+        var textContent = (element.innerText || element.textContent || "").trim();
         if (textContent) {
             await this._copyToClipboard(textContent);
             this.showNotification('List item text copied!');
@@ -1701,7 +1739,7 @@ class ListItemController {
         if (navigator.clipboard?.writeText) { 
             return navigator.clipboard.writeText(text); 
         }
-        const textArea = document.createElement('textarea');
+        var textArea = document.createElement('textarea');
         textArea.value = text;
         textArea.style.position = 'fixed'; 
         textArea.style.opacity = '0';
@@ -1711,7 +1749,7 @@ class ListItemController {
         document.body.removeChild(textArea);
     }
 
-    showNotification(message, isError = false) {
+    showNotification(message, isError) {
         if (!this.notificationElement) return;
         this.notificationElement.textContent = message;
         this.notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
@@ -1721,8 +1759,9 @@ class ListItemController {
             this.notificationElement.style.color = '#0d1117';
         }
         this.notificationElement.style.display = 'block';
-        setTimeout(() => { 
-            this.notificationElement.style.display = 'none'; 
+        var self = this;
+        setTimeout(function() { 
+            self.notificationElement.style.display = 'none'; 
         }, isError ? 3500 : 2000);
     }
 }`;
@@ -1740,7 +1779,7 @@ class UIController {
     initializeControls() {
         this.katexRenderer = new KatexRenderer();
         this.themeController = new ThemeController(this.body);
-    this.fullWidthController = new FullWidthController(this.body);
+        this.fullWidthController = new FullWidthController(this.body);
         this.fontSizeController = new FontSizeController(this.body);
         this.collapsibleController = new CollapsibleController();
         this.viewToggleController = new ViewToggleController();
