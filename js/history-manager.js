@@ -28,7 +28,7 @@ class HistoryManager {
                 if (history[j].id !== section.id) updatedHistory.push(history[j]);
             }
             
-            const uniqueTitle = this.generateUniqueTitle(section.title, updatedHistory);
+            const uniqueTitle = this.generateUniqueTitle(section.title, section.content, updatedHistory);
             
             updatedHistory.unshift({
                 id: section.id,
@@ -67,13 +67,13 @@ class HistoryManager {
         localStorage.removeItem(this.STORAGE_KEY);
     }
     
-    generateUniqueTitle(originalTitle, existingHistory) {
+    generateUniqueTitle(originalTitle, content, existingHistory) {
         var hasConflict = false;
         for (var k = 0; k < existingHistory.length; k++) {
             if (existingHistory[k].title === originalTitle) { hasConflict = true; break; }
         }
         if (!hasConflict) return originalTitle;
-        var suffix = this.generateContentBasedSuffix(null, existingHistory.filter(function(item) {
+        var suffix = this.generateContentBasedSuffix(content, existingHistory.filter(function(item) {
             return item.title === originalTitle || item.title.indexOf(originalTitle + ' (') === 0;
         }));
         return originalTitle + ' (' + suffix + ')';
@@ -169,6 +169,7 @@ class HistoryManager {
     }
     
     extractHeaders(content) {
+        if (!content) return [];
         var headers = [];
         var lines = content.split('\n');
         for (var i = 0; i < lines.length; i++) {
@@ -182,6 +183,7 @@ class HistoryManager {
     }
     
     extractContentLines(content) {
+        if (!content) return [];
         var lines = content.split('\n');
         var contentLines = [];
         for (var i = 0; i < lines.length; i++) {
