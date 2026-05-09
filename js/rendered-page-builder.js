@@ -358,6 +358,7 @@ class RenderedPageBuilder {
                  cursor: not-allowed;
             }
             .fc-display {
+                box-sizing: border-box;
                 color: var(--fc-display-text);
                 background: var(--fc-display-bg);
                 border: 1px solid transparent;
