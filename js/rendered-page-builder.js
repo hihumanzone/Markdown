@@ -470,6 +470,7 @@ class RenderedPageBuilder {
                 }
             }
             @media print {
+                @page { margin: 0; }
                 #font-controls,
                 #copy-notification {
                     display: none !important;
@@ -486,9 +487,11 @@ class RenderedPageBuilder {
                 }
                 body.markdown-body {
                     background: #fff !important;
-                    padding: 20px !important;
+                    padding: 1.5cm !important;
                     margin: 0 !important;
                     max-width: 100% !important;
+                    box-decoration-break: clone;
+                    -webkit-box-decoration-break: clone;
                 }
                 body.markdown-body.full-width { max-width: 100% !important; }
                 body.markdown-body hr {
