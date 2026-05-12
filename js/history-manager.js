@@ -138,32 +138,40 @@ class HistoryManager {
     findDistinctiveHeader(content, conflictingItems) {
         var headers = this.extractHeaders(content);
         if (headers.length <= 1) return null;
+
+        var conflictingHeaders = new Set();
+        for (var c = 0; c < conflictingItems.length; c++) {
+            var extHeaders = this.extractHeaders(conflictingItems[c].content);
+            for (var i = 0; i < extHeaders.length; i++) {
+                conflictingHeaders.add(extHeaders[i]);
+            }
+        }
+
         for (var h = 0; h < headers.length; h++) {
             var header = headers[h];
-            var distinct = true;
-            for (var c = 0; c < conflictingItems.length; c++) {
-                if (this.extractHeaders(conflictingItems[c].content).indexOf(header) !== -1) {
-                    distinct = false;
-                    break;
-                }
+            if (!conflictingHeaders.has(header)) {
+                return header;
             }
-            if (distinct) return header;
         }
         return null;
     }
     
     findDistinctiveLine(content, conflictingItems) {
         var contentLines = this.extractContentLines(content);
+
+        var conflictingLines = new Set();
+        for (var ci = 0; ci < conflictingItems.length; ci++) {
+            var extLines = this.extractContentLines(conflictingItems[ci].content);
+            for (var i = 0; i < extLines.length; i++) {
+                conflictingLines.add(extLines[i]);
+            }
+        }
+
         for (var cl = 0; cl < contentLines.length; cl++) {
             var line = contentLines[cl];
-            var distinct = true;
-            for (var ci = 0; ci < conflictingItems.length; ci++) {
-                if (this.extractContentLines(conflictingItems[ci].content).indexOf(line) !== -1) {
-                    distinct = false;
-                    break;
-                }
+            if (!conflictingLines.has(line)) {
+                return line;
             }
-            if (distinct) return line;
         }
         return null;
     }
