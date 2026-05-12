@@ -138,32 +138,40 @@ class HistoryManager {
     findDistinctiveHeader(content, conflictingItems) {
         const headers = this.extractHeaders(content);
         if (headers.length <= 1) return null;
+
+        const conflictingHeaders = new Set();
+        for (let c = 0; c < conflictingItems.length; c++) {
+            const extHeaders = this.extractHeaders(conflictingItems[c].content);
+            for (let i = 0; i < extHeaders.length; i++) {
+                conflictingHeaders.add(extHeaders[i]);
+            }
+        }
+
         for (let h = 0; h < headers.length; h++) {
             const header = headers[h];
-            let distinct = true;
-            for (let c = 0; c < conflictingItems.length; c++) {
-                if (this.extractHeaders(conflictingItems[c].content).indexOf(header) !== -1) {
-                    distinct = false;
-                    break;
-                }
+            if (!conflictingHeaders.has(header)) {
+                return header;
             }
-            if (distinct) return header;
         }
         return null;
     }
     
     findDistinctiveLine(content, conflictingItems) {
         const contentLines = this.extractContentLines(content);
+
+        const conflictingLines = new Set();
+        for (let ci = 0; ci < conflictingItems.length; ci++) {
+            const extLines = this.extractContentLines(conflictingItems[ci].content);
+            for (let i = 0; i < extLines.length; i++) {
+                conflictingLines.add(extLines[i]);
+            }
+        }
+
         for (let cl = 0; cl < contentLines.length; cl++) {
             const line = contentLines[cl];
-            let distinct = true;
-            for (let ci = 0; ci < conflictingItems.length; ci++) {
-                if (this.extractContentLines(conflictingItems[ci].content).indexOf(line) !== -1) {
-                    distinct = false;
-                    break;
-                }
+            if (!conflictingLines.has(line)) {
+                return line;
             }
-            if (distinct) return line;
         }
         return null;
     }
