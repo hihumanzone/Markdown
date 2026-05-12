@@ -34,7 +34,6 @@ class MarkdownRendererApp {
         const checkAndSetupMarked = () => {
             if (typeof marked === 'undefined') {
                 if (!this.fallbackWarningLogged) {
-                    console.error("Marked.js is not loaded - will use fallback renderer");
                     this.fallbackWarningLogged = true;
                 }
                 if (this.dom.renderButton) {
@@ -73,7 +72,6 @@ class MarkdownRendererApp {
                 if (checkAndSetupMarked() || retryCount >= maxRetries) {
                     clearInterval(retryInterval);
                     if (retryCount >= maxRetries && typeof marked === 'undefined' && !this.fallbackWarningLogged) {
-                        console.error("Failed to load Marked.js after multiple attempts - using fallback renderer");
                         this.fallbackWarningLogged = true;
                     }
                 }
@@ -151,7 +149,6 @@ class MarkdownRendererApp {
             this.currentContentManager.saveCurrentContent(text);
             this.handleRender();
         } catch (err) {
-            console.error('Failed to read clipboard:', err);
             await CustomModal.alert('Failed to read from clipboard. Please check permissions or paste manually.');
         }
     }
@@ -186,17 +183,15 @@ class MarkdownRendererApp {
             );
             this.openInNewTab(fullPageHtml);
         } catch (error) {
-            console.error("Error during markdown rendering:", error);
             const message = error.message?.includes('marked') 
                 ? "The Markdown library failed to load properly. Please refresh the page and ensure you have an internet connection."
-                : "An error occurred while rendering the markdown. Please check the console for details.";
+                : "An error occurred while rendering the markdown. Please try again later.";
             await CustomModal.alert(message);
         }
     }
     
     async renderWithFallback(markdownText) {
         if (!this.fallbackWarningLogged) {
-            console.error("Marked.js library is not loaded, using basic fallback");
             await CustomModal.alert("The Markdown library failed to load due to network restrictions. Using basic fallback renderer with limited features. For full functionality, please refresh the page with a stable internet connection.");
             this.fallbackWarningLogged = true;
         }
@@ -227,7 +222,6 @@ class MarkdownRendererApp {
                 await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");
             }
         } catch (error) {
-            console.error("Error creating blob URL:", error);
             const newTab = window.open('', '_blank');
             if (newTab) {
                 newTab.document.open();
