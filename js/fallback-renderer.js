@@ -25,7 +25,7 @@ class FallbackRenderer {
     
     static processHeaders(html) {
         return html.replace(/^#{1,6}\s+(.*)$/gim, function(match, content) {
-            var level = match.match(/^#+/)[0].length;
+            const level = match.match(/^#+/)[0].length;
             return '<h' + level + '>' + content + '</h' + level + '>';
         });
     }

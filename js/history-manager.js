@@ -10,9 +10,9 @@ class HistoryManager {
         
         let updatedHistory;
         if (existingIndex !== -1) {
-            var existingItem = history[existingIndex];
+            const existingItem = history[existingIndex];
             updatedHistory = [];
-            for (var i = 0; i < history.length; i++) {
+            for (let i = 0; i < history.length; i++) {
                 if (i !== existingIndex) updatedHistory.push(history[i]);
             }
             updatedHistory.unshift({
@@ -24,7 +24,7 @@ class HistoryManager {
             });
         } else {
             updatedHistory = [];
-            for (var j = 0; j < history.length; j++) {
+            for (let j = 0; j < history.length; j++) {
                 if (history[j].id !== section.id) updatedHistory.push(history[j]);
             }
             
@@ -68,12 +68,12 @@ class HistoryManager {
     }
     
     generateUniqueTitle(originalTitle, content, existingHistory) {
-        var hasConflict = false;
-        for (var k = 0; k < existingHistory.length; k++) {
+        let hasConflict = false;
+        for (let k = 0; k < existingHistory.length; k++) {
             if (existingHistory[k].title === originalTitle) { hasConflict = true; break; }
         }
         if (!hasConflict) return originalTitle;
-        var suffix = this.generateContentBasedSuffix(content, existingHistory.filter(function(item) {
+        const suffix = this.generateContentBasedSuffix(content, existingHistory.filter(function(item) {
             return item.title === originalTitle || item.title.indexOf(originalTitle + ' (') === 0;
         }));
         return originalTitle + ' (' + suffix + ')';
@@ -81,13 +81,13 @@ class HistoryManager {
     
     resolveTitleConflicts(history) {
         if (history.length < 2) return history;
-        var updatedHistory = history.slice();
-        var titleGroups = {};
-        var hasMultiples = false;
+        const updatedHistory = history.slice();
+        const titleGroups = {};
+        let hasMultiples = false;
         
-        for (var m = 0; m < updatedHistory.length; m++) {
-            var item = updatedHistory[m];
-            var baseTitle = this.extractBaseTitle(item.title);
+        for (let m = 0; m < updatedHistory.length; m++) {
+            const item = updatedHistory[m];
+            const baseTitle = this.extractBaseTitle(item.title);
             if (!titleGroups[baseTitle]) {
                 titleGroups[baseTitle] = [];
             }
@@ -97,20 +97,20 @@ class HistoryManager {
         
         if (!hasMultiples) return updatedHistory;
         
-        var groups = Object.values(titleGroups);
-        for (var g = 0; g < groups.length; g++) {
-            var group = groups[g];
+        const groups = Object.values(titleGroups);
+        for (let g = 0; g < groups.length; g++) {
+            const group = groups[g];
             if (group.length < 2) continue;
             group.sort(function(a, b) { return new Date(b.item.viewedAt) - new Date(a.item.viewedAt); });
             
-            for (var t = 0; t < group.length; t++) {
-                var entry = group[t];
+            for (let t = 0; t < group.length; t++) {
+                const entry = group[t];
                 if (t === 0) {
                     updatedHistory[entry.index].title = this.extractBaseTitle(entry.item.title);
                 } else {
-                    var otherItems = [];
-                    for (var o = 0; o < t; o++) otherItems.push(group[o].item);
-                    var suffix = this.generateContentBasedSuffix(entry.item.content, otherItems);
+                    const otherItems = [];
+                    for (let o = 0; o < t; o++) otherItems.push(group[o].item);
+                    const suffix = this.generateContentBasedSuffix(entry.item.content, otherItems);
                     updatedHistory[entry.index].title = this.extractBaseTitle(entry.item.title) + ' (' + suffix + ')';
                 }
             }
@@ -120,7 +120,7 @@ class HistoryManager {
     }
     
     extractBaseTitle(title) {
-        var match = title.match(/^(.+?)\s*\(/);
+        const match = title.match(/^(.+?)\s*\(/);
         return match ? match[1].trim() : title;
     }
     
@@ -128,7 +128,7 @@ class HistoryManager {
         if (!conflictingItems || conflictingItems.length === 0) {
             return content ? content.trim().substring(0, 25) : 'content';
         }
-        var result = this.findDistinctiveHeader(content, conflictingItems);
+        let result = this.findDistinctiveHeader(content, conflictingItems);
         if (result) return this.truncateText(result, 25);
         result = this.findDistinctiveLine(content, conflictingItems);
         if (result) return this.truncateText(result, 25);
@@ -136,12 +136,12 @@ class HistoryManager {
     }
     
     findDistinctiveHeader(content, conflictingItems) {
-        var headers = this.extractHeaders(content);
+        const headers = this.extractHeaders(content);
         if (headers.length <= 1) return null;
-        for (var h = 0; h < headers.length; h++) {
-            var header = headers[h];
-            var distinct = true;
-            for (var c = 0; c < conflictingItems.length; c++) {
+        for (let h = 0; h < headers.length; h++) {
+            const header = headers[h];
+            let distinct = true;
+            for (let c = 0; c < conflictingItems.length; c++) {
                 if (this.extractHeaders(conflictingItems[c].content).indexOf(header) !== -1) {
                     distinct = false;
                     break;
@@ -153,11 +153,11 @@ class HistoryManager {
     }
     
     findDistinctiveLine(content, conflictingItems) {
-        var contentLines = this.extractContentLines(content);
-        for (var cl = 0; cl < contentLines.length; cl++) {
-            var line = contentLines[cl];
-            var distinct = true;
-            for (var ci = 0; ci < conflictingItems.length; ci++) {
+        const contentLines = this.extractContentLines(content);
+        for (let cl = 0; cl < contentLines.length; cl++) {
+            const line = contentLines[cl];
+            let distinct = true;
+            for (let ci = 0; ci < conflictingItems.length; ci++) {
                 if (this.extractContentLines(conflictingItems[ci].content).indexOf(line) !== -1) {
                     distinct = false;
                     break;
@@ -170,12 +170,12 @@ class HistoryManager {
     
     extractHeaders(content) {
         if (!content) return [];
-        var headers = [];
-        var lines = content.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            var trimmed = lines[i].trim();
+        const headers = [];
+        const lines = content.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const trimmed = lines[i].trim();
             if (trimmed.charAt(0) === '#') {
-                var match = trimmed.match(/^#{1,6}\s+(.+)$/);
+                const match = trimmed.match(/^#{1,6}\s+(.+)$/);
                 if (match) headers.push(match[1].trim());
             }
         }
@@ -184,10 +184,10 @@ class HistoryManager {
     
     extractContentLines(content) {
         if (!content) return [];
-        var lines = content.split('\n');
-        var contentLines = [];
-        for (var i = 0; i < lines.length; i++) {
-            var trimmed = lines[i].trim();
+        const lines = content.split('\n');
+        const contentLines = [];
+        for (let i = 0; i < lines.length; i++) {
+            const trimmed = lines[i].trim();
             if (trimmed && trimmed.charAt(0) !== '#' && trimmed.indexOf('```') !== 0 && trimmed.length > 5) {
                 contentLines.push(trimmed);
                 if (contentLines.length >= 3) break;

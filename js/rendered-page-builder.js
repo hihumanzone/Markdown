@@ -31,10 +31,10 @@ class RenderedPageBuilder {
     }
 
     static build(content, rawMarkdown, title, listItems, flatListItems) {
-        var katexCSS = CONFIG.CDN.katexCSS;
-        var katexJS = CONFIG.CDN.katexJS;
-        var katexAuto = CONFIG.CDN.katexAutoRenderJS;
-        var h2c = CONFIG.CDN.html2canvas;
+        const katexCSS = CONFIG.CDN.katexCSS;
+        const katexJS = CONFIG.CDN.katexJS;
+        const katexAuto = CONFIG.CDN.katexAutoRenderJS;
+        const h2c = CONFIG.CDN.html2canvas;
         return '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + title + '</title>\n    <link rel="stylesheet" href="' + katexCSS + '">\n' + this._getStyles() + '\n</head>\n<body class="markdown-body">\n' + this._getControls() + '\n    <div id="content-container">' + content + '</div>\n    <div id="raw-container" style="display: none;">\n        <pre id="raw-markdown">' + Utils.escapeHtml(rawMarkdown) + '</pre>\n    </div>\n    <div id="copy-notification">Copied to clipboard!</div>\n    <script>\n        window.__APP_DATA__ = {\n            rawMarkdown: ' + JSON.stringify(rawMarkdown) + ',\n            documentTitle: ' + JSON.stringify(title) + ',\n            listItems: ' + JSON.stringify(listItems) + ',\n            flatListItems: ' + JSON.stringify(flatListItems) + ',\n            config: ' + this._getConfigJSON() + '\n        };\n    <\/script>\n    <script defer src="' + katexJS + '"><\/script>\n    <script defer src="' + katexAuto + '"><\/script>\n    <script defer src="' + h2c + '"><\/script>\n' + this._getClientScriptIncludes() + '\n</body>\n</html>';
     }
     
@@ -914,10 +914,10 @@ class KatexRenderer {
         if (typeof renderMathInElement === 'function') { 
             this.render(); 
         } else {
-            var script = document.querySelector('script[src*="auto-render"]');
+            const script = document.querySelector('script[src*="auto-render"]');
             if (script) {
-                var self = this;
-                var onLoad = function() {
+                const self = this;
+                const onLoad = function() {
                     script.removeEventListener('load', onLoad);
                     self.render();
                 };
@@ -935,8 +935,8 @@ class KatexRenderer {
     }
 
     _poll() {
-        var self = this;
-        var interval = setInterval(function() { 
+        const self = this;
+        const interval = setInterval(function() {
             if (typeof renderMathInElement === 'function') { 
                 clearInterval(interval); 
                 self.render(); 
@@ -1064,9 +1064,9 @@ class CollapsibleController {
     }
 
     _getControlsToToggle() {
-        var children = document.getElementById('font-controls').children;
-        var result = [];
-        for (var i = 0; i < children.length; i++) {
+        const children = document.getElementById('font-controls').children;
+        const result = [];
+        for (let i = 0; i < children.length; i++) {
             if (children[i].id !== 'toggleCollapseBtn') result.push(children[i]);
         }
         return result;
@@ -1079,12 +1079,12 @@ class CollapsibleController {
     }
     
     toggle() {
-        var current = this.controlsToToggle[0].style.display === 'none';
+        const current = this.controlsToToggle[0].style.display === 'none';
         this.applyState(!current);
     }
     
     applyState(collapsed) {
-        for (var i = 0; i < this.controlsToToggle.length; i++) {
+        for (let i = 0; i < this.controlsToToggle.length; i++) {
             this.controlsToToggle[i].style.display = collapsed ? 'none' : '';
         }
         this.toggleButton.textContent = collapsed ? 'Expand' : 'Collapse';
@@ -1534,23 +1534,23 @@ class ListItemController {
 
     init() {
         if (!this.contentContainer || !this.notificationElement) return;
-        var self = this;
-        var setup = function() {
+        const self = this;
+        const setup = function() {
             if (self.setupTimeout) clearTimeout(self.setupTimeout);
             self.setupTimeout = setTimeout(function() { self.attachInitialListeners(); }, 300);
         };
         setTimeout(setup, 500);
-        var observer = new MutationObserver(setup);
+        const observer = new MutationObserver(setup);
         observer.observe(this.contentContainer, { childList: true, subtree: false });
     }
 
     attachInitialListeners() {
         if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return;
         
-        var isEnabled = this.isLongPressCopyEnabled();
-        var allLis = this.contentContainer.querySelectorAll('li');
-        for (var i = 0; i < allLis.length; i++) {
-            var li = allLis[i];
+        const isEnabled = this.isLongPressCopyEnabled();
+        const allLis = this.contentContainer.querySelectorAll('li');
+        for (let i = 0; i < allLis.length; i++) {
+            const li = allLis[i];
             if (li.dataset.listCopyInitialized === 'true' || li.dataset.listCopyInitialized === 'false') continue;
             this.initializeListItem(li, i, isEnabled);
         }
@@ -1558,7 +1558,7 @@ class ListItemController {
 
     isLongPressCopyEnabled() {
         if (!window.__APP_DATA__.config.ENABLE_LIST_LONG_PRESS_COPY) return false;
-        var savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
+        const savedSetting = localStorage.getItem(window.__APP_DATA__.config.LOCAL_STORAGE_KEYS.LONG_PRESS_COPY);
         return savedSetting !== null ? savedSetting === 'true' : true;
     }
 
@@ -1567,7 +1567,7 @@ class ListItemController {
         li.dataset.listCopyInitialized = enabled.toString();
         
         try {
-            var listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
+            const listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
             if (Array.isArray(listData) && listData[index]) {
                 li.dataset.rawListContent = listData[index].content || '';
             }
@@ -1576,9 +1576,9 @@ class ListItemController {
         this.cleanupListItemEventListeners(li);
         
         if (enabled) {
-            var self = this;
-            var mousedownHandler = function(e) { if (e.button === 0) self.handleStart(li, e); };
-            var touchstartHandler = function(e) { self.handleStart(li, e); };
+            const self = this;
+            const mousedownHandler = function(e) { if (e.button === 0) self.handleStart(li, e); };
+            const touchstartHandler = function(e) { self.handleStart(li, e); };
             
             li.addEventListener('mousedown', mousedownHandler);
             li.addEventListener('touchstart', touchstartHandler, { passive: true });
@@ -1615,10 +1615,10 @@ class ListItemController {
     }
 
     updateLongPressCopyState(enabled) {
-        var allLis = this.contentContainer.querySelectorAll('li');
+        const allLis = this.contentContainer.querySelectorAll('li');
         
-        for (var i = 0; i < allLis.length; i++) {
-            var li = allLis[i];
+        for (let i = 0; i < allLis.length; i++) {
+            const li = allLis[i];
             if (this.longPressElement === li) {
                 this.handleEnd();
             }
@@ -1660,7 +1660,7 @@ class ListItemController {
 
         element.classList.add('list-item-highlight');
         
-        var self = this;
+        const self = this;
         this.longPressTimer = setTimeout(function() {
             if (self.longPressElement === element) {
                 self.copyListContent(element);
@@ -1672,9 +1672,9 @@ class ListItemController {
         if (!this.longPressTimer) return;
 
         if (event.touches.length > 0) {
-            var touch = event.touches[0];
-            var deltaX = Math.abs(touch.clientX - this.touchStartX);
-            var deltaY = Math.abs(touch.clientY - this.touchStartY);
+            const touch = event.touches[0];
+            const deltaX = Math.abs(touch.clientX - this.touchStartX);
+            const deltaY = Math.abs(touch.clientY - this.touchStartY);
         
             if (deltaX > 10 || deltaY > 10) {
                 this.handleEnd();
@@ -1703,14 +1703,14 @@ class ListItemController {
 
     async copyListContent(element) {
         try {
-            var textToCopy = element.dataset.rawListContent;
+            let textToCopy = element.dataset.rawListContent;
             if (!textToCopy) {
-                var allLis = this.contentContainer.querySelectorAll('li');
-                var recomputedIndex = -1;
-                for (var r = 0; r < allLis.length; r++) {
+                const allLis = this.contentContainer.querySelectorAll('li');
+                let recomputedIndex = -1;
+                for (let r = 0; r < allLis.length; r++) {
                     if (allLis[r] === element) { recomputedIndex = r; break; }
                 }
-                var listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
+                const listData = window.__APP_DATA__?.flatListItems || window.__APP_DATA__?.listItems || [];
                 if (recomputedIndex > -1 && listData[recomputedIndex]) {
                     textToCopy = listData[recomputedIndex].content;
                 }
@@ -1730,7 +1730,7 @@ class ListItemController {
     }
 
     async copyElementText(element) {
-        var textContent = (element.innerText || element.textContent || "").trim();
+        const textContent = (element.innerText || element.textContent || "").trim();
         if (textContent) {
             await this._copyToClipboard(textContent);
             this.showNotification('List item text copied!');
@@ -1743,7 +1743,7 @@ class ListItemController {
         if (navigator.clipboard?.writeText) { 
             return navigator.clipboard.writeText(text); 
         }
-        var textArea = document.createElement('textarea');
+        const textArea = document.createElement('textarea');
         textArea.value = text;
         textArea.style.position = 'fixed'; 
         textArea.style.opacity = '0';
@@ -1763,7 +1763,7 @@ class ListItemController {
             this.notificationElement.style.color = '#0d1117';
         }
         this.notificationElement.style.display = 'block';
-        var self = this;
+        const self = this;
         setTimeout(function() { 
             self.notificationElement.style.display = 'none'; 
         }, isError ? 3500 : 2000);
