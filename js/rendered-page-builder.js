@@ -829,7 +829,7 @@ class CustomModal {
     }
 
     static sanitizeFilename(filename, fallback) {
-        const sanitized = filename.trim().replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^[-_.]+|[-_.]+$/g, '');
+        const sanitized = filename.trim().replace(/[<>:"\\/\\\\|?*]/g, '_').replace(/\\s+/g, '-').replace(/-+/g, '-').replace(/^[-_.]+|[-_.]+$/g, '');
         return sanitized || fallback;
     }
 
@@ -838,7 +838,7 @@ class CustomModal {
     }
 
     static extractTitleFromMarkdown(markdown = '') {
-        const headingMatch = markdown.match(/^#\s+(.+)$/m);
+        const headingMatch = markdown.match(/^#\\s+(.+)$/m);
         if (headingMatch && headingMatch[1]) {
             return headingMatch[1].trim();
         }
@@ -848,9 +848,9 @@ class CustomModal {
     static toSlug(value = '') {
         return value
             .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/[^a-z0-9\\s-]/g, '')
             .trim()
-            .replace(/\s+/g, '-')
+            .replace(/\\s+/g, '-')
             .replace(/-+/g, '-');
     }
 
