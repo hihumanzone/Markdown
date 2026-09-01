@@ -1,2 +1,2 @@
-new MarkdownRendererApp();
-new MainPageThemeController();
+window.markdownRendererApp = new MarkdownRendererApp();
+window.mainPageThemeController = new MainPageThemeController();

@@ -10,8 +10,10 @@ const Utils = {
             return DOMPurify.sanitize(markdown, {
                 ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
                               'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'table', 
-                              'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'del', 'ins'],
-                ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
+                              'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'del', 'ins', 'span', 'div',
+                              'sub', 'sup', 'mark', 'kbd'],
+                ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'id', 'style',
+                              'aria-hidden', 'aria-label', 'data-start', 'data-line', 'data-list-index'],
                 ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
             });
         }

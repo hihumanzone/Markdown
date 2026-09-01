@@ -1,7 +1,8 @@
 class RenderedPageBuilder {
     static _cachedStyles = null;
     static _cachedScripts = null;
-    static _cachedControls = null;
+    static _cachedControlsPreview = null;
+    static _cachedControlsStandalone = null;
     static _cachedConfigJSON = null;
 
     static _getStyles() {
@@ -13,15 +14,20 @@ class RenderedPageBuilder {
     static _getClientScriptIncludes() {
         if (this._cachedScripts) return this._cachedScripts;
         this._cachedScripts = this.getClientScriptIncludes();
-        this.getStyles = null;
-        this.getClientScriptIncludes = null;
         return this._cachedScripts;
     }
 
-    static _getControls() {
-        if (this._cachedControls) return this._cachedControls;
-        this._cachedControls = this.getControls();
-        return this._cachedControls;
+    static _getControls(options = {}) {
+        const isPreview = typeof options === 'boolean' ? options : !!(options && options.isPreview);
+        if (isPreview) {
+            if (this._cachedControlsPreview) return this._cachedControlsPreview;
+            this._cachedControlsPreview = this.getControls({ isPreview: true });
+            return this._cachedControlsPreview;
+        } else {
+            if (this._cachedControlsStandalone) return this._cachedControlsStandalone;
+            this._cachedControlsStandalone = this.getControls({ isPreview: false });
+            return this._cachedControlsStandalone;
+        }
     }
 
     static _getConfigJSON() {
@@ -30,12 +36,17 @@ class RenderedPageBuilder {
         return this._cachedConfigJSON;
     }
 
-    static build(content, rawMarkdown, title, listItems, flatListItems) {
+    static build(content, rawMarkdown, title, listItems, flatListItems, options = {}) {
+        var isPreview = typeof options === 'boolean' ? options : !!(options && options.isPreview);
         var katexCSS = CONFIG.CDN.katexCSS;
         var katexJS = CONFIG.CDN.katexJS;
         var katexAuto = CONFIG.CDN.katexAutoRenderJS;
         var h2c = CONFIG.CDN.html2canvas;
-        return '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + title + '</title>\n    <link rel="stylesheet" href="' + katexCSS + '">\n' + this._getStyles() + '\n</head>\n<body class="markdown-body">\n' + this._getControls() + '\n    <div id="content-container">' + content + '</div>\n    <div id="raw-container" style="display: none;">\n        <pre id="raw-markdown">' + Utils.escapeHtml(rawMarkdown) + '</pre>\n    </div>\n    <div id="copy-notification">Copied to clipboard!</div>\n    <script>\n        window.__APP_DATA__ = {\n            rawMarkdown: ' + JSON.stringify(rawMarkdown) + ',\n            documentTitle: ' + JSON.stringify(title) + ',\n            listItems: ' + JSON.stringify(listItems) + ',\n            flatListItems: ' + JSON.stringify(flatListItems) + ',\n            config: ' + this._getConfigJSON() + '\n        };\n    <\/script>\n    <script defer src="' + katexJS + '"><\/script>\n    <script defer src="' + katexAuto + '"><\/script>\n    <script defer src="' + h2c + '"><\/script>\n' + this._getClientScriptIncludes() + '\n</body>\n</html>';
+        var prismCSS = CONFIG.CDN.prismCSS;
+        var prismJS = CONFIG.CDN.prismJS;
+        var prismAutoloader = CONFIG.CDN.prismAutoloaderJS;
+        var prismLineNumbers = CONFIG.CDN.prismLineNumbersJS;
+        return '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + title + '</title>\n    <link rel="stylesheet" href="' + katexCSS + '">\n    <link rel="stylesheet" href="' + prismCSS + '">\n' + this._getStyles() + '\n</head>\n<body class="markdown-body">\n' + this._getControls({ isPreview: isPreview }) + '\n    <div id="content-container">' + content + '</div>\n    <div id="raw-container" style="display: none;">\n        <pre id="raw-markdown">' + Utils.escapeHtml(rawMarkdown) + '</pre>\n    </div>\n    <div id="copy-notification">Copied to clipboard!</div>\n    <script>\n        window.__APP_DATA__ = {\n            rawMarkdown: ' + JSON.stringify(rawMarkdown) + ',\n            documentTitle: ' + JSON.stringify(title) + ',\n            listItems: ' + JSON.stringify(listItems) + ',\n            flatListItems: ' + JSON.stringify(flatListItems) + ',\n            isPreview: ' + (isPreview ? 'true' : 'false') + ',\n            config: ' + this._getConfigJSON() + '\n        };\n    <\/script>\n    <script defer src="' + katexJS + '"><\/script>\n    <script defer src="' + katexAuto + '"><\/script>\n    <script defer src="' + h2c + '"><\/script>\n    <script defer src="' + prismJS + '"><\/script>\n    <script defer src="' + prismAutoloader + '"><\/script>\n    <script defer src="' + prismLineNumbers + '"><\/script>\n' + this._getClientScriptIncludes() + '\n</body>\n</html>';
     }
     
     static getStyles() {
@@ -127,12 +138,49 @@ class RenderedPageBuilder {
             }
             body.markdown-body pre {
                 background-color: #f6f8fa;
+                border: 1px solid #e1e4e8;
                 border-radius: 6px;
                 font-size: 85%;
-                line-height: 1.45;
+                line-height: 1.5;
                 overflow: auto;
                 padding: 16px;
                 margin: 16px 0;
+                position: relative;
+            }
+            body.markdown-body pre.line-numbers {
+                position: relative;
+                padding-left: 3.8em;
+                counter-reset: linenumber;
+            }
+            body.markdown-body pre.line-numbers > code {
+                position: relative;
+                white-space: inherit;
+            }
+            body.markdown-body .line-numbers-rows {
+                position: absolute;
+                pointer-events: none;
+                top: 0;
+                left: -3.8em;
+                width: 3em;
+                letter-spacing: -1px;
+                border-right: 1px solid #d1d5da;
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                font-size: 100%;
+                line-height: inherit;
+            }
+            body.markdown-body .line-numbers-rows > span {
+                display: block;
+                counter-increment: linenumber;
+            }
+            body.markdown-body .line-numbers-rows > span:before {
+                content: counter(linenumber);
+                color: #8c959f;
+                display: block;
+                padding-right: 0.8em;
+                text-align: right;
             }
             body.markdown-body pre,
             body.markdown-body code,
@@ -143,7 +191,8 @@ class RenderedPageBuilder {
             body.markdown-body pre code {
                 background-color: transparent;
                 border: 0;
-                display: inline;
+                display: inline-block;
+                min-width: 100%;
                 font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
                 line-height: inherit;
                 margin: 0;
@@ -151,6 +200,67 @@ class RenderedPageBuilder {
                 padding: 0;
                 word-wrap: normal;
                 font-size: 100%;
+                tab-size: 4;
+            }
+            /* Syntax Highlighting - Light Theme */
+            body.markdown-body .token.comment,
+            body.markdown-body .token.prolog,
+            body.markdown-body .token.doctype,
+            body.markdown-body .token.cdata {
+                color: #6a737d;
+                font-style: italic;
+            }
+            body.markdown-body .token.punctuation {
+                color: #24292e;
+            }
+            body.markdown-body .token.namespace {
+                opacity: .7;
+            }
+            body.markdown-body .token.property,
+            body.markdown-body .token.tag,
+            body.markdown-body .token.boolean,
+            body.markdown-body .token.number,
+            body.markdown-body .token.constant,
+            body.markdown-body .token.symbol,
+            body.markdown-body .token.deleted {
+                color: #005cc5;
+            }
+            body.markdown-body .token.selector,
+            body.markdown-body .token.attr-name,
+            body.markdown-body .token.string,
+            body.markdown-body .token.char,
+            body.markdown-body .token.builtin,
+            body.markdown-body .token.inserted {
+                color: #032f62;
+            }
+            body.markdown-body .token.operator,
+            body.markdown-body .token.entity,
+            body.markdown-body .token.url,
+            body.markdown-body .language-css .token.string,
+            body.markdown-body .style .token.string {
+                color: #d73a49;
+            }
+            body.markdown-body .token.atrule,
+            body.markdown-body .token.attr-value,
+            body.markdown-body .token.keyword {
+                color: #d73a49;
+                font-weight: 600;
+            }
+            body.markdown-body .token.function,
+            body.markdown-body .token.class-name {
+                color: #6f42c1;
+            }
+            body.markdown-body .token.regex,
+            body.markdown-body .token.important,
+            body.markdown-body .token.variable {
+                color: #e36209;
+            }
+            body.markdown-body .token.important,
+            body.markdown-body .token.bold {
+                font-weight: bold;
+            }
+            body.markdown-body .token.italic {
+                font-style: italic;
             }
             body.markdown-body h1,
             body.markdown-body h2,
@@ -234,6 +344,61 @@ class RenderedPageBuilder {
             }
             body.markdown-body.dark-theme pre {
                 background-color: #161b22;
+                border-color: #30363d;
+            }
+            body.markdown-body.dark-theme .line-numbers-rows {
+                border-right-color: #30363d;
+            }
+            body.markdown-body.dark-theme .line-numbers-rows > span:before {
+                color: #6e7681;
+            }
+            /* Syntax Highlighting - Dark Theme */
+            body.markdown-body.dark-theme .token.comment,
+            body.markdown-body.dark-theme .token.prolog,
+            body.markdown-body.dark-theme .token.doctype,
+            body.markdown-body.dark-theme .token.cdata {
+                color: #8b949e;
+                font-style: italic;
+            }
+            body.markdown-body.dark-theme .token.punctuation {
+                color: #c9d1d9;
+            }
+            body.markdown-body.dark-theme .token.property,
+            body.markdown-body.dark-theme .token.tag,
+            body.markdown-body.dark-theme .token.boolean,
+            body.markdown-body.dark-theme .token.number,
+            body.markdown-body.dark-theme .token.constant,
+            body.markdown-body.dark-theme .token.symbol,
+            body.markdown-body.dark-theme .token.deleted {
+                color: #79c0ff;
+            }
+            body.markdown-body.dark-theme .token.selector,
+            body.markdown-body.dark-theme .token.attr-name,
+            body.markdown-body.dark-theme .token.string,
+            body.markdown-body.dark-theme .token.char,
+            body.markdown-body.dark-theme .token.builtin,
+            body.markdown-body.dark-theme .token.inserted {
+                color: #a5d6ff;
+            }
+            body.markdown-body.dark-theme .token.operator,
+            body.markdown-body.dark-theme .token.entity,
+            body.markdown-body.dark-theme .token.url {
+                color: #ff7b72;
+            }
+            body.markdown-body.dark-theme .token.atrule,
+            body.markdown-body.dark-theme .token.attr-value,
+            body.markdown-body.dark-theme .token.keyword {
+                color: #ff7b72;
+                font-weight: 600;
+            }
+            body.markdown-body.dark-theme .token.function,
+            body.markdown-body.dark-theme .token.class-name {
+                color: #d2a8ff;
+            }
+            body.markdown-body.dark-theme .token.regex,
+            body.markdown-body.dark-theme .token.important,
+            body.markdown-body.dark-theme .token.variable {
+                color: #ffa657;
             }
             body.markdown-body.dark-theme h1,
             body.markdown-body.dark-theme h2,
@@ -275,7 +440,50 @@ class RenderedPageBuilder {
             body.markdown-body.high-contrast-theme code:not([class*="language-"]):not(pre > code){
                 background:#222;color:#fff
             }
-            body.markdown-body.high-contrast-theme pre{background:#111}
+            body.markdown-body.high-contrast-theme pre{
+                background:#111;
+                border-color:#555;
+            }
+            body.markdown-body.high-contrast-theme .line-numbers-rows {
+                border-right-color: #555;
+            }
+            body.markdown-body.high-contrast-theme .line-numbers-rows > span:before {
+                color: #aaa;
+            }
+            /* Syntax Highlighting - High Contrast Theme */
+            body.markdown-body.high-contrast-theme .token.comment {
+                color: #bbb;
+                font-style: italic;
+            }
+            body.markdown-body.high-contrast-theme .token.punctuation {
+                color: #fff;
+            }
+            body.markdown-body.high-contrast-theme .token.property,
+            body.markdown-body.high-contrast-theme .token.boolean,
+            body.markdown-body.high-contrast-theme .token.number {
+                color: #ffcc66;
+            }
+            body.markdown-body.high-contrast-theme .token.selector,
+            body.markdown-body.high-contrast-theme .token.attr-name,
+            body.markdown-body.high-contrast-theme .token.string {
+                color: #80d4ff;
+            }
+            body.markdown-body.high-contrast-theme .token.operator,
+            body.markdown-body.high-contrast-theme .token.keyword {
+                color: #ff8080;
+                font-weight: bold;
+            }
+            body.markdown-body.high-contrast-theme .token.function,
+            body.markdown-body.high-contrast-theme .token.class-name {
+                color: #e0a0ff;
+            }
+            body.markdown-body.high-contrast-theme .token.tag {
+                color: #70ff94;
+            }
+            body.markdown-body.high-contrast-theme .token.regex,
+            body.markdown-body.high-contrast-theme .token.variable {
+                color: #ffd27f;
+            }
             body.markdown-body.high-contrast-theme h1,
             body.markdown-body.high-contrast-theme h2,
             body.markdown-body.high-contrast-theme h3,
@@ -357,6 +565,28 @@ class RenderedPageBuilder {
                  opacity: 0.58;
                  cursor: not-allowed;
             }
+            .fc-button.fc-button-close {
+                background-color: rgba(239, 68, 68, 0.12);
+                color: #dc2626;
+                border-color: rgba(239, 68, 68, 0.35);
+                font-weight: 600;
+            }
+            .fc-button.fc-button-close:hover:not(:disabled) {
+                background-color: rgba(239, 68, 68, 0.22);
+                border-color: #dc2626;
+                color: #b91c1c;
+            }
+            .fc-button.fc-button-primary-action {
+                background-color: rgba(59, 130, 246, 0.12);
+                color: #2563eb;
+                border-color: rgba(59, 130, 246, 0.35);
+                font-weight: 600;
+            }
+            .fc-button.fc-button-primary-action:hover:not(:disabled) {
+                background-color: rgba(59, 130, 246, 0.22);
+                border-color: #2563eb;
+                color: #1d4ed8;
+            }
             .fc-display {
                 box-sizing: border-box;
                 color: var(--fc-display-text);
@@ -382,6 +612,26 @@ class RenderedPageBuilder {
                 --fc-display-bg: rgba(88, 166, 255, 0.16);
                 --fc-display-text: #dce7f3;
             }
+            body.markdown-body.dark-theme .fc-button.fc-button-close {
+                background-color: rgba(248, 81, 73, 0.16);
+                color: #f85149;
+                border-color: rgba(248, 81, 73, 0.45);
+            }
+            body.markdown-body.dark-theme .fc-button.fc-button-close:hover:not(:disabled) {
+                background-color: rgba(248, 81, 73, 0.28);
+                border-color: #f85149;
+                color: #ff7b72;
+            }
+            body.markdown-body.dark-theme .fc-button.fc-button-primary-action {
+                background-color: rgba(56, 139, 253, 0.16);
+                color: #58a6ff;
+                border-color: rgba(56, 139, 253, 0.45);
+            }
+            body.markdown-body.dark-theme .fc-button.fc-button-primary-action:hover:not(:disabled) {
+                background-color: rgba(56, 139, 253, 0.28);
+                border-color: #58a6ff;
+                color: #79c0ff;
+            }
             body.markdown-body.high-contrast-theme .fc-panel {
                 --fc-panel-bg: rgba(0, 0, 0, 0.94);
                 --fc-panel-border: #666;
@@ -394,6 +644,26 @@ class RenderedPageBuilder {
                 --fc-button-focus-ring: rgba(8, 136, 255, 0.45);
                 --fc-display-bg: rgba(8, 136, 255, 0.2);
                 --fc-display-text: #fff;
+            }
+            body.markdown-body.high-contrast-theme .fc-button.fc-button-close {
+                background-color: #330000;
+                color: #ff8080;
+                border-color: #ff8080;
+            }
+            body.markdown-body.high-contrast-theme .fc-button.fc-button-close:hover:not(:disabled) {
+                background-color: #550000;
+                border-color: #ff9999;
+                color: #fff;
+            }
+            body.markdown-body.high-contrast-theme .fc-button.fc-button-primary-action {
+                background-color: #002244;
+                color: #80d4ff;
+                border-color: #80d4ff;
+            }
+            body.markdown-body.high-contrast-theme .fc-button.fc-button-primary-action:hover:not(:disabled) {
+                background-color: #003366;
+                border-color: #b3e6ff;
+                color: #fff;
             }
             .list-item-highlight {
                 background-color: rgba(3, 102, 214, 0.1) !important;
@@ -527,6 +797,18 @@ class RenderedPageBuilder {
                 }
                 pre, blockquote, img, .katex-display {
                     page-break-inside: avoid;
+                }
+                pre {
+                    border-color: #e1e4e8 !important;
+                }
+                pre.line-numbers {
+                    padding-left: 3.8em !important;
+                }
+                .line-numbers-rows {
+                    border-right-color: #d1d5da !important;
+                }
+                .line-numbers-rows > span:before {
+                    color: #666 !important;
                 }
                 a[href]:after {
                     content: none !important;
@@ -681,9 +963,15 @@ class RenderedPageBuilder {
         </style>`;
     }
     
-    static getControls() {
+    static getControls(options = {}) {
+        const isPreview = typeof options === 'boolean' ? options : !!(options && options.isPreview);
+        const previewControls = isPreview ? `
+                <button id="openNewTabBtn" class="fc-button fc-button-primary-action" title="Open rendered markdown in a new tab">Open in New Tab</button>
+                <button id="closePreviewBtn" class="fc-button fc-button-close" title="Close preview and return to editor">✕ Close</button>` : '';
+
         return `
             <div id="font-controls" class="fc-panel">
+                ${previewControls}
                 <button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button">Toggle</button>
                 <button id="decreaseFontBtn" title="Decrease font size (Ctrl/Cmd + -)" class="fc-button">-</button>
                 <span id="currentFontSizeDisplay" class="fc-display">100%</span>
@@ -723,6 +1011,7 @@ class RenderedPageBuilder {
         const scripts = [
             this.getCustomModalScript(),
             this.getKatexRendererScript(),
+            this.getCodeHighlightControllerScript(),
             this.getThemeControllerScript(),
             this.getFullWidthControllerScript(),
             this.getFontSizeControllerScript(),
@@ -735,6 +1024,7 @@ class RenderedPageBuilder {
             this.getExportImageControllerScript(),
             this.getSaveToLibraryControllerScript(),
             this.getListItemControllerScript(),
+            this.getPreviewControllerScript(),
             this.getUIControllerScript(),
             this.getClientMainScript()
         ];
@@ -957,6 +1247,97 @@ class KatexRenderer {
             });
         } catch (e) { 
             console.error("KaTeX rendering error:", e); 
+        }
+    }
+}`;
+    }
+
+    static getCodeHighlightControllerScript() {
+        return `
+class CodeHighlightController {
+    constructor() {
+        this.contentContainer = document.getElementById('content-container');
+        this.init();
+    }
+
+    init() {
+        this.prepareCodeBlocks();
+        this.initPrism();
+    }
+
+    prepareCodeBlocks() {
+        if (!this.contentContainer) return;
+        const preElements = this.contentContainer.querySelectorAll('pre');
+        for (let i = 0; i < preElements.length; i++) {
+            const pre = preElements[i];
+            if (!pre.classList.contains('line-numbers')) {
+                pre.classList.add('line-numbers');
+            }
+            const code = pre.querySelector('code');
+            if (code && !code.className) {
+                code.className = 'language-none';
+            }
+        }
+    }
+
+    initPrism() {
+        if (typeof Prism !== 'undefined') {
+            this.setupAndHighlight();
+        } else {
+            const prismScript = document.querySelector('script[src*="prism.min.js"]');
+            if (prismScript) {
+                const self = this;
+                const onLoad = () => {
+                    prismScript.removeEventListener('load', onLoad);
+                    self.setupAndHighlight();
+                };
+                prismScript.addEventListener('load', onLoad);
+                setTimeout(() => {
+                    if (typeof Prism !== 'undefined') {
+                        self.setupAndHighlight();
+                    } else {
+                        self.poll();
+                    }
+                }, 3000);
+            } else {
+                this.poll();
+            }
+        }
+    }
+
+    poll() {
+        const self = this;
+        let attempts = 0;
+        const maxAttempts = 30;
+        const interval = setInterval(() => {
+            attempts++;
+            if (typeof Prism !== 'undefined') {
+                clearInterval(interval);
+                self.setupAndHighlight();
+            } else if (attempts >= maxAttempts) {
+                clearInterval(interval);
+            }
+        }, 100);
+    }
+
+    setupAndHighlight() {
+        try {
+            if (typeof Prism === 'undefined') return;
+
+            if (Prism.plugins && Prism.plugins.autoloader) {
+                const cdnPath = window.__APP_DATA__?.config?.CDN?.prismAutoloaderPath || 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/';
+                Prism.plugins.autoloader.languages_path = cdnPath;
+            }
+
+            this.prepareCodeBlocks();
+
+            if (this.contentContainer && typeof Prism.highlightAllUnder === 'function') {
+                Prism.highlightAllUnder(this.contentContainer);
+            } else if (typeof Prism.highlightAll === 'function') {
+                Prism.highlightAll();
+            }
+        } catch (e) {
+            console.error('Syntax highlighting error:', e);
         }
     }
 }`;
@@ -1771,6 +2152,55 @@ class ListItemController {
 }`;
     }
     
+    static getPreviewControllerScript() {
+        return `
+class PreviewController {
+    constructor() {
+        this.openNewTabBtn = document.getElementById('openNewTabBtn');
+        this.closePreviewBtn = document.getElementById('closePreviewBtn');
+        this.init();
+    }
+    
+    init() {
+        if (this.closePreviewBtn) {
+            this.closePreviewBtn.addEventListener('click', () => this.close());
+        }
+        if (this.openNewTabBtn) {
+            this.openNewTabBtn.addEventListener('click', () => this.openInNewTab());
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.close();
+            }
+        });
+    }
+    
+    close() {
+        try {
+            if (window.parent && window.parent.markdownRendererApp && typeof window.parent.markdownRendererApp.closePreview === 'function') {
+                window.parent.markdownRendererApp.closePreview();
+                return;
+            }
+        } catch (e) {
+            // cross-origin or fallback
+        }
+        window.parent.postMessage({ type: 'CLOSE_MARKDOWN_PREVIEW' }, '*');
+    }
+    
+    openInNewTab() {
+        try {
+            if (window.parent && window.parent.markdownRendererApp && typeof window.parent.markdownRendererApp.openInNewTabFromPreview === 'function') {
+                window.parent.markdownRendererApp.openInNewTabFromPreview();
+                return;
+            }
+        } catch (e) {
+            // cross-origin or fallback
+        }
+        window.parent.postMessage({ type: 'OPEN_MARKDOWN_NEW_TAB' }, '*');
+    }
+}`;
+    }
+
     static getUIControllerScript() {
         return `
 class UIController {
@@ -1782,6 +2212,7 @@ class UIController {
     
     initializeControls() {
         this.katexRenderer = new KatexRenderer();
+        this.codeHighlightController = new CodeHighlightController();
         this.themeController = new ThemeController(this.body);
         this.fullWidthController = new FullWidthController(this.body);
         this.fontSizeController = new FontSizeController(this.body);
@@ -1794,6 +2225,10 @@ class UIController {
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
         this.saveToLibraryController = new SaveToLibraryController();
+        
+        if (window.__APP_DATA__ && window.__APP_DATA__.isPreview) {
+            this.previewController = new PreviewController();
+        }
         
         window.uiController = this;
     }

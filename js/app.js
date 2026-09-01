@@ -4,6 +4,7 @@ class MarkdownRendererApp {
         this.savedSectionsManager = null;
         this.currentContentManager = new CurrentContentManager();
         this.fallbackWarningLogged = false;
+        this.currentRenderedMarkdown = '';
         this.init();
     }
     
@@ -19,6 +20,9 @@ class MarkdownRendererApp {
     
     cacheDOMElements() {
         this.dom = {
+            mainContent: document.querySelector('.main-content'),
+            previewContainer: document.getElementById('previewContainer'),
+            previewFrame: document.getElementById('previewFrame'),
             markdownInput: document.getElementById('markdownInput'),
             renderButton: document.getElementById('renderMarkdownBtn'),
             pasteAndRenderButton: document.getElementById('pasteAndRenderBtn'),
@@ -47,7 +51,18 @@ class MarkdownRendererApp {
                 return false;
             }
             
+            const renderer = new marked.Renderer();
+            renderer.code = function(code, infostring, escaped) {
+                let text = typeof code === 'object' && code !== null ? (code.text || '') : (code || '');
+                let lang = typeof code === 'object' && code !== null ? (code.lang || '') : (infostring || '');
+                const cleanLang = (lang || '').trim().split(/\s+/)[0].toLowerCase();
+                const langClass = cleanLang ? `language-${cleanLang}` : 'language-none';
+                const escapedText = escaped ? text : Utils.escapeHtml(text);
+                return `<pre class="line-numbers"><code class="${langClass}">${escapedText}</code></pre>\n`;
+            };
+            
             marked.setOptions({
+                renderer: renderer,
                 gfm: true,
                 breaks: true,
                 smartypants: false,
@@ -90,6 +105,20 @@ class MarkdownRendererApp {
             }
         });
         this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
+
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'CLOSE_MARKDOWN_PREVIEW') {
+                this.closePreview();
+            } else if (e.data && e.data.type === 'OPEN_MARKDOWN_NEW_TAB') {
+                this.openInNewTabFromPreview();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isPreviewOpen()) {
+                this.closePreview();
+            }
+        });
     }
     
     initCurrentContentManager() {
@@ -97,6 +126,44 @@ class MarkdownRendererApp {
             this.currentContentManager.restoreContent(this.dom.markdownInput);
             this.currentContentManager.setupAutoSave(this.dom.markdownInput);
         }
+    }
+
+    isPreviewOpen() {
+        return this.dom.previewContainer && this.dom.previewContainer.classList.contains('active');
+    }
+
+    showPreview(htmlContent, rawMarkdown) {
+        this.currentRenderedMarkdown = rawMarkdown || '';
+        if (this.dom.previewContainer && this.dom.previewFrame) {
+            this.dom.previewFrame.srcdoc = htmlContent;
+            this.dom.previewContainer.classList.add('active');
+            this.dom.previewContainer.style.display = 'block';
+            if (this.dom.mainContent) {
+                this.dom.mainContent.style.display = 'none';
+            }
+            this.dom.previewFrame.focus();
+        }
+    }
+
+    closePreview() {
+        if (this.dom.previewContainer) {
+            this.dom.previewContainer.classList.remove('active');
+            this.dom.previewContainer.style.display = 'none';
+        }
+        if (this.dom.previewFrame) {
+            this.dom.previewFrame.srcdoc = '';
+        }
+        if (this.dom.mainContent) {
+            this.dom.mainContent.style.display = '';
+        }
+        this.savedSectionsManager?.renderSavedSections();
+        this.dom.markdownInput?.focus();
+    }
+
+    openInNewTabFromPreview() {
+        const rawMarkdown = this.currentRenderedMarkdown || this.dom.markdownInput?.value || '';
+        if (!rawMarkdown.trim()) return;
+        this.renderMarkdownToNewTab(rawMarkdown);
     }
     
     async handleRender(skipHistoryUpdate = false) {
@@ -179,13 +246,52 @@ class MarkdownRendererApp {
                 markdownText,
                 "Rendered Markdown & LaTeX",
                 listItems,
-                flatListItems
+                flatListItems,
+                { isPreview: true }
+            );
+            this.showPreview(fullPageHtml, markdownText);
+        } catch (error) {
+            const message = error.message?.includes('marked') 
+                ? "The Markdown library failed to load properly. Please refresh the page and ensure you have an internet connection."
+                : "An error occurred while rendering the markdown. Please try again later.";
+            await CustomModal.alert(message);
+        }
+    }
+
+    async renderMarkdownToNewTab(markdownText) {
+        try {
+            if (typeof marked === 'undefined') {
+                const basicHtml = FallbackRenderer.renderToHtml(markdownText);
+                const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
+                const fullPageHtml = RenderedPageBuilder.build(
+                    basicHtml,
+                    markdownText,
+                    "Rendered Markdown & LaTeX (Basic Mode)",
+                    listItems,
+                    flatListItems,
+                    { isPreview: false }
+                );
+                this.openInNewTab(fullPageHtml);
+                return;
+            }
+
+            const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(markdownText);
+            let html = marked.parse(tempText);
+            html = MathProcessor.restoreMathExpressions(html, mathExpressions);
+            const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
+            const fullPageHtml = RenderedPageBuilder.build(
+                html,
+                markdownText,
+                "Rendered Markdown & LaTeX",
+                listItems,
+                flatListItems,
+                { isPreview: false }
             );
             this.openInNewTab(fullPageHtml);
         } catch (error) {
             const message = error.message?.includes('marked') 
                 ? "The Markdown library failed to load properly. Please refresh the page and ensure you have an internet connection."
-                : "An error occurred while rendering the markdown. Please try again later.";
+                : "An error occurred while opening in a new tab. Please try again later.";
             await CustomModal.alert(message);
         }
     }
@@ -203,9 +309,10 @@ class MarkdownRendererApp {
             markdownText,
             "Rendered Markdown & LaTeX (Basic Mode)",
             listItems,
-            flatListItems
+            flatListItems,
+            { isPreview: true }
         );
-        this.openInNewTab(fullPageHtml);
+        this.showPreview(fullPageHtml, markdownText);
     }
     
     async openInNewTab(htmlContent) {

@@ -7,6 +7,7 @@ class UIController {
     
     initializeControls() {
         this.katexRenderer = new KatexRenderer();
+        this.codeHighlightController = new CodeHighlightController();
         this.themeController = new ThemeController(this.body);
         this.fontSizeController = new FontSizeController(this.body);
         this.collapsibleController = new CollapsibleController();
@@ -16,6 +17,10 @@ class UIController {
         this.savePdfController = new SavePdfController();
         this.exportMarkdownController = new ExportMarkdownController();
         this.exportImageController = new ExportImageController();
+        
+        if (window.__APP_DATA__ && window.__APP_DATA__.isPreview) {
+            this.previewController = new PreviewController();
+        }
     }
     
     addGlobalKeydownListener() {

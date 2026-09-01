@@ -6,10 +6,11 @@ A powerful, client-side web application for rendering Markdown documents with fu
 
 ### Core Functionality
 - **Markdown Rendering**: Full GitHub Flavored Markdown (GFM) support using Marked.js
+- **Syntax Highlighting & Line Numbers**: Rich code block highlighting and numbered lines powered by Prism.js with Autoloader
 - **LaTeX Math Support**: Render mathematical expressions using KaTeX
   - Inline math: `$equation$` or `\(equation\)`
   - Display math: `$$equation$$` or `\[equation\]`
-- **Live Preview**: Renders content in a new tab with proper styling
+- **Same-Tab Preview & Pop-out**: Previews content instantly in the same tab with options to open in a new tab or close and return to the editor
 - **Fallback Renderer**: Built-in backup renderer when external libraries fail to load
 
 ### File Management
@@ -117,6 +118,7 @@ Markdown/
 
 ### Dependencies
 - **Marked.js**: Markdown parsing and rendering
+- **Prism.js**: Code block syntax highlighting & line numbers with Autoloader
 - **KaTeX**: LaTeX math rendering
 - **DOMPurify**: HTML sanitization for security
 - **GitHub Markdown CSS**: Styling for rendered output

@@ -5,6 +5,11 @@ const CONFIG = {
         katexJS: 'https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js',
         katexAutoRenderJS: 'https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js',
         html2canvas: 'https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js',
+        prismCSS: 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+        prismJS: 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/prism.min.js',
+        prismAutoloaderJS: 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+        prismLineNumbersJS: 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+        prismAutoloaderPath: 'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/',
     },
     MATH_PATTERNS: [
         { regex: /\$\$([\s\S]*?)\$\$/g, open: '$$', close: '$$' },

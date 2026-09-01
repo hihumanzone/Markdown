@@ -17,9 +17,11 @@ class FallbackRenderer {
     }
     
     static processCodeBlocks(html) {
-        return html.replace(/```[\s\S]*?```/g, (match) => {
-            const codeContent = match.replace(/```/g, '').trim();
-            return `<pre><code>${codeContent}</code></pre>`;
+        return html.replace(/```([a-zA-Z0-9_-]+)?\s*\n?([\s\S]*?)```/g, (match, lang, code) => {
+            const cleanLang = (lang || '').trim().toLowerCase();
+            const languageClass = cleanLang ? ` class="language-${cleanLang}"` : ' class="language-none"';
+            const cleanCode = (code || '').replace(/^\r?\n/, '').replace(/\r?\n$/, '');
+            return `<pre class="line-numbers"><code${languageClass}>${cleanCode}</code></pre>`;
         });
     }
     
