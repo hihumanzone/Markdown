@@ -2482,7 +2482,7 @@ class PreviewController {
                         s.textContent = s.textContent.replace('isPreview: true', 'isPreview: false');
                     }
                 });
-                standaloneHtml = '<!DOCTYPE html>\n' + clone.outerHTML;
+                standaloneHtml = '<!DOCTYPE html>\\n' + clone.outerHTML;
             } catch (cloneErr) {
                 console.error('Clone fallback error:', cloneErr);
             }
