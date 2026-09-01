@@ -971,7 +971,6 @@ class RenderedPageBuilder {
 
         return `
             <div id="font-controls" class="fc-panel">
-                ${previewControls}
                 <button id="toggleCollapseBtn" title="Toggle font controls" class="fc-button">Toggle</button>
                 <button id="decreaseFontBtn" title="Decrease font size (Ctrl/Cmd + -)" class="fc-button">-</button>
                 <span id="currentFontSizeDisplay" class="fc-display">100%</span>
@@ -986,6 +985,7 @@ class RenderedPageBuilder {
                 <button id="exportImageBtn" class="fc-button" title="Export rendered content as a high-quality PNG image">Export Image</button>
                 <button id="exportMarkdownBtn" class="fc-button" title="Download original Markdown as .md file">Export MD</button>
                 <button id="saveToLibraryBtn" class="fc-button" title="Save this content to your library">Save to Library</button>
+                ${previewControls}
             </div>
             <div id="promptModal" class="modal-overlay">
                 <div class="modal-content">
