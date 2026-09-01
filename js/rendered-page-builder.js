@@ -262,6 +262,61 @@ class RenderedPageBuilder {
             body.markdown-body .token.italic {
                 font-style: italic;
             }
+            /* Code Copy Button */
+            .code-copy-btn {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 8px;
+                font-size: 11px;
+                font-weight: 500;
+                line-height: 1.2;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                color: #57606a;
+                background-color: #f6f8fa;
+                border: 1px solid #d0d7de;
+                border-radius: 6px;
+                cursor: pointer;
+                opacity: 0;
+                transition: opacity 0.2s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+                z-index: 5;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            body.markdown-body pre:hover .code-copy-btn,
+            body.markdown-body pre:focus-within .code-copy-btn,
+            .code-copy-btn:focus,
+            .code-copy-btn:focus-visible {
+                opacity: 1;
+            }
+            .code-copy-btn:hover {
+                background-color: #f3f4f6;
+                border-color: #b1bac4;
+                color: #24292e;
+            }
+            .code-copy-btn:active {
+                transform: translateY(1px);
+            }
+            .code-copy-btn.copied {
+                opacity: 1;
+                color: #1a7f37;
+                background-color: #dafbe1;
+                border-color: #4ac26b;
+            }
+            .code-copy-btn.copy-error {
+                opacity: 1;
+                color: #cf222e;
+                background-color: #ffebe9;
+                border-color: #ff8182;
+            }
+            @media (hover: none) {
+                .code-copy-btn {
+                    opacity: 0.85;
+                }
+            }
             body.markdown-body h1,
             body.markdown-body h2,
             body.markdown-body h3,
@@ -400,6 +455,26 @@ class RenderedPageBuilder {
             body.markdown-body.dark-theme .token.variable {
                 color: #ffa657;
             }
+            body.markdown-body.dark-theme .code-copy-btn {
+                color: #8b949e;
+                background-color: #21262d;
+                border-color: #30363d;
+            }
+            body.markdown-body.dark-theme .code-copy-btn:hover {
+                background-color: #30363d;
+                border-color: #8b949e;
+                color: #c9d1d9;
+            }
+            body.markdown-body.dark-theme .code-copy-btn.copied {
+                color: #3fb950;
+                background-color: rgba(46, 160, 67, 0.15);
+                border-color: #2ea043;
+            }
+            body.markdown-body.dark-theme .code-copy-btn.copy-error {
+                color: #f85149;
+                background-color: rgba(248, 81, 73, 0.15);
+                border-color: #f85149;
+            }
             body.markdown-body.dark-theme h1,
             body.markdown-body.dark-theme h2,
             body.markdown-body.dark-theme h3,
@@ -483,6 +558,21 @@ class RenderedPageBuilder {
             body.markdown-body.high-contrast-theme .token.regex,
             body.markdown-body.high-contrast-theme .token.variable {
                 color: #ffd27f;
+            }
+            body.markdown-body.high-contrast-theme .code-copy-btn {
+                color: #fff;
+                background-color: #111;
+                border-color: #666;
+            }
+            body.markdown-body.high-contrast-theme .code-copy-btn:hover {
+                background-color: #222;
+                border-color: #fff;
+                color: #fff;
+            }
+            body.markdown-body.high-contrast-theme .code-copy-btn.copied {
+                color: #70ff94;
+                background-color: #000;
+                border-color: #70ff94;
             }
             body.markdown-body.high-contrast-theme h1,
             body.markdown-body.high-contrast-theme h2,
@@ -739,8 +829,32 @@ class RenderedPageBuilder {
                     transition: none !important;
                 }
             }
+            body.markdown-body.print-mode pre,
+            body.markdown-body.print-mode pre[class*="language-"],
+            body.markdown-body.print-mode pre.line-numbers {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                word-break: break-all !important;
+                overflow-wrap: anywhere !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            body.markdown-body.print-mode pre code,
+            body.markdown-body.print-mode pre[class*="language-"] code,
+            body.markdown-body.print-mode code[class*="language-"] {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                word-break: break-all !important;
+                overflow-wrap: anywhere !important;
+                display: block !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
             @media print {
-                @page { margin: 0; }
+                @page { margin: 1cm; }
                 #font-controls,
                 #copy-notification {
                     display: none !important;
@@ -757,7 +871,7 @@ class RenderedPageBuilder {
                 }
                 body.markdown-body {
                     background: #fff !important;
-                    padding: 1.5cm !important;
+                    padding: 0 !important;
                     margin: 0 !important;
                     max-width: 100% !important;
                     box-decoration-break: clone;
@@ -795,20 +909,53 @@ class RenderedPageBuilder {
                     overflow-wrap: break-word;
                     white-space: normal;
                 }
-                pre, blockquote, img, .katex-display {
+                blockquote, img, .katex-display {
                     page-break-inside: avoid;
                 }
-                pre {
-                    border-color: #e1e4e8 !important;
+                body.markdown-body pre,
+                body.markdown-body pre[class*="language-"],
+                body.markdown-body pre.line-numbers {
+                    border: 1px solid #e1e4e8 !important;
+                    background-color: #f6f8fa !important;
+                    white-space: pre-wrap !important;
+                    word-wrap: break-word !important;
+                    word-break: break-all !important;
+                    overflow-wrap: anywhere !important;
+                    overflow: visible !important;
+                    max-width: 100% !important;
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                    page-break-inside: auto !important;
+                    break-inside: auto !important;
                 }
-                pre.line-numbers {
+                body.markdown-body pre.line-numbers {
                     padding-left: 3.8em !important;
+                    position: relative !important;
                 }
-                .line-numbers-rows {
+                body.markdown-body pre code,
+                body.markdown-body pre[class*="language-"] code,
+                body.markdown-body code[class*="language-"] {
+                    white-space: pre-wrap !important;
+                    word-wrap: break-word !important;
+                    word-break: break-all !important;
+                    overflow-wrap: anywhere !important;
+                    display: block !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important;
+                    box-sizing: border-box !important;
+                }
+                body.markdown-body .line-numbers-rows {
+                    position: absolute !important;
+                    left: -3.8em !important;
+                    width: 3em !important;
                     border-right-color: #d1d5da !important;
                 }
-                .line-numbers-rows > span:before {
+                body.markdown-body .line-numbers-rows > span:before {
                     color: #666 !important;
+                }
+                .code-copy-btn {
+                    display: none !important;
                 }
                 a[href]:after {
                     content: none !important;
@@ -1277,7 +1424,100 @@ class CodeHighlightController {
             if (code && !code.className) {
                 code.className = 'language-none';
             }
+            this.attachCopyButton(pre);
         }
+    }
+
+    attachCopyButton(pre) {
+        if (pre.querySelector('.code-copy-btn')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'code-copy-btn';
+        btn.setAttribute('aria-label', 'Copy code to clipboard');
+        btn.title = 'Copy code';
+        btn.innerHTML = '<span class="copy-btn-icon">📋</span> <span class="copy-btn-text">Copy</span>';
+
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await this.copyCode(pre, btn);
+        });
+
+        pre.appendChild(btn);
+    }
+
+    async copyCode(pre, btn) {
+        const code = pre.querySelector('code');
+        if (!code) return;
+
+        const clone = code.cloneNode(true);
+        const toRemove = clone.querySelectorAll('.line-numbers-rows, .code-copy-btn, .line-numbers-sizer');
+        for (let i = 0; i < toRemove.length; i++) {
+            toRemove[i].remove();
+        }
+
+        const textToCopy = clone.textContent.replace(/\\r\\n/g, '\\n').replace(/\\n$/, '');
+
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(textToCopy);
+            } else {
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
+
+            this.showCopyFeedback(btn, true);
+        } catch (err) {
+            console.error('Failed to copy code:', err);
+            this.showCopyFeedback(btn, false);
+        }
+    }
+
+    showCopyFeedback(btn, success) {
+        const iconSpan = btn.querySelector('.copy-btn-icon');
+        const textSpan = btn.querySelector('.copy-btn-text');
+        const originalIcon = iconSpan ? iconSpan.textContent : '';
+        const originalText = textSpan ? textSpan.textContent : btn.textContent;
+
+        if (success) {
+            btn.classList.add('copied');
+            if (iconSpan) iconSpan.textContent = '✓';
+            if (textSpan) textSpan.textContent = 'Copied!';
+            this.showNotification('Code copied to clipboard!');
+        } else {
+            btn.classList.add('copy-error');
+            if (iconSpan) iconSpan.textContent = '✕';
+            if (textSpan) textSpan.textContent = 'Error';
+            this.showNotification('Failed to copy code.', true);
+        }
+
+        setTimeout(() => {
+            btn.classList.remove('copied', 'copy-error');
+            if (iconSpan) iconSpan.textContent = originalIcon;
+            if (textSpan) textSpan.textContent = originalText;
+        }, 2000);
+    }
+
+    showNotification(message, isError = false) {
+        const notificationElement = document.getElementById('copy-notification');
+        if (!notificationElement) return;
+        notificationElement.textContent = message;
+        notificationElement.style.backgroundColor = isError ? 'rgba(200, 0, 0, 0.9)' : 'rgba(30, 30, 30, 0.9)';
+        notificationElement.style.color = 'white';
+        if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
+            notificationElement.style.backgroundColor = isError ? 'rgba(255, 80, 80, 0.9)' : 'rgba(200, 200, 200, 0.9)';
+            notificationElement.style.color = '#0d1117';
+        }
+        notificationElement.style.display = 'block';
+        setTimeout(() => {
+            notificationElement.style.display = 'none';
+        }, isError ? 3000 : 2000);
     }
 
     initPrism() {
@@ -1634,7 +1874,7 @@ class LongPressCopyController {
     static getSavePdfControllerScript() {
         return `
 class SavePdfController {
-     constructor() {
+    constructor() {
         this.btn = document.getElementById('saveAsPdfBtn');
         this.controlsPanel = document.getElementById('font-controls');
         this.rawContainer = document.getElementById('raw-container'); 
@@ -1644,7 +1884,29 @@ class SavePdfController {
     init() { 
         if (this.btn) { 
             this.btn.addEventListener('click', () => this.saveAsPdf()); 
-        } 
+        }
+
+        window.addEventListener('beforeprint', () => this.preparePrint());
+        window.addEventListener('afterprint', () => this.cleanupPrint());
+    }
+
+    preparePrint() {
+        document.body.classList.add('print-mode');
+        this.resizeLineNumbers();
+    }
+
+    cleanupPrint() {
+        document.body.classList.remove('print-mode');
+        this.resizeLineNumbers();
+    }
+
+    resizeLineNumbers() {
+        if (window.Prism && window.Prism.plugins && window.Prism.plugins.lineNumbers) {
+            const preElements = document.querySelectorAll('pre.line-numbers');
+            preElements.forEach(pre => {
+                window.Prism.plugins.lineNumbers.resize(pre);
+            });
+        }
     }
     
     async saveAsPdf() {
@@ -1665,14 +1927,17 @@ class SavePdfController {
         const originalTitle = document.title;
         document.title = sanitizedFilename;
         
+        this.preparePrint();
         this.controlsPanel.style.display = 'none';
+
         setTimeout(() => { 
             window.print(); 
             setTimeout(() => { 
                 this.controlsPanel.style.display = ''; 
                 document.title = originalTitle; // Restore original title
+                this.cleanupPrint();
             }, 150); 
-        }, 30);
+        }, 50);
     }
 }`;
     }
@@ -2188,15 +2453,99 @@ class PreviewController {
     }
     
     openInNewTab() {
+        let newTab = null;
         try {
-            if (window.parent && window.parent.markdownRendererApp && typeof window.parent.markdownRendererApp.openInNewTabFromPreview === 'function') {
-                window.parent.markdownRendererApp.openInNewTabFromPreview();
-                return;
+            newTab = window.open('', '_blank');
+        } catch (e) {
+            console.error('Direct window.open failed:', e);
+        }
+
+        let standaloneHtml = '';
+        try {
+            if (window.parent && window.parent.markdownRendererApp && typeof window.parent.markdownRendererApp.getStandaloneRenderedHtml === 'function') {
+                standaloneHtml = window.parent.markdownRendererApp.getStandaloneRenderedHtml();
             }
         } catch (e) {
-            // cross-origin or fallback
+            console.error('Error getting HTML from parent:', e);
         }
-        window.parent.postMessage({ type: 'OPEN_MARKDOWN_NEW_TAB' }, '*');
+
+        if (!standaloneHtml && window.__APP_DATA__) {
+            try {
+                const clone = document.documentElement.cloneNode(true);
+                const openBtn = clone.querySelector('#openNewTabBtn');
+                const closeBtn = clone.querySelector('#closePreviewBtn');
+                if (openBtn) openBtn.remove();
+                if (closeBtn) closeBtn.remove();
+                const scripts = clone.querySelectorAll('script');
+                scripts.forEach(s => {
+                    if (s.textContent && s.textContent.includes('__APP_DATA__')) {
+                        s.textContent = s.textContent.replace('isPreview: true', 'isPreview: false');
+                    }
+                });
+                standaloneHtml = '<!DOCTYPE html>\n' + clone.outerHTML;
+            } catch (cloneErr) {
+                console.error('Clone fallback error:', cloneErr);
+            }
+        }
+
+        if (newTab && standaloneHtml) {
+            try {
+                newTab.document.open();
+                newTab.document.write(standaloneHtml);
+                newTab.document.close();
+                newTab.focus();
+                return;
+            } catch (writeErr) {
+                console.error('Error writing to new tab document, trying blob:', writeErr);
+                try {
+                    const blob = new Blob([standaloneHtml], { type: 'text/html' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    newTab.location.href = blobUrl;
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+                    return;
+                } catch (blobErr) {
+                    console.error('Blob URL navigation error:', blobErr);
+                }
+            }
+        }
+
+        if (!newTab && standaloneHtml) {
+            try {
+                const blob = new Blob([standaloneHtml], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                const blobTab = window.open(blobUrl, '_blank');
+                if (blobTab) {
+                    blobTab.focus();
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+                    return;
+                }
+            } catch (_) {}
+        }
+
+        this.showNotification('Failed to open new tab. Please check your pop-up blocker settings.', true);
+        
+        try {
+            window.parent.postMessage({ type: 'OPEN_MARKDOWN_NEW_TAB' }, '*');
+        } catch (_) {}
+    }
+
+    showNotification(message, isError = false) {
+        const notification = document.getElementById('copy-notification');
+        if (!notification) {
+            alert(message);
+            return;
+        }
+        notification.textContent = message;
+        notification.style.backgroundColor = isError ? 'rgba(220, 38, 38, 0.95)' : 'rgba(30, 30, 30, 0.9)';
+        notification.style.color = 'white';
+        if (document.body.classList.contains('dark-theme') || document.body.classList.contains('high-contrast-theme')) {
+            notification.style.backgroundColor = isError ? 'rgba(248, 81, 73, 0.95)' : 'rgba(200, 200, 200, 0.9)';
+            notification.style.color = isError ? 'white' : '#0d1117';
+        }
+        notification.style.display = 'block';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, isError ? 4000 : 2500);
     }
 }`;
     }

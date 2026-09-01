@@ -1,5 +1,5 @@
 class SavePdfController {
-     constructor() {
+    constructor() {
         this.btn = document.getElementById('saveAsPdfBtn');
         this.controlsPanel = document.getElementById('font-controls');
         this.rawContainer = document.getElementById('raw-container'); 
@@ -9,7 +9,29 @@ class SavePdfController {
     init() { 
         if (this.btn) { 
             this.btn.addEventListener('click', () => this.saveAsPdf()); 
-        } 
+        }
+
+        window.addEventListener('beforeprint', () => this.preparePrint());
+        window.addEventListener('afterprint', () => this.cleanupPrint());
+    }
+
+    preparePrint() {
+        document.body.classList.add('print-mode');
+        this.resizeLineNumbers();
+    }
+
+    cleanupPrint() {
+        document.body.classList.remove('print-mode');
+        this.resizeLineNumbers();
+    }
+
+    resizeLineNumbers() {
+        if (window.Prism && window.Prism.plugins && window.Prism.plugins.lineNumbers) {
+            const preElements = document.querySelectorAll('pre.line-numbers');
+            preElements.forEach(pre => {
+                window.Prism.plugins.lineNumbers.resize(pre);
+            });
+        }
     }
     
     async saveAsPdf() {
@@ -18,28 +40,30 @@ class SavePdfController {
             return;
         }
         
-        // Prompt for filename
-        const defaultFilename = this.getDefaultFilename('pdf');
+        // Prompt for filename using utility functions
+        const defaultFilename = CustomModal.buildDefaultFilename ? CustomModal.buildDefaultFilename('pdf') : this.getDefaultFilename('pdf');
         
-        const filename = await CustomModal.prompt('Name your PDF file:', defaultFilename);
+        const filename = await CustomModal.prompt('Name your PDF file:', defaultFilename, 'Save as PDF', { extension: '.pdf' });
         if (filename === null) return; // User cancelled
         
-        const sanitizedFilename = filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename;
+        const sanitizedFilename = CustomModal.sanitizeFilename ? CustomModal.sanitizeFilename(filename, defaultFilename) : (filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename);
         
         // Set document title so browser's "Save as PDF" dialog uses it
         const originalTitle = document.title;
         document.title = sanitizedFilename;
         
+        this.preparePrint();
         this.controlsPanel.style.display = 'none';
+
         setTimeout(() => { 
             window.print(); 
             setTimeout(() => { 
                 this.controlsPanel.style.display = ''; 
                 document.title = originalTitle; // Restore original title
+                this.cleanupPrint();
             }, 150); 
-        }, 30);
+        }, 50);
     }
-
 
     getDefaultFilename(kind) {
         const title = (window.__APP_DATA__?.documentTitle || document.title || 'document').toLowerCase();

@@ -6,7 +6,7 @@ A powerful, client-side web application for rendering Markdown documents with fu
 
 ### Core Functionality
 - **Markdown Rendering**: Full GitHub Flavored Markdown (GFM) support using Marked.js
-- **Syntax Highlighting & Line Numbers**: Rich code block highlighting and numbered lines powered by Prism.js with Autoloader
+- **Syntax Highlighting, Line Numbers & Copy Buttons**: Rich code block highlighting, numbered lines, and one-click copy buttons powered by Prism.js with Autoloader
 - **LaTeX Math Support**: Render mathematical expressions using KaTeX
   - Inline math: `$equation$` or `\(equation\)`
   - Display math: `$$equation$$` or `\[equation\]`

@@ -160,10 +160,46 @@ class MarkdownRendererApp {
         this.dom.markdownInput?.focus();
     }
 
-    openInNewTabFromPreview() {
+    getStandaloneRenderedHtml() {
         const rawMarkdown = this.currentRenderedMarkdown || this.dom.markdownInput?.value || '';
-        if (!rawMarkdown.trim()) return;
-        this.renderMarkdownToNewTab(rawMarkdown);
+        if (!rawMarkdown.trim()) return '';
+        
+        try {
+            if (typeof marked === 'undefined') {
+                const basicHtml = FallbackRenderer.renderToHtml(rawMarkdown);
+                const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(rawMarkdown);
+                return RenderedPageBuilder.build(
+                    basicHtml,
+                    rawMarkdown,
+                    "Rendered Markdown & LaTeX (Basic Mode)",
+                    listItems,
+                    flatListItems,
+                    { isPreview: false }
+                );
+            }
+
+            const { tempText, mathExpressions } = MathProcessor.preserveMathExpressions(rawMarkdown);
+            let html = marked.parse(tempText);
+            html = MathProcessor.restoreMathExpressions(html, mathExpressions);
+            const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(rawMarkdown);
+            return RenderedPageBuilder.build(
+                html,
+                rawMarkdown,
+                "Rendered Markdown & LaTeX",
+                listItems,
+                flatListItems,
+                { isPreview: false }
+            );
+        } catch (error) {
+            console.error('Error generating standalone HTML:', error);
+            return '';
+        }
+    }
+
+    openInNewTabFromPreview() {
+        const standaloneHtml = this.getStandaloneRenderedHtml();
+        if (!standaloneHtml) return;
+        this.openInNewTab(standaloneHtml);
     }
     
     async handleRender(skipHistoryUpdate = false) {
@@ -317,27 +353,31 @@ class MarkdownRendererApp {
     
     async openInNewTab(htmlContent) {
         try {
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-            
-            const newTab = window.open(blobUrl, '_blank');
-            if (newTab) {
-                newTab.focus();
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-            } else {
-                URL.revokeObjectURL(blobUrl);
-                await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");
-            }
-        } catch (error) {
             const newTab = window.open('', '_blank');
             if (newTab) {
                 newTab.document.open();
                 newTab.document.write(htmlContent);
                 newTab.document.close();
                 newTab.focus();
+                return;
+            }
+        } catch (e) {
+            console.error("Direct document.write open failed, trying blob URL fallback:", e);
+        }
+
+        try {
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const blobUrl = URL.createObjectURL(blob);
+            const newTab = window.open(blobUrl, '_blank');
+            if (newTab) {
+                newTab.focus();
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
             } else {
+                URL.revokeObjectURL(blobUrl);
                 await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");
             }
+        } catch (error) {
+            await CustomModal.alert("Failed to open new tab. Please check your pop-up blocker settings.");
         }
     }
 }
