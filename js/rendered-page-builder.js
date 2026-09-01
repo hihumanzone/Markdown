@@ -128,13 +128,20 @@ class RenderedPageBuilder {
             body.markdown-body tr:nth-child(2n) {
                 background-color: #f6f8fa;
             }
-            body.markdown-body code:not([class*="language-"]):not(pre > code) {
+            body.markdown-body code:not(pre code),
+            body.markdown-body :not(pre) > code {
                 background-color: rgba(27,31,35,0.05);
                 border-radius: 3px;
                 font-size: 85%;
                 margin: 0;
                 padding: 0.2em 0.4em;
                 font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+                white-space: break-spaces;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                word-wrap: break-word;
+                box-sizing: border-box;
+                max-width: 100%;
             }
             body.markdown-body pre {
                 background-color: #f6f8fa;
@@ -183,7 +190,7 @@ class RenderedPageBuilder {
                 text-align: right;
             }
             body.markdown-body pre,
-            body.markdown-body code,
+            body.markdown-body pre code,
             body.markdown-body #raw-markdown {
                 overflow-wrap: normal;
                 word-break: normal;
@@ -394,7 +401,8 @@ class RenderedPageBuilder {
             body.markdown-body.dark-theme tr:nth-child(2n) {
                 background-color: #161b22;
             }
-            body.markdown-body.dark-theme code:not([class*="language-"]):not(pre > code) {
+            body.markdown-body.dark-theme code:not(pre code),
+            body.markdown-body.dark-theme :not(pre) > code {
                 background-color: rgba(110,118,129,0.4);
             }
             body.markdown-body.dark-theme pre {
@@ -512,7 +520,8 @@ class RenderedPageBuilder {
             body.markdown-body.high-contrast-theme td{border-color:#444}
             body.markdown-body.high-contrast-theme th{background:#111}
             body.markdown-body.high-contrast-theme tr:nth-child(2n){background:#111}
-            body.markdown-body.high-contrast-theme code:not([class*="language-"]):not(pre > code){
+            body.markdown-body.high-contrast-theme code:not(pre code),
+            body.markdown-body.high-contrast-theme :not(pre) > code {
                 background:#222;color:#fff
             }
             body.markdown-body.high-contrast-theme pre{
@@ -842,7 +851,7 @@ class RenderedPageBuilder {
             }
             body.markdown-body.print-mode pre code,
             body.markdown-body.print-mode pre[class*="language-"] code,
-            body.markdown-body.print-mode code[class*="language-"] {
+            body.markdown-body.print-mode pre > code[class*="language-"] {
                 white-space: pre-wrap !important;
                 word-wrap: break-word !important;
                 word-break: break-all !important;
@@ -852,6 +861,15 @@ class RenderedPageBuilder {
                 min-width: 0 !important;
                 width: 100% !important;
                 box-sizing: border-box !important;
+            }
+            body.markdown-body.print-mode code:not(pre code),
+            body.markdown-body.print-mode :not(pre) > code {
+                white-space: break-spaces !important;
+                overflow-wrap: anywhere !important;
+                word-break: break-word !important;
+                word-wrap: break-word !important;
+                display: inline !important;
+                max-width: 100% !important;
             }
             @media print {
                 @page { margin: 1cm; }
@@ -934,7 +952,7 @@ class RenderedPageBuilder {
                 }
                 body.markdown-body pre code,
                 body.markdown-body pre[class*="language-"] code,
-                body.markdown-body code[class*="language-"] {
+                body.markdown-body pre > code[class*="language-"] {
                     white-space: pre-wrap !important;
                     word-wrap: break-word !important;
                     word-break: break-all !important;
@@ -944,6 +962,15 @@ class RenderedPageBuilder {
                     max-width: 100% !important;
                     min-width: 0 !important;
                     box-sizing: border-box !important;
+                }
+                body.markdown-body code:not(pre code),
+                body.markdown-body :not(pre) > code {
+                    white-space: break-spaces !important;
+                    overflow-wrap: anywhere !important;
+                    word-break: break-word !important;
+                    word-wrap: break-word !important;
+                    display: inline !important;
+                    max-width: 100% !important;
                 }
                 body.markdown-body .line-numbers-rows {
                     position: absolute !important;
