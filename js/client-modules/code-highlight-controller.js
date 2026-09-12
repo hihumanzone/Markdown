@@ -1,4 +1,4 @@
-﻿class CodeHighlightController {
+class CodeHighlightController {
     constructor() {
         this.contentContainer = document.getElementById('content-container');
         this.init();
@@ -26,7 +26,19 @@
     }
 
     attachCopyButton(pre) {
-        if (pre.querySelector('.code-copy-btn')) return;
+        let wrapper = pre.parentElement;
+        if (wrapper && wrapper.classList.contains('code-block-wrapper')) {
+            if (wrapper.querySelector('.code-copy-btn')) return;
+        } else {
+            wrapper = document.createElement('div');
+            wrapper.className = 'code-block-wrapper';
+            pre.parentNode.insertBefore(wrapper, pre);
+            wrapper.appendChild(pre);
+        }
+
+        const existingBtn = pre.querySelector('.code-copy-btn');
+        if (existingBtn) existingBtn.remove();
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'code-copy-btn';
@@ -39,7 +51,7 @@
             await this.copyCode(pre, btn);
         });
 
-        pre.appendChild(btn);
+        wrapper.appendChild(btn);
     }
 
     async copyCode(pre, btn) {

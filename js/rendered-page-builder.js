@@ -281,7 +281,14 @@ class RenderedPageBuilder {
             body.markdown-body .token.italic {
                 font-style: italic;
             }
-            /* Code Copy Button */
+            /* Code Block Wrapper & Copy Button */
+            body.markdown-body .code-block-wrapper {
+                position: relative;
+                margin: 16px 0;
+            }
+            body.markdown-body .code-block-wrapper pre {
+                margin: 0;
+            }
             .code-copy-btn {
                 position: absolute;
                 top: 8px;
@@ -300,11 +307,14 @@ class RenderedPageBuilder {
                 border-radius: 6px;
                 cursor: pointer;
                 opacity: 0;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
                 transition: opacity 0.2s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
                 z-index: 5;
                 user-select: none;
                 -webkit-user-select: none;
             }
+            body.markdown-body .code-block-wrapper:hover .code-copy-btn,
+            body.markdown-body .code-block-wrapper:focus-within .code-copy-btn,
             body.markdown-body pre:hover .code-copy-btn,
             body.markdown-body pre:focus-within .code-copy-btn,
             .code-copy-btn:focus,
@@ -479,6 +489,7 @@ class RenderedPageBuilder {
                 color: #8b949e;
                 background-color: #21262d;
                 border-color: #30363d;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
             }
             body.markdown-body.dark-theme .code-copy-btn:hover {
                 background-color: #30363d;
@@ -584,6 +595,7 @@ class RenderedPageBuilder {
                 color: #fff;
                 background-color: #111;
                 border-color: #666;
+                box-shadow: 0 0 0 1px #000;
             }
             body.markdown-body.high-contrast-theme .code-copy-btn:hover {
                 background-color: #222;
@@ -849,6 +861,11 @@ class RenderedPageBuilder {
                 .fc-button {
                     transition: none !important;
                 }
+            }
+            body.markdown-body.print-mode .code-block-wrapper {
+                max-width: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
             }
             body.markdown-body.print-mode pre,
             body.markdown-body.print-mode pre[class*="language-"],
@@ -1471,7 +1488,19 @@ class CodeHighlightController {
     }
 
     attachCopyButton(pre) {
-        if (pre.querySelector('.code-copy-btn')) return;
+        let wrapper = pre.parentElement;
+        if (wrapper && wrapper.classList.contains('code-block-wrapper')) {
+            if (wrapper.querySelector('.code-copy-btn')) return;
+        } else {
+            wrapper = document.createElement('div');
+            wrapper.className = 'code-block-wrapper';
+            pre.parentNode.insertBefore(wrapper, pre);
+            wrapper.appendChild(pre);
+        }
+
+        const existingBtn = pre.querySelector('.code-copy-btn');
+        if (existingBtn) existingBtn.remove();
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'code-copy-btn';
@@ -1484,7 +1513,7 @@ class CodeHighlightController {
             await this.copyCode(pre, btn);
         });
 
-        pre.appendChild(btn);
+        wrapper.appendChild(btn);
     }
 
     async copyCode(pre, btn) {
