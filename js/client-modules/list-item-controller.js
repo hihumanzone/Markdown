@@ -56,8 +56,16 @@ class ListItemController {
         this.cleanupListItemEventListeners(li);
         
         if (enabled) {
-            const mousedownHandler = (e) => { if (e.button === 0) this.handleStart(li, e); };
-            const touchstartHandler = (e) => this.handleStart(li, e);
+            const mousedownHandler = (e) => {
+                if (e.button === 0) {
+                    e.stopPropagation();
+                    this.handleStart(li, e);
+                }
+            };
+            const touchstartHandler = (e) => {
+                e.stopPropagation();
+                this.handleStart(li, e);
+            };
             
             li.addEventListener('mousedown', mousedownHandler);
             li.addEventListener('touchstart', touchstartHandler, { passive: true });

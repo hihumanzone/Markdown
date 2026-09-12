@@ -110,23 +110,35 @@ class RenderedPageBuilder {
             }
             body.markdown-body table {
                 border-collapse: collapse;
-                margin: 16px 0;
+                border-spacing: 0;
+                margin: 20px 0;
                 display: block;
                 width: max-content;
                 max-width: 100%;
-                overflow: auto;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
             }
             body.markdown-body th,
             body.markdown-body td {
                 border: 1px solid #dfe2e5;
-                padding: 6px 13px;
+                padding: 10px 18px;
+                min-width: 60px;
+                word-break: normal;
+                overflow-wrap: break-word;
+                line-height: 1.5;
+                vertical-align: middle;
             }
             body.markdown-body th {
                 background-color: #f6f8fa;
                 font-weight: 600;
+                white-space: nowrap;
             }
             body.markdown-body tr:nth-child(2n) {
                 background-color: #f6f8fa;
+            }
+            body.markdown-body table .katex {
+                white-space: nowrap;
             }
             body.markdown-body code:not(pre code),
             body.markdown-body :not(pre) > code {
@@ -923,9 +935,12 @@ class RenderedPageBuilder {
                 }
                 body.markdown-body th,
                 body.markdown-body td {
-                    word-break: break-word;
+                    word-break: normal;
                     overflow-wrap: break-word;
                     white-space: normal;
+                }
+                body.markdown-body table .katex {
+                    white-space: nowrap;
                 }
                 blockquote, img, .katex-display {
                     page-break-inside: avoid;
@@ -2250,8 +2265,16 @@ class ListItemController {
         
         if (enabled) {
             var self = this;
-            var mousedownHandler = function(e) { if (e.button === 0) self.handleStart(li, e); };
-            var touchstartHandler = function(e) { self.handleStart(li, e); };
+            var mousedownHandler = function(e) {
+                if (e.button === 0) {
+                    e.stopPropagation();
+                    self.handleStart(li, e);
+                }
+            };
+            var touchstartHandler = function(e) {
+                e.stopPropagation();
+                self.handleStart(li, e);
+            };
             
             li.addEventListener('mousedown', mousedownHandler);
             li.addEventListener('touchstart', touchstartHandler, { passive: true });

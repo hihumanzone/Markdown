@@ -2,6 +2,7 @@ class ListItemParser {
     static _UNORDERED = /^(\s*)[-*+]\s+(.*)$/;
     static _ORDERED = /^(\s*)\d+\.\s+(.*)$/;
     static _LEADING_WS = /^\s*/;
+    static _FENCE = /^(\s*)(`{3,}|~{3,})/;
 
     static parse(markdownText) {
         return this.parseAll(markdownText).nested;
@@ -16,9 +17,24 @@ class ListItemParser {
         const flat = [];
         const lines = markdownText.split('\n');
         const len = lines.length;
+        let inFence = null;
 
         for (let i = 0; i < len; i++) {
             const line = lines[i];
+            const fenceMatch = line.match(ListItemParser._FENCE);
+            if (fenceMatch) {
+                const char = fenceMatch[2][0];
+                const length = fenceMatch[2].length;
+                if (!inFence) {
+                    inFence = { char, length };
+                } else if (inFence.char === char && length >= inFence.length) {
+                    inFence = null;
+                }
+                continue;
+            }
+
+            if (inFence) continue;
+
             const unorderedMatch = line.match(ListItemParser._UNORDERED);
             let orderedMatch = null;
             if (!unorderedMatch) {
@@ -30,16 +46,44 @@ class ListItemParser {
             const content = match[2];
             const indent = match[1].length;
             const isOrdered = !!orderedMatch;
+            const lineIndent = match[1];
             const baseIndent = line.indexOf(content);
 
             let fullContent = content;
             const rawLines = [line];
             let flatContent = content;
             let currentIndex = i + 1;
+            let innerFence = null;
 
             while (currentIndex < len) {
                 const nextLine = lines[currentIndex];
                 const nextTrimmed = nextLine.trim();
+
+                const nextFenceMatch = nextLine.match(ListItemParser._FENCE);
+                if (nextFenceMatch) {
+                    const char = nextFenceMatch[2][0];
+                    const length = nextFenceMatch[2].length;
+                    if (!innerFence) {
+                        innerFence = { char, length };
+                    } else if (innerFence.char === char && length >= innerFence.length) {
+                        innerFence = null;
+                    }
+                    rawLines.push(nextLine);
+                    const adjustedLine = nextLine.startsWith(lineIndent) ? nextLine.substring(lineIndent.length) : nextLine;
+                    fullContent += '\n' + adjustedLine;
+                    flatContent += '\n' + adjustedLine;
+                    currentIndex++;
+                    continue;
+                }
+
+                if (innerFence) {
+                    rawLines.push(nextLine);
+                    const adjustedLine = nextLine.startsWith(lineIndent) ? nextLine.substring(lineIndent.length) : nextLine;
+                    fullContent += '\n' + adjustedLine;
+                    flatContent += '\n' + adjustedLine;
+                    currentIndex++;
+                    continue;
+                }
 
                 if (nextTrimmed === '') {
                     rawLines.push(nextLine);
@@ -65,8 +109,9 @@ class ListItemParser {
                     const subIndent = subListMatch[1].length;
                     if (subIndent <= indent) break;
                     rawLines.push(nextLine);
-                    fullContent += '\n' + nextLine;
-                    flatContent += '\n' + nextLine;
+                    const adjustedLine = nextLine.startsWith(lineIndent) ? nextLine.substring(lineIndent.length) : nextLine;
+                    fullContent += '\n' + adjustedLine;
+                    flatContent += '\n' + adjustedLine;
                     currentIndex++;
                     continue;
                 }
@@ -94,8 +139,6 @@ class ListItemParser {
                 indent: indent,
                 isOrdered: isOrdered
             });
-
-            i = currentIndex - 1;
         }
 
         return { nested: nested, flat: flat };
