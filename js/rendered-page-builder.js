@@ -833,9 +833,13 @@ class RenderedPageBuilder {
             .katex-display {
                 display: block;
                 text-align: center;
-                margin: 1em 0;
+                margin: 0.8em 0;
+                padding: 1.2em 0.3em;
                 overflow-x: auto;
                 overflow-y: hidden;
+                scrollbar-width: thin;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
             }
             .katex {
                 font-size: 1.1em;
@@ -959,8 +963,13 @@ class RenderedPageBuilder {
                 body.markdown-body table .katex {
                     white-space: nowrap;
                 }
-                blockquote, img, .katex-display {
+                blockquote, img {
                     page-break-inside: avoid;
+                }
+                .katex-display {
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                    overflow: visible !important;
                 }
                 body.markdown-body pre,
                 body.markdown-body pre[class*="language-"],
