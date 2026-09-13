@@ -51,6 +51,9 @@ class RenderedPageBuilder {
     
     static getStyles() {
         return `<style>
+            html {
+                scroll-behavior: smooth;
+            }
             body.markdown-body {
                 box-sizing: border-box;
                 min-width: 200px;
@@ -103,7 +106,7 @@ class RenderedPageBuilder {
             }
             body.markdown-body blockquote {
                 border-left: 0.25em solid #dfe2e5;
-                color: #6a737d;
+                color: inherit;
                 padding: 0 1em;
                 margin-left: 0;
                 margin-right: 0;
@@ -357,6 +360,7 @@ class RenderedPageBuilder {
                 line-height: 1.25;
                 margin-bottom: 16px;
                 margin-top: 24px;
+                scroll-margin-top: 24px;
             }
             body.markdown-body h1 { font-size: 2em; }
             body.markdown-body h2 { font-size: 1.5em; }
@@ -410,7 +414,7 @@ class RenderedPageBuilder {
                 background-color: #30363d;
             }
             body.markdown-body.dark-theme blockquote {
-                color: #8b949e;
+                color: inherit;
                 border-left-color: #30363d;
             }
             body.markdown-body.dark-theme th,
@@ -537,7 +541,7 @@ class RenderedPageBuilder {
             body.markdown-body.high-contrast-theme a{color:#08f}
             body.markdown-body.high-contrast-theme hr{background:#444}
             body.markdown-body.high-contrast-theme blockquote{
-                color:#ccc;border-left-color:#444
+                color: inherit;border-left-color:#444
             }
             body.markdown-body.high-contrast-theme th,
             body.markdown-body.high-contrast-theme td{border-color:#444}
@@ -2721,9 +2725,24 @@ class UIController {
     function initializeUI() {
         window.markdownRendererUI = new UIController();
         
-        // Make all links open in new tab
+        // Setup links: internal hash links smooth-scroll, external links open in new tab
         document.querySelectorAll('#content-container a').forEach(link => {
-            if (link.href && !link.hasAttribute('target')) {
+            const href = link.getAttribute('href') || '';
+            if (href.startsWith('#')) {
+                link.addEventListener('click', (e) => {
+                    const rawTargetId = href.slice(1);
+                    if (!rawTargetId) return;
+                    const targetId = decodeURIComponent(rawTargetId);
+                    const targetEl = document.getElementById(targetId) || document.getElementById(rawTargetId);
+                    if (targetEl) {
+                        e.preventDefault();
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        try {
+                            history.pushState(null, '', '#' + encodeURIComponent(targetId));
+                        } catch (_) {}
+                    }
+                });
+            } else if (link.href && !link.hasAttribute('target')) {
                 link.setAttribute('target', '_blank');
                 link.setAttribute('rel', 'noopener noreferrer');
             }

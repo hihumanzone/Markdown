@@ -60,6 +60,20 @@ class MarkdownRendererApp {
                 const escapedText = escaped ? text : Utils.escapeHtml(text);
                 return `<pre class="line-numbers"><code class="${langClass}">${escapedText}</code></pre>\n`;
             };
+            renderer.heading = function(token, level, raw) {
+                let depth, rawText, innerHtml;
+                if (typeof token === 'object' && token !== null && !Array.isArray(token)) {
+                    depth = token.depth || 1;
+                    rawText = token.text || '';
+                    innerHtml = this.parser ? this.parser.parseInline(token.tokens) : rawText;
+                } else {
+                    depth = level || 1;
+                    rawText = token || '';
+                    innerHtml = rawText;
+                }
+                const slug = MathProcessor.generateSlug(rawText);
+                return `<h${depth} id="${slug}">${innerHtml}</h${depth}>\n`;
+            };
             
             marked.setOptions({
                 renderer: renderer,

@@ -26,9 +26,15 @@ class FallbackRenderer {
     }
     
     static processHeaders(html) {
+        if (typeof MathProcessor !== 'undefined' && MathProcessor.resetSlugCounts) {
+            MathProcessor.resetSlugCounts();
+        }
         return html.replace(/^#{1,6}\s+(.*)$/gim, function(match, content) {
             var level = match.match(/^#+/)[0].length;
-            return '<h' + level + '>' + content + '</h' + level + '>';
+            var slug = typeof MathProcessor !== 'undefined' && MathProcessor.generateSlug
+                ? MathProcessor.generateSlug(content)
+                : content.toLowerCase().trim().replace(/<[^>]+>/g, '').replace(/[^\w\s-]/g, '').replace(/\s/g, '-');
+            return '<h' + level + ' id="' + slug + '">' + content + '</h' + level + '>';
         });
     }
     
@@ -72,10 +78,12 @@ class FallbackRenderer {
         for (const line of lines) {
             const trimmedLine = line.trim();
             
-            if (this.processBlockquote(trimmedLine, inBlockquote, blockquoteContent, processedLines)) {
-                inBlockquote = !inBlockquote;
-                if (!inBlockquote) blockquoteContent = [];
+            const bqResult = this.processBlockquote(trimmedLine, inBlockquote, blockquoteContent, processedLines);
+            if (bqResult.processed) {
+                inBlockquote = bqResult.inBlockquote;
                 continue;
+            } else if (inBlockquote && !bqResult.inBlockquote) {
+                inBlockquote = false;
             }
             
             const listResult = this.processList(trimmedLine, inList, listItems, listType, processedLines);
@@ -141,17 +149,18 @@ class FallbackRenderer {
     }
     
     static processBlockquote(trimmedLine, inBlockquote, blockquoteContent, processedLines) {
-        if (trimmedLine.startsWith('&gt;')) {
-            if (!inBlockquote) return true;
-            blockquoteContent.push(trimmedLine.substring(4).trim());
-            return false;
+        if (trimmedLine.startsWith('&gt;') || trimmedLine.startsWith('>')) {
+            const markerLen = trimmedLine.startsWith('&gt;') ? 4 : 1;
+            blockquoteContent.push(trimmedLine.substring(markerLen).trim());
+            return { processed: true, inBlockquote: true };
         } else if (inBlockquote) {
             processedLines.push(`<blockquote>${blockquoteContent.join('<br>')}</blockquote>`);
-            return true;
+            blockquoteContent.length = 0;
+            return { processed: false, inBlockquote: false };
         }
-        return false;
+        return { processed: false, inBlockquote: false };
     }
-    
+
     static processList(trimmedLine, inList, listItems, listType, processedLines) {
         const ulMatch = trimmedLine.match(/^[-*+]\s+(.*)$/);
         const olMatch = trimmedLine.match(/^\d+\.\s+(.*)$/);
@@ -187,7 +196,7 @@ class FallbackRenderer {
     }
     
     static finalizePendingBlocks(inBlockquote, blockquoteContent, inList, listItems, listType, processedLines) {
-        if (inBlockquote) {
+        if (inBlockquote && blockquoteContent.length > 0) {
             processedLines.push(`<blockquote>${blockquoteContent.join('<br>')}</blockquote>`);
         }
         if (inList) {

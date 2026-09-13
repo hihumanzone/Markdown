@@ -146,7 +146,65 @@ class ListItemParser {
 }
 
 class MathProcessor {
+    static _slugCounts = {};
+    static currentExpressions = [];
+
+    static resetSlugCounts() {
+        this._slugCounts = {};
+    }
+
+    static normalizeBlockquotes(markdownText) {
+        if (!markdownText) return '';
+        const lines = markdownText.split('\n');
+        let inFence = null;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const fenceMatch = line.match(/^(\s*)(`{3,}|~{3,})/);
+            if (fenceMatch) {
+                const char = fenceMatch[2][0];
+                const length = fenceMatch[2].length;
+                if (!inFence) {
+                    inFence = { char, length };
+                } else if (inFence.char === char && length >= inFence.length) {
+                    inFence = null;
+                }
+                continue;
+            }
+            if (inFence) continue;
+            if (/^([ \t]*(?:&gt;[ \t]*)+)/.test(line)) {
+                lines[i] = line.replace(/^([ \t]*(?:&gt;[ \t]*)+)/, match => match.replace(/&gt;/g, '>'));
+            }
+        }
+        return lines.join('\n');
+    }
+
+    static generateSlug(rawText) {
+        if (!this._slugCounts) this._slugCounts = {};
+        let text = rawText || '';
+        if (this.currentExpressions && this.currentExpressions.length > 0) {
+            text = this.restoreMathExpressions(text, this.currentExpressions);
+        }
+        let baseSlug = text
+            .toLowerCase()
+            .trim()
+            .replace(/<[^>]+>/g, '')
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s/g, '-');
+
+        if (!baseSlug) baseSlug = 'heading';
+
+        if (this._slugCounts[baseSlug] === undefined) {
+            this._slugCounts[baseSlug] = 0;
+            return baseSlug;
+        } else {
+            this._slugCounts[baseSlug]++;
+            return `${baseSlug}-${this._slugCounts[baseSlug]}`;
+        }
+    }
+
     static preserveMathExpressions(markdownText) {
+        this.resetSlugCounts();
+        markdownText = this.normalizeBlockquotes(markdownText);
         const mathExpressions = [];
         let tempText = markdownText.replace(
             /(^|\n)([ \t]*)\[\s*\n([\s\S]*?)\n[ \t]*\](?=\n|$)/g,
@@ -165,11 +223,12 @@ class MathProcessor {
             });
         }
 
+        this.currentExpressions = mathExpressions;
         return { tempText: tempText, mathExpressions: mathExpressions };
     }
 
     static restoreMathExpressions(html, mathExpressions) {
-        if (mathExpressions.length === 0) return html;
+        if (!mathExpressions || mathExpressions.length === 0) return html;
         const map = {};
         for (let i = 0; i < mathExpressions.length; i++) {
             const item = mathExpressions[i];
