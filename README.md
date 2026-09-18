@@ -2,6 +2,20 @@
 
 A powerful, client-side web application for rendering Markdown documents with full LaTeX math support. This tool provides a clean, intuitive interface for writing, editing, and rendering Markdown content with mathematical expressions.
 
+## Screenshots
+
+### Editor Input (Dark Theme)
+![Markdown Input editor with Render, Paste & Render, Save to Library actions](screenshots/01-editor-input-dark.png)
+
+### Library & Recent History
+![My Library items, folders, backup/restore, and Recent History list](screenshots/02-library-and-history.png)
+
+### Rendered Output
+![Rendered Markdown output with toolbar, formatting, and diagrams](screenshots/03-rendered-output.png)
+
+### Code Syntax Highlighting
+![Code block with line numbers, syntax highlighting, and copy button](screenshots/04-code-syntax-highlighting.png)
+
 ## Features
 
 ### Core Functionality
@@ -96,6 +110,11 @@ $$
 ```
 Markdown/
 ├── index.html              # Main application entry point
+├── screenshots/            # App screenshots used in README
+│   ├── 01-editor-input-dark.png
+│   ├── 02-library-and-history.png
+│   ├── 03-rendered-output.png
+│   └── 04-code-syntax-highlighting.png
 ├── css/                    # Stylesheets
 │   ├── main.css           # Core application styles
 │   ├── themes.css         # Theme definitions
