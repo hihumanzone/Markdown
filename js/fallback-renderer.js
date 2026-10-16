@@ -75,8 +75,32 @@ class FallbackRenderer {
         let listItems = [];
         let listType = null;
         
+        let inPre = false;
+        
         for (const line of lines) {
             const trimmedLine = line.trim();
+
+            if (inPre) {
+                processedLines.push(line);
+                if (line.includes('</pre>')) {
+                    inPre = false;
+                }
+                continue;
+            }
+
+            if (line.includes('<pre')) {
+                this.finalizePendingBlocks(inBlockquote, blockquoteContent, inList, listItems, listType, processedLines);
+                inBlockquote = false;
+                blockquoteContent = [];
+                inList = false;
+                listItems = [];
+                listType = null;
+                processedLines.push(line);
+                if (!line.includes('</pre>')) {
+                    inPre = true;
+                }
+                continue;
+            }
             
             const bqResult = this.processBlockquote(trimmedLine, inBlockquote, blockquoteContent, processedLines);
             if (bqResult.processed) {
@@ -87,10 +111,10 @@ class FallbackRenderer {
             }
             
             const listResult = this.processList(trimmedLine, inList, listItems, listType, processedLines);
+            inList = listResult.inList;
+            listItems = listResult.listItems;
+            listType = listResult.listType;
             if (listResult.processed) {
-                inList = listResult.inList;
-                listItems = listResult.listItems;
-                listType = listResult.listType;
                 continue;
             }
             

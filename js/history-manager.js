@@ -126,7 +126,9 @@ class HistoryManager {
     
     generateContentBasedSuffix(content, conflictingItems) {
         if (!conflictingItems || conflictingItems.length === 0) {
-            return content ? content.trim().substring(0, 25) : 'content';
+            var raw = content ? content.trim() : '';
+            var clean = typeof Utils !== 'undefined' && Utils.cleanMarkdownText ? Utils.cleanMarkdownText(raw) : raw;
+            return clean ? this.truncateText(clean, 25) : 'content';
         }
         var result = this.findDistinctiveHeader(content, conflictingItems);
         if (result) return this.truncateText(result, 25);
@@ -184,7 +186,10 @@ class HistoryManager {
             var trimmed = lines[i].trim();
             if (trimmed.charAt(0) === '#') {
                 var match = trimmed.match(/^#{1,6}\s+(.+)$/);
-                if (match) headers.push(match[1].trim());
+                if (match) {
+                    var cleanHeader = typeof Utils !== 'undefined' && Utils.cleanMarkdownText ? Utils.cleanMarkdownText(match[1]) : match[1].trim();
+                    if (cleanHeader) headers.push(cleanHeader);
+                }
             }
         }
         return headers;
@@ -197,8 +202,11 @@ class HistoryManager {
         for (var i = 0; i < lines.length; i++) {
             var trimmed = lines[i].trim();
             if (trimmed && trimmed.charAt(0) !== '#' && trimmed.indexOf('```') !== 0 && trimmed.length > 5) {
-                contentLines.push(trimmed);
-                if (contentLines.length >= 3) break;
+                var cleanLine = typeof Utils !== 'undefined' && Utils.cleanMarkdownText ? Utils.cleanMarkdownText(trimmed) : trimmed;
+                if (cleanLine && cleanLine.length > 3) {
+                    contentLines.push(cleanLine);
+                    if (contentLines.length >= 3) break;
+                }
             }
         }
         return contentLines;

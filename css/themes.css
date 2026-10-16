@@ -1,15 +1,19 @@
 /* Dark theme styles */
 body.dark-theme {
     --bg-color: #0d1117;
+    --header-bg: hsla(215, 28%, 10%, 0.9);
     --surface-color: #161b22;
+    --surface-subtle: #1c2128;
     --text-color: #c9d1d9;
     --text-muted-color: #8b949e;
     --border-color: #30363d;
-    --shadow-color: hsla(220, 40%, 5%, 0.3);
+    --border-subtle: #21262d;
+    --shadow-color: hsla(220, 40%, 5%, 0.4);
+    --elevated-shadow: 0 4px 20px hsla(220, 40%, 5%, 0.4);
 }
 
 body.dark-theme code {
-    background-color: rgba(110, 118, 129, 0.4);
+    background-color: rgba(110, 118, 129, 0.35);
     color: #c9d1d9;
 }
 
@@ -22,22 +26,26 @@ body.dark-theme kbd {
 
 /* High contrast theme styles */
 body.high-contrast-theme {
-    --bg-color: #000;
-    --surface-color: #111;
-    --text-color: #fff;
-    --text-muted-color: #ccc;
-    --border-color: #444;
-    --shadow-color: hsla(220, 40%, 5%, 0.5);
+    --bg-color: #000000;
+    --header-bg: rgba(0, 0, 0, 0.95);
+    --surface-color: #111111;
+    --surface-subtle: #1a1a1a;
+    --text-color: #ffffff;
+    --text-muted-color: #cccccc;
+    --border-color: #555555;
+    --border-subtle: #333333;
+    --shadow-color: hsla(0, 0%, 0%, 0.8);
+    --elevated-shadow: 0 4px 20px hsla(0, 0%, 0%, 0.8);
 }
 
 body.high-contrast-theme code {
-    background-color: #222;
-    color: #fff;
+    background-color: #222222;
+    color: #ffffff;
 }
 
 body.high-contrast-theme kbd {
-    background-color: #111;
-    border-color: #555;
-    color: #fff;
-    box-shadow: inset 0 -1px 0 #555;
+    background-color: #111111;
+    border-color: #666666;
+    color: #ffffff;
+    box-shadow: inset 0 -1px 0 #666666;
 }

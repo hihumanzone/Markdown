@@ -179,3 +179,8 @@
 .modal-container-small {
     max-width: 400px;
 }
+
+.modal-container-large {
+    max-width: 680px;
+    width: 92%;
+}

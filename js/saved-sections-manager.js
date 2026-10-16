@@ -339,8 +339,7 @@ class SavedSectionsManager {
         
         try {
             const { content, filename } = await FileManager.readMarkdownFile(file);
-            const sanitizedContent = Utils.sanitizeMarkdown(content);
-            return { content: sanitizedContent, filename };
+            return { content, filename };
         } catch (error) {
             console.error("Error reading file:", error);
             await CustomModal.alert("Error reading file. Please check the console for details.");

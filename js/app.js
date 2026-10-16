@@ -30,7 +30,12 @@ class MarkdownRendererApp {
             importBtn: document.getElementById('importBtn'),
             importFileInput: document.getElementById('importFileInput'),
             savedSectionsList: document.getElementById('savedSectionsList'),
-            historyList: document.getElementById('historyList')
+            historyList: document.getElementById('historyList'),
+            statsWordCount: document.getElementById('statsWordCount'),
+            statsCharCount: document.getElementById('statsCharCount'),
+            sidebarToggleBtn: document.getElementById('sidebarToggleBtn'),
+            workspaceSidebar: document.getElementById('workspaceSidebar'),
+            helpShortcutsBtn: document.getElementById('helpShortcutsBtn')
         };
     }
     
@@ -118,7 +123,12 @@ class MarkdownRendererApp {
                 this.handleRender();
             }
         });
+        this.dom.markdownInput?.addEventListener('input', () => this.updateStats());
+        this.updateStats();
+
         this.dom.importBtn?.addEventListener('click', () => this.dom.importFileInput.click());
+        this.dom.sidebarToggleBtn?.addEventListener('click', () => this.toggleSidebar());
+        this.dom.helpShortcutsBtn?.addEventListener('click', () => CustomModal.open('shortcutsModal'));
 
         window.addEventListener('message', (e) => {
             if (e.data && e.data.type === 'CLOSE_MARKDOWN_PREVIEW') {
@@ -134,11 +144,35 @@ class MarkdownRendererApp {
             }
         });
     }
+
+    updateStats() {
+        const text = this.dom.markdownInput?.value || '';
+        const charCount = text.length;
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        if (this.dom.statsCharCount) {
+            this.dom.statsCharCount.textContent = `${charCount} chars`;
+        }
+        if (this.dom.statsWordCount) {
+            this.dom.statsWordCount.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
+        }
+    }
+
+    toggleSidebar() {
+        if (!this.dom.workspaceSidebar) return;
+        this.dom.workspaceSidebar.classList.toggle('collapsed');
+        const isCollapsed = this.dom.workspaceSidebar.classList.contains('collapsed');
+        if (this.dom.sidebarToggleBtn) {
+            this.dom.sidebarToggleBtn.classList.toggle('active', !isCollapsed);
+            this.dom.sidebarToggleBtn.title = isCollapsed ? 'Show Library & History Panel' : 'Hide Library & History Panel';
+            this.dom.sidebarToggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        }
+    }
     
     initCurrentContentManager() {
         if (this.dom.markdownInput) {
             this.currentContentManager.restoreContent(this.dom.markdownInput);
             this.currentContentManager.setupAutoSave(this.dom.markdownInput);
+            this.updateStats();
         }
     }
 
@@ -149,17 +183,49 @@ class MarkdownRendererApp {
     showPreview(htmlContent, rawMarkdown) {
         this.currentRenderedMarkdown = rawMarkdown || '';
         if (this.dom.previewContainer && this.dom.previewFrame) {
+            // Compute textarea scroll ratio
+            let textareaRatio = 0;
+            if (this.dom.markdownInput) {
+                const max = this.dom.markdownInput.scrollHeight - this.dom.markdownInput.clientHeight;
+                if (max > 0) {
+                    textareaRatio = this.dom.markdownInput.scrollTop / max;
+                }
+            }
+
             this.dom.previewFrame.srcdoc = htmlContent;
             this.dom.previewContainer.classList.add('active');
             this.dom.previewContainer.style.display = 'block';
             if (this.dom.mainContent) {
                 this.dom.mainContent.style.display = 'none';
             }
+
+            // Sync scroll into preview after loading
+            this.dom.previewFrame.onload = () => {
+                try {
+                    const doc = this.dom.previewFrame.contentDocument || this.dom.previewFrame.contentWindow?.document;
+                    const win = this.dom.previewFrame.contentWindow;
+                    if (doc && win && textareaRatio > 0) {
+                        const targetMax = Math.max(1, doc.documentElement.scrollHeight - win.innerHeight);
+                        win.scrollTo({ top: Math.round(textareaRatio * targetMax), behavior: 'instant' });
+                    }
+                } catch (e) {}
+            };
+
             this.dom.previewFrame.focus();
         }
     }
 
     closePreview() {
+        let previewRatio = 0;
+        try {
+            const doc = this.dom.previewFrame?.contentDocument || this.dom.previewFrame?.contentWindow?.document;
+            const win = this.dom.previewFrame?.contentWindow;
+            if (doc && win) {
+                const max = Math.max(1, doc.documentElement.scrollHeight - win.innerHeight);
+                previewRatio = (win.scrollY || doc.documentElement.scrollTop || 0) / max;
+            }
+        } catch (e) {}
+
         if (this.dom.previewContainer) {
             this.dom.previewContainer.classList.remove('active');
             this.dom.previewContainer.style.display = 'none';
@@ -170,8 +236,17 @@ class MarkdownRendererApp {
         if (this.dom.mainContent) {
             this.dom.mainContent.style.display = '';
         }
+
+        if (this.dom.markdownInput && previewRatio > 0) {
+            const textareaMax = this.dom.markdownInput.scrollHeight - this.dom.markdownInput.clientHeight;
+            if (textareaMax > 0) {
+                this.dom.markdownInput.scrollTop = Math.round(previewRatio * textareaMax);
+            }
+        }
+
         this.savedSectionsManager?.renderSavedSections();
         this.dom.markdownInput?.focus();
+        this.updateStats();
     }
 
     getStandaloneRenderedHtml() {
@@ -179,13 +254,14 @@ class MarkdownRendererApp {
         if (!rawMarkdown.trim()) return '';
         
         try {
+            const pageTitle = this.extractTitle(rawMarkdown) || "Rendered Markdown & LaTeX";
             if (typeof marked === 'undefined') {
                 const basicHtml = FallbackRenderer.renderToHtml(rawMarkdown);
                 const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(rawMarkdown);
                 return RenderedPageBuilder.build(
                     basicHtml,
                     rawMarkdown,
-                    "Rendered Markdown & LaTeX (Basic Mode)",
+                    pageTitle,
                     listItems,
                     flatListItems,
                     { isPreview: false }
@@ -199,7 +275,7 @@ class MarkdownRendererApp {
             return RenderedPageBuilder.build(
                 html,
                 rawMarkdown,
-                "Rendered Markdown & LaTeX",
+                pageTitle,
                 listItems,
                 flatListItems,
                 { isPreview: false }
@@ -239,20 +315,20 @@ class MarkdownRendererApp {
     }
     
     extractTitle(content) {
-        const lines = content.split('\n');
+        if (typeof Utils !== 'undefined' && Utils.extractDocumentTitle) {
+            return Utils.extractDocumentTitle(content);
+        }
+        const lines = (content || '').split('\n');
         for (const line of lines) {
             const trimmed = line.trim();
-            if (trimmed.startsWith('# ')) {
-                return trimmed.substring(2).trim();
+            if (trimmed.startsWith('#')) {
+                return trimmed.replace(/^#{1,6}\s+/, '').trim();
             }
-            if (trimmed.startsWith('## ')) {
-                return trimmed.substring(3).trim();
-            }
-            if (trimmed && !trimmed.startsWith('#') && trimmed.length < 100) {
+            if (trimmed && trimmed.length < 100) {
                 return trimmed;
             }
         }
-        return null;
+        return 'Untitled';
     }
     
     async handlePasteAndRender() {
@@ -282,6 +358,7 @@ class MarkdownRendererApp {
     
     async renderMarkdown(markdownText) {
         try {
+            const pageTitle = this.extractTitle(markdownText) || "Rendered Markdown & LaTeX";
             if (typeof marked === 'undefined') {
                 await this.renderWithFallback(markdownText);
                 return;
@@ -294,7 +371,7 @@ class MarkdownRendererApp {
             const fullPageHtml = RenderedPageBuilder.build(
                 html,
                 markdownText,
-                "Rendered Markdown & LaTeX",
+                pageTitle,
                 listItems,
                 flatListItems,
                 { isPreview: true }
@@ -310,13 +387,14 @@ class MarkdownRendererApp {
 
     async renderMarkdownToNewTab(markdownText) {
         try {
+            const pageTitle = this.extractTitle(markdownText) || "Rendered Markdown & LaTeX";
             if (typeof marked === 'undefined') {
                 const basicHtml = FallbackRenderer.renderToHtml(markdownText);
                 const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
                 const fullPageHtml = RenderedPageBuilder.build(
                     basicHtml,
                     markdownText,
-                    "Rendered Markdown & LaTeX (Basic Mode)",
+                    pageTitle + " (Basic Mode)",
                     listItems,
                     flatListItems,
                     { isPreview: false }
@@ -332,7 +410,7 @@ class MarkdownRendererApp {
             const fullPageHtml = RenderedPageBuilder.build(
                 html,
                 markdownText,
-                "Rendered Markdown & LaTeX",
+                pageTitle,
                 listItems,
                 flatListItems,
                 { isPreview: false }
@@ -352,12 +430,13 @@ class MarkdownRendererApp {
             this.fallbackWarningLogged = true;
         }
         
+        const pageTitle = this.extractTitle(markdownText) || "Rendered Markdown & LaTeX";
         const basicHtml = FallbackRenderer.renderToHtml(markdownText);
         const { nested: listItems, flat: flatListItems } = ListItemParser.parseAll(markdownText);
         const fullPageHtml = RenderedPageBuilder.build(
             basicHtml,
             markdownText,
-            "Rendered Markdown & LaTeX (Basic Mode)",
+            pageTitle + " (Basic Mode)",
             listItems,
             flatListItems,
             { isPreview: true }

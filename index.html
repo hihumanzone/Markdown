@@ -6,7 +6,7 @@
     <title>Markdown & LaTeX Renderer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/main.css">
@@ -14,15 +14,56 @@
     <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
+    <!-- Top Header Bar -->
+    <header class="app-header">
+        <div class="header-brand">
+            <span class="brand-logo" aria-hidden="true">✍️</span>
+            <div class="brand-info">
+                <h1 class="brand-title">Markdown & LaTeX</h1>
+                <span class="brand-badge">GFM + Math</span>
+            </div>
+        </div>
+        <div class="header-stats" id="editorStats" aria-label="Document statistics">
+            <span id="statsWordCount" class="stat-pill">0 words</span>
+            <span id="statsCharCount" class="stat-pill">0 chars</span>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggleBtn" class="header-btn" title="Toggle theme (Ctrl/Cmd + T)" aria-label="Toggle Theme">Dark Theme</button>
+            <button id="helpShortcutsBtn" class="header-btn" title="Keyboard Shortcuts & Guide" aria-label="Keyboard Shortcuts & Guide">⌨️ Shortcuts</button>
+            <button id="sidebarToggleBtn" class="header-btn header-btn-primary active" title="Toggle Library & History Sidebar" aria-label="Toggle Library & History" aria-expanded="true">📚 Library</button>
+        </div>
+    </header>
+
     <div class="main-content">
-        <div class="main-area">
-            <h1>Markdown & LaTeX Renderer</h1>
-            <p class="app-subtitle">Write, organize, and render polished Markdown with seamless math support in a faster, cleaner workspace.</p>
-            <div class="input-section">
-                <h2>Markdown Input</h2>
-                <label for="markdownInput">Paste your Markdown (can include LaTeX for math):</label>
-                <textarea id="markdownInput" aria-label="Markdown input area" placeholder="Type or paste Markdown here..." role="textbox" aria-multiline="true">
-# Hello World
+        <main class="workspace-layout">
+            <!-- Left/Center: Editor Area (Main Focus) -->
+            <section class="editor-pane" aria-label="Markdown Editor">
+                <div class="editor-toolbar" role="toolbar" aria-label="Markdown actions">
+                    <div class="toolbar-primary-group">
+                        <button id="renderMarkdownBtn" class="button-primary render-btn" title="Render Markdown (Ctrl/Cmd + Enter)" aria-label="Render Markdown">
+                            <span class="btn-icon">⚡</span> Render Markdown
+                        </button>
+                        <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render" aria-label="Paste and Render">
+                            <span class="btn-icon">📋</span> Paste & Render
+                        </button>
+                        <button id="quickSaveBtn" class="button-secondary" title="Save current content to library" aria-label="Quick Save to Library">
+                            <span class="btn-icon">💾</span> Save to Library
+                        </button>
+                    </div>
+                    <div class="toolbar-secondary-group">
+                        <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" aria-label="Import file input" />
+                        <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file" aria-label="Import File">
+                            <span class="btn-icon">📁</span> Import File
+                        </button>
+                        <button id="clearBtn" class="button-secondary button-danger-subtle" title="Clear the input" aria-label="Clear Input">
+                            <span class="btn-icon">🗑️</span> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="editor-wrapper">
+                    <label for="markdownInput" class="visually-hidden">Markdown input area</label>
+                    <textarea id="markdownInput" aria-label="Markdown input area" placeholder="Type or paste Markdown here... (GFM tables, code blocks, lists, and LaTeX math supported: $E=mc^2$ or $$display$$)" role="textbox" aria-multiline="true"># Hello World
 This is **bold** and _italic_.
 `inline code`
 ```javascript
@@ -57,77 +98,92 @@ $$
 ## Note
 Single dollar signs that should not render math: This product costs $10 only.
 Don't write something like $E=mc^2$ across multiple lines.
-                </textarea>
-                <div class="button-group" role="toolbar" aria-label="Markdown actions">
-                    <button id="renderMarkdownBtn" class="button-primary" title="Render the markdown content" aria-label="Render Markdown">Render Markdown</button>
-                    <button id="pasteAndRenderBtn" class="button-secondary" title="Paste from clipboard and render" aria-label="Paste and Render">Paste & Render</button>
-                    <button id="quickSaveBtn" class="button-secondary" title="Save current content to library" aria-label="Quick Save to Library">💾 Save to Library</button>
-                    <button id="clearBtn" class="button-secondary" title="Clear the input" aria-label="Clear Input">Clear</button>
-                    <input type="file" id="importFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" aria-label="Import file input" />
-                    <button id="importBtn" class="button-secondary" title="Import a local .md, .markdown, or .txt file" aria-label="Import File">Import File</button>
-                    <button id="themeToggleBtn" class="button-secondary" title="Toggle theme (Ctrl/Cmd + T)" aria-label="Toggle Theme">Dark Theme</button>
+</textarea>
                 </div>
-            </div>
-        </div>
-        <div class="workspace-panel" role="complementary" aria-label="Library and history panel">
-            <div class="library-sections">
-                <h3 id="libraryHeading">My Library</h3>
-                <div class="library-actions">
-                    <button id="addSectionBtn" class="modal-button modal-button-primary library-action-btn" aria-label="Add new item to library" title="Add new item">
-                        <span class="btn-icon">+</span> Add Item
-                    </button>
-                    <button id="createFolderBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Create new folder" title="Create folder">
-                        <span class="btn-icon">📁</span> New Folder
-                    </button>
-                    <button id="backupLibraryBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Backup library" title="Backup library">
-                        <span class="btn-icon">💾</span> Backup
-                    </button>
-                    <input type="file" id="restoreLibraryInput" accept=".json,application/json" style="display:none" aria-label="Restore library backup" />
-                    <button id="restoreLibraryBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Restore library from backup" title="Restore library">
-                        <span class="btn-icon">📥</span> Restore
-                    </button>
+            </section>
+
+            <!-- Right: Workspace Sidebar (Library & Recent History) -->
+            <aside id="workspaceSidebar" class="workspace-sidebar" role="complementary" aria-label="Library and history panel">
+                <div class="sidebar-inner">
+                    <div class="sidebar-card library-sections">
+                        <div class="sidebar-card-header">
+                            <h3 id="libraryHeading">📚 My Library</h3>
+                        </div>
+                        <div class="library-actions">
+                            <button id="addSectionBtn" class="modal-button modal-button-primary library-action-btn" aria-label="Add new item to library" title="Add new item">
+                                <span class="btn-icon">+</span> Add Item
+                            </button>
+                            <button id="createFolderBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Create new folder" title="Create folder">
+                                <span class="btn-icon">📁</span> Folder
+                            </button>
+                            <button id="backupLibraryBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Backup library" title="Backup library">
+                                <span class="btn-icon">💾</span> Backup
+                            </button>
+                            <input type="file" id="restoreLibraryInput" accept=".json,application/json" style="display:none" aria-label="Restore library backup" />
+                            <button id="restoreLibraryBtn" class="modal-button modal-button-secondary library-action-btn" aria-label="Restore library from backup" title="Restore library">
+                                <span class="btn-icon">📥</span> Restore
+                            </button>
+                        </div>
+                        <div id="savedSectionsList" class="sections-list" role="list" aria-labelledby="libraryHeading">
+                            <div class="empty-state">No saved sections yet</div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-card recent-history">
+                        <div class="sidebar-card-header">
+                            <h3 id="historyHeading">🕒 Recent History</h3>
+                        </div>
+                        <div id="historyList" class="history-list" role="list" aria-labelledby="historyHeading">
+                            <div class="empty-state">No recent history</div>
+                        </div>
+                    </div>
                 </div>
-                <div id="savedSectionsList" class="sections-list" role="list" aria-labelledby="libraryHeading">
-                    <div class="empty-state">No saved sections yet</div>
-                </div>
-            </div>
-            <div class="recent-history" style="margin-top: 1.5rem;">
-                <h3 id="historyHeading">Recent History</h3>
-                <div id="historyList" class="history-list" role="list" aria-labelledby="historyHeading">
-                    <div class="empty-state">No recent history</div>
-                </div>
-            </div>
-        </div>
-        <div class="info">
-            <p><strong>How it works:</strong></p>
-            <ul>
-                <li>Markdown rendering via <strong>Marked.js</strong>. LaTeX is preserved.</li>
-                <li><strong>Syntax highlighting, line numbers & one-click copy buttons</strong> for code blocks via <strong>Prism.js</strong>.</li>
-                <li>LaTeX math rendering via <strong>KaTeX</strong> in the new tab (<code>$...$</code>, <code>$$...$$</code>, <code>\(...\)</code>, <code>\[...\]</code>).</li>
-                <li><strong>Font size controls</strong>, theme toggle, save-as-PDF, export as .md, and export as high-quality PNG are available in the rendered output tab.</li>
-                <li><strong>Long press on list items</strong> to copy their content to clipboard.</li>
-                <li>Previews instantly in the same tab with options to open in a new tab or close and return to the editor.</li>
-            </ul>
-            
-            <p><strong>Keyboard Navigation:</strong></p>
-            <ul>
-                <li><kbd>Ctrl/Cmd + T</kbd> - Toggle theme</li>
-                <li><kbd>Ctrl/Cmd + R</kbd> - Toggle between rendered and raw view</li>
-                <li><kbd>Ctrl/Cmd + P</kbd> - Save as PDF</li>
-                <li><kbd>Ctrl/Cmd + +</kbd> - Increase font size</li>
-                <li><kbd>Ctrl/Cmd + -</kbd> - Decrease font size</li>
-                <li><kbd>Ctrl/Cmd + 0</kbd> - Reset font size</li>
-                <li><kbd>F11</kbd> - Toggle fullscreen</li>
-                <li><kbd>Tab</kbd> - Navigate between interactive elements</li>
-                <li><kbd>Enter</kbd> - Activate buttons and save modal content</li>
-                <li><kbd>Escape</kbd> - Close active modals / preview</li>
-            </ul>
-        </div>
+            </aside>
+        </main>
     </div>
 
     <!-- Same-tab Preview Container -->
     <div id="previewContainer" class="preview-container" style="display: none;" aria-label="Rendered Markdown Preview">
         <iframe id="previewFrame" class="preview-frame" title="Rendered Markdown Preview"></iframe>
+    </div>
+
+    <!-- Shortcuts & Help Modal -->
+    <div id="shortcutsModal" class="modal-overlay" role="dialog" aria-labelledby="shortcutsModalTitle" aria-modal="true">
+        <div class="modal-container modal-container-large">
+            <div class="modal-header">
+                <h3 class="modal-title" id="shortcutsModalTitle">Markdown & LaTeX Guide</h3>
+                <button class="modal-close" data-close-modal="shortcutsModal" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-content shortcuts-modal-content">
+                <div class="shortcuts-section">
+                    <h4>Keyboard Shortcuts</h4>
+                    <div class="shortcuts-grid">
+                        <div class="shortcut-item"><kbd>Ctrl/Cmd + Enter</kbd> <span>Render Markdown</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl/Cmd + T</kbd> <span>Toggle Theme</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl/Cmd + R</kbd> <span>Toggle Rendered / Raw View</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl/Cmd + P</kbd> <span>Save as PDF</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl/Cmd + +</kbd> <span>Increase Font Size</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl/Cmd + -</kbd> <span>Decrease Font Size</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl/Cmd + 0</kbd> <span>Reset Font Size</span></div>
+                        <div class="shortcut-item"><kbd>F11</kbd> <span>Toggle Fullscreen</span></div>
+                        <div class="shortcut-item"><kbd>Escape</kbd> <span>Close Preview / Modals</span></div>
+                    </div>
+                </div>
+                <div class="shortcuts-section">
+                    <h4>Features & Syntax</h4>
+                    <ul class="features-list">
+                        <li><strong>GitHub Flavored Markdown:</strong> Headings, tables, checklists, blockquotes, syntax-highlighted code blocks.</li>
+                        <li><strong>LaTeX Math Support:</strong> Inline math using <code>$E = mc^2$</code> or <code>\( \alpha + \beta \)</code>; display math using <code>$$ \sum_{i=0}^n i $$</code> or <code>\[ \text{H}_2\text{O} \]</code>.</li>
+                        <li><strong>Code Syntax Highlighting:</strong> Prism.js syntax coloring, numbered lines, and one-click copy buttons for multiple languages.</li>
+                        <li><strong>Export Capabilities:</strong> Print / Save as PDF with custom filenames, export as Markdown (.md), or high-res PNG image.</li>
+                        <li><strong>My Library & History:</strong> Categorize sections into folders, tag with color labels, backup/restore JSON, and access recent history items.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button modal-button-primary" data-close-modal="shortcutsModal">Got it</button>
+            </div>
+        </div>
     </div>
 
     <!-- Custom Modals -->

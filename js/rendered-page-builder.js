@@ -1346,10 +1346,27 @@ class CustomModal {
         return filename.toLowerCase().endsWith(extension) ? filename : filename + extension;
     }
 
+    static cleanMarkdown(text) {
+        if (!text) return '';
+        return text
+            .replace(/<[^>]+>/g, '')
+            .replace(/!\\[(.*?)\\]\\(.*?\\)/g, '$1')
+            .replace(/\\[(.*?)\\]\\(.*?\\)/g, '$1')
+            .replace(/\\*\\*(.*?)\\*\\*/g, '$1')
+            .replace(/__(.*?)__/g, '$1')
+            .replace(/\\*(.*?)\\*/g, '$1')
+            .replace(/_(.*?)_/g, '$1')
+            .replace(/~~(.*?)~~/g, '$1')
+            .replace(/\\x60+([^\\x60]+)\\x60+/g, '$1')
+            .replace(/^#{1,6}\\s+/gm, '')
+            .replace(/\\s+/g, ' ')
+            .trim();
+    }
+
     static extractTitleFromMarkdown(markdown = '') {
-        const headingMatch = markdown.match(/^#\\s+(.+)$/m);
+        const headingMatch = markdown.match(/^#{1,6}\\s+(.+)$/m);
         if (headingMatch && headingMatch[1]) {
-            return headingMatch[1].trim();
+            return this.cleanMarkdown(headingMatch[1]);
         }
         return '';
     }
@@ -1813,18 +1830,25 @@ class ViewToggleController {
     init() {
         if (!this.toggleBtn || !this.contentContainer || !this.rawContainer) return;
         this.toggleBtn.addEventListener('click', () => this.toggle());
-        this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered');
+        this.applyViewMode(localStorage.getItem(this.lsKey) || 'rendered', false);
     }
     
     toggle() {
-        const current = this.contentContainer.style.display !== 'none' ? 'rendered' : 'raw';
-        this.applyViewMode(current === 'rendered' ? 'raw' : 'rendered');
+        const isRendered = this.contentContainer.style.display !== 'none';
+        this.applyViewMode(isRendered ? 'raw' : 'rendered', true);
     }
     
-    applyViewMode(mode) {
+    applyViewMode(mode, preserveScroll = false) {
+        let scrollRatio = 0;
+        if (preserveScroll) {
+            const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
+            const currentMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+            scrollRatio = Math.min(1, Math.max(0, currentScroll / currentMax));
+        }
+
         if (mode === 'raw') {
-            this.contentContainer.style.display = 'none'; 
             this.rawContainer.style.display = 'block';
+            this.contentContainer.style.display = 'none'; 
             this.toggleBtn.textContent = 'Rendered'; 
             this.toggleBtn.title = 'Show Rendered View';
         } else {
@@ -1833,6 +1857,17 @@ class ViewToggleController {
             this.toggleBtn.textContent = 'Raw'; 
             this.toggleBtn.title = 'Show Raw Markdown';
         }
+
+        if (preserveScroll) {
+            const restore = () => {
+                const newMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+                const targetY = Math.round(scrollRatio * newMax);
+                window.scrollTo({ top: targetY, behavior: 'instant' });
+            };
+            restore();
+            requestAnimationFrame(restore);
+        }
+
         localStorage.setItem(this.lsKey, mode);
     }
 }`;
@@ -2007,20 +2042,63 @@ class SavePdfController {
         
         const sanitizedFilename = CustomModal.sanitizeFilename(filename, defaultFilename);
         
-        // Set document title so browser's "Save as PDF" dialog uses it
+        // Strip trailing .pdf if entered, since browser's print-to-PDF will append .pdf automatically
+        const printTitle = sanitizedFilename.replace(/\.pdf$/i, '').trim() || 'document';
+        
+        // Save original document titles (both iframe and parent/top if in iframe)
         const originalTitle = document.title;
-        document.title = sanitizedFilename;
+        let originalParentTitle = null;
+        let originalTopTitle = null;
+
+        try {
+            if (window.parent && window.parent !== window && window.parent.document) {
+                originalParentTitle = window.parent.document.title;
+                window.parent.document.title = printTitle;
+            }
+        } catch (e) {}
+
+        try {
+            if (window.top && window.top !== window && window.top !== window.parent && window.top.document) {
+                originalTopTitle = window.top.document.title;
+                window.top.document.title = printTitle;
+            }
+        } catch (e) {}
+
+        document.title = printTitle;
         
         this.preparePrint();
-        this.controlsPanel.style.display = 'none';
+        if (this.controlsPanel) {
+            this.controlsPanel.style.display = 'none';
+        }
+
+        let isCleanedUp = false;
+        const cleanupAfterPrint = () => {
+            if (isCleanedUp) return;
+            isCleanedUp = true;
+            document.title = originalTitle;
+            try {
+                if (originalParentTitle !== null && window.parent?.document) {
+                    window.parent.document.title = originalParentTitle;
+                }
+            } catch (e) {}
+            try {
+                if (originalTopTitle !== null && window.top?.document) {
+                    window.top.document.title = originalTopTitle;
+                }
+            } catch (e) {}
+            if (this.controlsPanel) {
+                this.controlsPanel.style.display = '';
+            }
+            this.cleanupPrint();
+            window.removeEventListener('afterprint', cleanupAfterPrint);
+        };
+
+        window.addEventListener('afterprint', cleanupAfterPrint);
 
         setTimeout(() => { 
             window.print(); 
-            setTimeout(() => { 
-                this.controlsPanel.style.display = ''; 
-                document.title = originalTitle; // Restore original title
-                this.cleanupPrint();
-            }, 150); 
+            // Fallback timeout in case afterprint does not fire in some environments
+            setTimeout(cleanupAfterPrint, 3000);
         }, 50);
     }
 }`;

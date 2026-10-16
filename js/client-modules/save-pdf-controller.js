@@ -48,20 +48,63 @@ class SavePdfController {
         
         const sanitizedFilename = CustomModal.sanitizeFilename ? CustomModal.sanitizeFilename(filename, defaultFilename) : (filename.trim().replace(/[<>:"/\\|?*]/g, '_') || defaultFilename);
         
-        // Set document title so browser's "Save as PDF" dialog uses it
+        // Strip trailing .pdf if entered, since browser's print-to-PDF will append .pdf automatically
+        const printTitle = sanitizedFilename.replace(/\.pdf$/i, '').trim() || 'document';
+        
+        // Save original document titles (both iframe and parent/top if in iframe)
         const originalTitle = document.title;
-        document.title = sanitizedFilename;
+        let originalParentTitle = null;
+        let originalTopTitle = null;
+
+        try {
+            if (window.parent && window.parent !== window && window.parent.document) {
+                originalParentTitle = window.parent.document.title;
+                window.parent.document.title = printTitle;
+            }
+        } catch (e) {}
+
+        try {
+            if (window.top && window.top !== window && window.top !== window.parent && window.top.document) {
+                originalTopTitle = window.top.document.title;
+                window.top.document.title = printTitle;
+            }
+        } catch (e) {}
+
+        document.title = printTitle;
         
         this.preparePrint();
-        this.controlsPanel.style.display = 'none';
+        if (this.controlsPanel) {
+            this.controlsPanel.style.display = 'none';
+        }
+
+        let isCleanedUp = false;
+        const cleanupAfterPrint = () => {
+            if (isCleanedUp) return;
+            isCleanedUp = true;
+            document.title = originalTitle;
+            try {
+                if (originalParentTitle !== null && window.parent?.document) {
+                    window.parent.document.title = originalParentTitle;
+                }
+            } catch (e) {}
+            try {
+                if (originalTopTitle !== null && window.top?.document) {
+                    window.top.document.title = originalTopTitle;
+                }
+            } catch (e) {}
+            if (this.controlsPanel) {
+                this.controlsPanel.style.display = '';
+            }
+            this.cleanupPrint();
+            window.removeEventListener('afterprint', cleanupAfterPrint);
+        };
+
+        window.addEventListener('afterprint', cleanupAfterPrint);
 
         setTimeout(() => { 
-            window.print(); 
-            setTimeout(() => { 
-                this.controlsPanel.style.display = ''; 
-                document.title = originalTitle; // Restore original title
-                this.cleanupPrint();
-            }, 150); 
+            window.print();
+            // Fallback timeout in case afterprint does not fire in some environments
+            setTimeout(cleanupAfterPrint, 3000);
         }, 50);
     }
 
