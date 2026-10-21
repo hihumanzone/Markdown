@@ -21,21 +21,24 @@
     background-color: var(--surface-color);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 2rem;
+    padding: 1.75rem;
     max-width: 500px;
     width: 90%;
-    max-height: 80vh;
+    max-height: 85vh;
     box-shadow: 0 8px 32px var(--shadow-color);
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .modal-title {
@@ -62,13 +65,35 @@
 }
 
 .modal-content {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
 }
 
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle, var(--border-color));
+    flex-shrink: 0;
 }
 
 .modal-input {
@@ -90,7 +115,7 @@
 
 .modal-textarea {
     width: 100%;
-    min-height: 200px;
+    min-height: 140px;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 6px;
@@ -183,4 +208,88 @@
 .modal-container-large {
     max-width: 680px;
     width: 92%;
+}
+
+
+/* Import Section inside Modals */
+.import-section {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border-color);
+}
+
+.import-button {
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    background-color: var(--surface-subtle, var(--bg-color));
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--text-color);
+    text-align: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    line-height: 1.35;
+    box-sizing: border-box;
+    user-select: none;
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: inherit;
+}
+
+.import-button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.import-button-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.import-button-title {
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.import-button small,
+.import-button .import-button-subtitle {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--text-muted-color);
+    transition: color 0.2s ease;
+}
+
+.import-button:hover {
+    border-color: var(--primary-color);
+    background-color: hsla(var(--primary-color-hsl, 220, 85%, 55%), 0.08);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.import-button:hover small,
+.import-button:hover .import-button-subtitle {
+    color: var(--primary-color);
+}
+
+.import-button:focus-visible {
+    outline: none;
+    border-color: var(--primary-color);
+    border-style: solid;
+    box-shadow: 0 0 0 3px var(--primary-focus-shadow);
+}
+
+.import-button:active {
+    transform: translateY(0);
+    box-shadow: none;
 }

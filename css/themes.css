@@ -1,5 +1,6 @@
 /* Dark theme styles */
-body.dark-theme {
+body.dark-theme,
+.dark-theme {
     --bg-color: #0d1117;
     --header-bg: hsla(215, 28%, 10%, 0.9);
     --surface-color: #161b22;
@@ -12,12 +13,14 @@ body.dark-theme {
     --elevated-shadow: 0 4px 20px hsla(220, 40%, 5%, 0.4);
 }
 
-body.dark-theme code {
+body.dark-theme code,
+.dark-theme code {
     background-color: rgba(110, 118, 129, 0.35);
     color: #c9d1d9;
 }
 
-body.dark-theme kbd {
+body.dark-theme kbd,
+.dark-theme kbd {
     background-color: #21262d;
     border-color: #30363d;
     color: #c9d1d9;
@@ -25,7 +28,8 @@ body.dark-theme kbd {
 }
 
 /* High contrast theme styles */
-body.high-contrast-theme {
+body.high-contrast-theme,
+.high-contrast-theme {
     --bg-color: #000000;
     --header-bg: rgba(0, 0, 0, 0.95);
     --surface-color: #111111;
@@ -38,14 +42,45 @@ body.high-contrast-theme {
     --elevated-shadow: 0 4px 20px hsla(0, 0%, 0%, 0.8);
 }
 
-body.high-contrast-theme code {
+body.high-contrast-theme code,
+.high-contrast-theme code {
     background-color: #222222;
     color: #ffffff;
 }
 
-body.high-contrast-theme kbd {
+body.high-contrast-theme kbd,
+.high-contrast-theme kbd {
     background-color: #111111;
     border-color: #666666;
     color: #ffffff;
     box-shadow: inset 0 -1px 0 #666666;
+}
+
+body.high-contrast-theme .import-button,
+.high-contrast-theme .import-button {
+    border: 2px dashed #ffffff;
+    background-color: #111111;
+    color: #ffffff;
+}
+
+body.high-contrast-theme .import-button:hover,
+.high-contrast-theme .import-button:hover {
+    background-color: #222222;
+    border-style: solid;
+    border-color: #ffff00;
+    color: #ffff00;
+}
+
+body.high-contrast-theme .import-button small,
+body.high-contrast-theme .import-button .import-button-subtitle,
+.high-contrast-theme .import-button small,
+.high-contrast-theme .import-button .import-button-subtitle {
+    color: #cccccc;
+}
+
+body.high-contrast-theme .import-button:hover small,
+body.high-contrast-theme .import-button:hover .import-button-subtitle,
+.high-contrast-theme .import-button:hover small,
+.high-contrast-theme .import-button:hover .import-button-subtitle {
+    color: #ffff00;
 }

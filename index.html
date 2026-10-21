@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown & LaTeX Renderer</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -213,9 +218,12 @@ Don't write something like $E=mc^2$ across multiple lines.
                 
                 <div class="import-section">
                     <input type="file" id="modalImportFileInput" accept=".md,.markdown,.txt,text/markdown" style="display:none" aria-label="Import markdown file" />
-                    <button id="modalImportBtn" class="import-button" aria-label="Import markdown file">
-                        📁 Import Markdown File
-                        <br><small>File name will be used as title</small>
+                    <button type="button" id="modalImportBtn" class="import-button" aria-label="Import markdown file">
+                        <span class="import-button-content">
+                            <span class="import-button-icon" aria-hidden="true">📁</span>
+                            <span class="import-button-title">Import Markdown File</span>
+                            <small class="import-button-subtitle">File name will be used as title</small>
+                        </span>
                     </button>
                 </div>
             </div>
